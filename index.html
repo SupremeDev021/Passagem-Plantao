@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desenvolvendo Pessoas - T.I Hospitalar</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <div id="login-container" class="container">
+        <div class="logo-area">
+            <h2>Desenvolvendo Pessoas</h2>
+            <p>Acesso ao Sistema de Plantão</p>
+        </div>
+        <input type="email" id="login-email" placeholder="E-mail Corporativo" required>
+        <input type="password" id="login-senha" placeholder="Senha" required>
+        <button onclick="realizarLogin()" class="btn-primary">Entrar</button>
+    </div>
+
+    <div id="app-container" class="container hidden">
+        <header>
+            <div>
+                <h1 id="user-name">Carregando...</h1>
+                <span id="user-role" class="badge">Operacional</span>
+            </div>
+            <button onclick="fazerLogout()" class="btn-danger">Sair</button>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" onclick="abrirAba('aba-plantao')">📋 Plantão</button>
+            <button class="tab-btn" onclick="abrirAba('aba-chaves')">🔑 Chaves</button>
+            <button class="tab-btn" onclick="abrirAba('aba-ocorrencias')">⚠️ Ocorrências</button>
+            <button class="tab-btn" onclick="abrirAba('aba-toner')">🖨️ Toner/Imp.</button>
+            <button id="btn-admin" class="tab-btn hidden" onclick="abrirAba('aba-admin')">⚙️ Admin</button>
+        </nav>
+
+        <section id="aba-plantao" class="tab-content active">
+            <h3>Registro de Plantão</h3>
+            <form id="form-plantao">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hora que assumiu:</label>
+                        <input type="datetime-local" id="p_hora_assumiu" required>
+                    </div>
+                </div>
+
+                <div class="form-group question-group">
+                    <label>Todos os e-mails respondidos?</label>
+                    <select id="p_emails" onchange="toggleCondicional('p_emails', 'div_m_emails', 'nao')">
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
+                    </select>
+                    <div id="div_m_emails" class="condicional hidden">
+                        <label>Quais e quantos são? Motivo de não ter respondido:</label>
+                        <textarea id="p_motivo_emails"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group question-group">
+                    <label>Algum chamado pendente?</label>
+                    <select id="p_chamados" onchange="toggleCondicional('p_chamados', 'div_m_chamados', 'sim')">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim</option>
+                    </select>
+                    <div id="div_m_chamados" class="condicional hidden">
+                        <label>Quais e quantos são? Motivo da pendência:</label>
+                        <textarea id="p_motivo_chamados"></textarea>
+                    </div>
+                </div>
+
+                <div class="signature-section">
+                    <label>Assinatura Digital (Obrigatória):</label>
+                    <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
+                    <div class="sig-buttons">
+                        <button type="button" onclick="limparCanvas('canvas-plantao')">Limpar</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-success" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
+            </form>
+        </section>
+
+        <section id="aba-chaves" class="tab-content hidden">
+            <h3>Retirada e Devolução</h3>
+            
+            <div class="card-chave">
+                <h4>Retirar Chave</h4>
+                <select id="select-chaves-disponiveis">
+                    <option value="">Carregando chaves...</option>
+                </select>
+                <div class="signature-section">
+                    <label>Assinatura (Retirada):</label>
+                    <canvas id="canvas-retirada" class="sig-canvas" width="400" height="150"></canvas>
+                    <button type="button" onclick="limparCanvas('canvas-retirada')">Limpar</button>
+                </div>
+                <button type="button" class="btn-primary" onclick="registrarChave('retirada')">Registrar Retirada</button>
+            </div>
+
+            <hr>
+
+            <div class="card-chave">
+                <h4>Devolver Chave</h4>
+                <select id="select-chaves-retiradas">
+                    </select>
+                <div class="signature-section">
+                    <label>Assinatura (Devolução):</label>
+                    <canvas id="canvas-devolucao" class="sig-canvas" width="400" height="150"></canvas>
+                    <button type="button" onclick="limparCanvas('canvas-devolucao')">Limpar</button>
+                </div>
+                <button type="button" class="btn-primary" onclick="registrarChave('devolucao')">Registrar Devolução</button>
+            </div>
+        </section>
+
+        <section id="aba-ocorrencias" class="tab-content hidden">
+            <h3>Gestão de Ocorrências</h3>
+            <button class="btn-primary" onclick="document.getElementById('form-nova-ocorrencia').classList.toggle('hidden')">+ Nova Ocorrência</button>
+            
+            <form id="form-nova-ocorrencia" class="hidden mt-20">
+                <div class="form-group"><label>Qual a ocorrência?</label><textarea id="o_desc"></textarea></div>
+                <div class="form-group"><label>Solução Proposta/Aplicada:</label><textarea id="o_solucao"></textarea></div>
+                <div class="form-group"><label>Prazo para solução:</label><input type="date" id="o_prazo"></div>
+                <div class="form-group"><label>Responsável por acompanhar:</label><input type="text" id="o_resp"></div>
+                
+                <div class="signature-section">
+                    <label>Sua Assinatura:</label>
+                    <canvas id="canvas-ocorrencia" class="sig-canvas" width="400" height="150"></canvas>
+                </div>
+                <button type="button" class="btn-success" onclick="salvarOcorrencia()">Salvar Ocorrência</button>
+            </form>
+
+            <div id="lista-ocorrencias" class="mt-20">
+                </div>
+        </section>
+
+        <section id="aba-toner" class="tab-content hidden"><h3>Toner e Impressoras</h3></section>
+        
+        <section id="aba-admin" class="tab-content hidden">
+            <h3>Painel de Supervisão e Gestão</h3>
+            
+            <div class="admin-grid">
+                <div class="admin-card">
+                    <h4>Visto da Supervisão</h4>
+                    <p>Plantoes aguardando assinatura.</p>
+                    <div id="plantoes-pendentes"></div>
+                </div>
+                
+                <div class="admin-card">
+                    <h4>Exportar Relatórios</h4>
+                    <input type="date" id="export-inicio"> até <input type="date" id="export-fim">
+                    <button class="btn-primary mt-10" onclick="exportarPDF()">Exportar PDF</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="signature.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
