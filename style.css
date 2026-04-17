@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap');
+
+:root {
+    --azul-prefeitura: #004D85;
+    --azul-ciano: #00C1D5;
+    --azul-sus: #003087;
+    --sucesso: #28a745;
+    --erro: #dc3545;
+    --alerta: #ffc107;
+    --bg-clinico: #f0f4f8;
+    --branco: #ffffff;
+    --texto: #333333;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    background-color: var(--bg-clinico);
+    color: var(--texto);
+    padding: 20px;
+}
+
+h1, h2, h3, h4 { font-family: 'Montserrat', sans-serif; color: var(--azul-prefeitura); margin-bottom: 15px;}
+
+.container {
+    max-width: 900px; margin: 0 auto;
+    background: var(--branco); padding: 30px;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-top: 5px solid var(--azul-ciano);
+}
+
+.hidden { display: none !important; }
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+
+header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;}
+.badge { background: var(--azul-ciano); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
+
+/* Navegação */
+.tabs { display: flex; gap: 5px; border-bottom: 2px solid var(--azul-ciano); flex-wrap: wrap; margin-bottom: 20px;}
+.tab-btn { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666;}
+.tab-btn.active { background: var(--azul-ciano); color: white; border-radius: 8px 8px 0 0; }
+#btn-admin { margin-left: auto; background: #e9ecef; }
+#btn-admin.active { background: var(--azul-prefeitura); color: white; }
+
+/* Formulários */
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--azul-prefeitura); }
+select, input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+.condicional { margin-top: 10px; padding: 15px; background: #fff9e6; border-left: 4px solid var(--alerta); }
+
+/* Assinatura Canvas */
+.signature-section { margin-top: 20px; text-align: center; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;}
+.sig-canvas { border: 2px dashed var(--azul-ciano); background: white; cursor: crosshair; touch-action: none; width: 100%; max-width: 400px; }
+
+/* Botões */
+button { font-family: 'Montserrat', sans-serif; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; padding: 10px 15px; transition: 0.3s;}
+.btn-primary { background: var(--azul-prefeitura); color: white; }
+.btn-success { background: var(--sucesso); color: white; width: 100%; font-size: 1.1rem; padding: 15px;}
+.btn-danger { background: var(--erro); color: white; }
+
+/* Grid Admin */
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.admin-card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+
+@media (max-width: 768px) {
+    .tabs { flex-direction: column; }
+    #btn-admin { margin-left: 0; }
+    .admin-grid { grid-template-columns: 1fr; }
+}
