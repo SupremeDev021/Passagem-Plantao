@@ -1,52 +1,28 @@
-const express = require('express');
-const cors = require('cors');
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+// Configuração do Supabase (Insira suas chaves aqui)
+const supabaseUrl = 'SUA_URL_DO_SUPABASE';
+const supabaseKey = 'SUA_CHAVE_ANON_PUBLICA';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+// Função para alternar abas
+function abrirAba(idAba) {
+    document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    document.getElementById(idAba).classList.remove('hidden');
+    event.currentTarget.classList.add('active');
+}
 
-// Configuração do Nodemailer (Substitua pelos dados SMTP reais do seu provedor)
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: true,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+// Lógica de campos condicionais
+function verificarCondicional(selectId, divMotivoId, condicaoAtivacao) {
+    const valorSelect = document.getElementById(selectId).value;
+    const divMotivo = document.getElementById(divMotivoId);
+    
+    if (valorSelect === condicaoAtivacao) {
+        divMotivo.classList.remove('hidden');
+        divMotivo.querySelector('textarea').required = true;
+    } else {
+        divMotivo.classList.add('hidden');
+        divMotivo.querySelector('textarea').required = false;
+        divMotivo.querySelector('textarea').value = '';
     }
-});
-
-// Rota para notificar supervisão
-app.post('/api/notificar-supervisao', async (req, res) => {
-    const { plantaoId, usuarioNome, linkVisualizacao } = req.body;
-
-    try {
-        await transporter.sendMail({
-            from: '"Sistema de Plantão" <noreply@seusistema.com>',
-            to: 'suporteandarai@prefeitura.rio', // Email da supervisão definido na regra
-            subject: `Novo Plantão Registrado - ${usuarioNome}`,
-            html: `
-                <h3>Passagem de Plantão Registrada</h3>
-                <p>O profissional <b>${usuarioNome}</b> finalizou e assinou o plantão.</p>
-                <p>ID do Registro: ${plantaoId}</p>
-                <br>
-                <a href="${linkVisualizacao}">Clique aqui para dar o Visto da Supervisão</a>
-            `
-        });
-        res.status(200).json({ message: 'E-mail enviado com sucesso para suporteandarai@prefeitura.rio' });
-    } catch (error) {
-        console.error('Erro ao enviar e-mail:', error);
-        res.status(500).json({ error: 'Falha no envio do e-mail' });
-    }
-});
-
-// Endpoint base para gerar PDF (Pode integrar PDFKit aqui)
-app.get('/api/exportar-pdf', (req, res) => {
-    // Lógica de exportação SQL -> PDF
-    res.send('Endpoint de PDF rodando');
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend rodando na porta ${PORT}`));
+}
