@@ -2,8 +2,8 @@
 
 /* Background especial para a tela de login */
 body.login-bg {
-    background: url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop') no-repeat center center fixed;
-    background-size: cover;
+    background: url("fundo.jpg") no-repeat center center fixed;
+    background-size: cover; /* Isso faz a imagem ocupar a tela toda sem distorcer */
     display: flex;
     justify-content: center;
     align-items: center;
