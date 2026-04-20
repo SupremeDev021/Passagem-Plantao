@@ -1,3 +1,12 @@
+João, percebi um detalhe crítico no código que você enviou: ao colar as funções novas, as funções da tabela de permissões (`carregarTabelaUsuarios`, `alterarNivelAcesso`, etc.) acabaram ficando **presas dentro** da função `adminCriarUsuario`. 
+
+No JavaScript, colocar uma função dentro de outra (nesse contexto) "quebra" o código, fazendo com que os botões não a encontrem.
+
+Eu fiz a limpeza completa, separei tudo nos devidos lugares e garanti que a regra de atualizar a tabela ao abrir o modal esteja lá. 
+
+Pode copiar este bloco com segurança e **substituir 100% do seu arquivo `app.js`**:
+
+```javascript
 // ==========================================
 // TROCA DE ABAS E MODAIS
 // ==========================================
@@ -12,6 +21,11 @@ function abrirAba(idAba) {
 // Controle de Modais (Janelas Flutuantes)
 function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
+    
+    // Se abrir o modal de permissões, carrega a tabela automaticamente
+    if (idModal === 'modal-permissoes') {
+        carregarTabelaUsuarios();
+    }
 }
 
 function fecharModal(idModal) {
@@ -172,12 +186,11 @@ async function marcarChamadoAtendido(chamadoId) {
 }
 
 // ==========================================
-// ADMIN: FUNÇÕES DE CADASTRO (LÓGICA DOS MODAIS)
+// ADMIN: FUNÇÕES DE CADASTRO E USUÁRIOS
 // ==========================================
 
-// 1. Criar Usuário (Chama uma função segura no servidor)
+// 1. Criar Usuário (Chama uma função segura no servidor via RPC)
 async function adminCriarUsuario() {
-    // 1. Pega os valores dos campos (IDs que ajustamos no HTML)
     const nome = document.getElementById('cad_nome').value;
     const turno = document.getElementById('cad_turno').value;
     const celular = document.getElementById('cad_celular').value;
@@ -185,13 +198,11 @@ async function adminCriarUsuario() {
     const email = document.getElementById('cad_email').value;
     const senha = document.getElementById('cad_senha').value;
 
-    // Validação simples
     if (!nome || !email || !senha || !turno) {
         return alert('Por favor, preencha Nome, E-mail, Senha e Turno.');
     }
 
     try {
-        // 2. Chama a "Chave Mestra" (RPC) que criamos no SQL
         const { error } = await supabase.rpc('admin_criar_usuario', {
             p_email: email,
             p_senha: senha,
@@ -205,64 +216,96 @@ async function adminCriarUsuario() {
 
         alert(`Sucesso! O usuário ${nome} foi criado.`);
         
-        // 3. Limpa o formulário e fecha a janela
         document.getElementById('form-novo-usuario').reset();
         fecharModal('modal-usuario');
         
-        // Opcional: recarregar a tabela de permissões se ela estiver aberta
-       // 1. Função para carregar a lista de usuários na tabela de permissões
-async function carregarTabelaUsuarios() {
-    const { data: usuarios, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('nome', { ascending: true });
-
-    if (error) return console.error(error);
-
-    const tabela = document.getElementById('tabela-usuarios-admin');
-    tabela.innerHTML = usuarios.map(user => `
-        <tr>
-            <td>${user.nome}</td>
-            <td>${user.email}</td>
-            <td>
-                <select onchange="alterarNivelAcesso('${user.id}', this.value)" class="btn-sm">
-                    <option value="operacional" ${user.role === 'operacional' ? 'selected' : ''}>Operacional</option>
-                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                </select>
-            </td>
-            <td>
-                <button class="btn-primary btn-sm" onclick="prepararEdicaoUsuario('${user.id}')">Alterar Dados</button>
-                <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// 2. Função para alterar apenas o nível (Admin/Operacional) rápido
-async function alterarNivelAcesso(userId, novoRole) {
-    const { error } = await supabase
-        .from('profiles')
-        .update({ role: novoRole })
-        .eq('id', userId);
-
-    if (error) alert("Erro ao mudar nível: " + error.message);
-    else alert("Nível de acesso atualizado!");
-}
-
-// 3. Preparar edição (Aqui você pode abrir o mesmo modal de cadastro, mas modo edição)
-function prepararEdicaoUsuario(userId) {
-    // Para simplificar, você pode usar um prompt ou criar um modal específico de edição.
-    // Dica: Use o mesmo modal-usuario, mas mude o título e o comportamento do botão.
-    alert("Função de edição selecionada para o ID: " + userId + ". Você pode agora carregar os dados no formulário para dar o Update.");
-}
-
     } catch (err) {
         console.error('Erro completo:', err);
         alert('Erro ao criar usuário: ' + (err.message || 'Verifique se o e-mail já existe.'));
     }
 }
 
-// 2. Cadastrar Chave Base
+// 2. Função para carregar a lista de usuários na tabela de permissões
+async function carregarTabelaUsuarios() {
+    try {
+        const { data: usuarios, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('nome', { ascending: true });
+
+        if (error) throw error;
+
+        const tabela = document.getElementById('tabela-usuarios-admin');
+        tabela.innerHTML = ''; // Limpa antes de preencher
+
+        usuarios.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${user.nome}</td>
+                <td>${user.email}</td>
+                <td>
+                    <select id="role-${user.id}" class="btn-sm" style="margin-bottom: 0;">
+                        <option value="operacional" ${user.role === 'operacional' ? 'selected' : ''}>Operacional</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        <button class="btn-primary btn-sm" onclick="salvarNivelAcesso('${user.id}')">Salvar Edição</button>
+                        <button class="btn-primary btn-sm" style="background: #8e44ad;" onclick="prepararEdicaoCompleta('${user.id}')">Alterar Dados</button>
+                        <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
+                    </div>
+                </td>
+            `;
+            tabela.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Erro ao carregar tabela:", err.message);
+    }
+}
+
+// 3. Função para alterar apenas o nível (Admin/Operacional) rápido
+async function salvarNivelAcesso(userId) {
+    const novoRole = document.getElementById(`role-${userId}`).value;
+
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: novoRole })
+            .eq('id', userId);
+
+        if (error) throw error;
+        alert("Nível de acesso atualizado com sucesso!");
+    } catch (err) {
+        alert("Erro ao atualizar nível: " + err.message);
+    }
+}
+
+// 4. Preparar edição completa
+function prepararEdicaoCompleta(userId) {
+    alert("Iniciando edição completa para o ID: " + userId);
+}
+
+// 5. Função para deletar usuário
+async function deletarUsuario(userId) {
+    if (!confirm("Tem certeza que deseja excluir este usuário permanentemente?")) return;
+
+    try {
+        const { error } = await supabase.from('profiles').delete().eq('id', userId);
+        if (error) throw error;
+        
+        alert("Usuário removido!");
+        carregarTabelaUsuarios();
+    } catch (err) {
+        alert("Erro ao excluir: " + err.message);
+    }
+}
+
+// ==========================================
+// ADMIN: FUNÇÕES DE CADASTRO BASE
+// ==========================================
+
+// Cadastrar Chave Base
 async function adminCadastrarChave() {
     const nome = document.getElementById('cad_chave_nome').value;
     const cor = document.getElementById('cad_chave_cor').value;
@@ -282,7 +325,7 @@ async function adminCadastrarChave() {
     } catch (err) { alert('Erro ao cadastrar chave: ' + err.message); }
 }
 
-// 3. Cadastrar Modelo de Toner (Atualizado com tabela cadastro_toner e quantidade)
+// Cadastrar Modelo de Toner
 async function adminCadastrarToner() {
     const modelo = document.getElementById('cad_toner_modelo').value;
     const impressoras = document.getElementById('cad_toner_imp').value;
@@ -310,7 +353,7 @@ async function adminCadastrarToner() {
     }
 }
 
-// 4. Cadastrar Chamado Simpress (Atualizado)
+// Cadastrar Chamado Simpress
 async function adminCadastrarSimpress() {
     const numero = document.getElementById('cad_sim_numero').value;
     const modelo = document.getElementById('cad_sim_modelo').value;
@@ -320,7 +363,6 @@ async function adminCadastrarSimpress() {
     if(!numero || !modelo || !serie || !local) return alert('Preencha todos os campos!');
 
     try {
-        // Nomes idênticos aos que você criou no Supabase!
         const { error } = await supabase.from('chamado_simpress').insert([
             { 
                 numero_chamado: numero, 
@@ -345,6 +387,7 @@ async function adminCadastrarSimpress() {
         alert('Erro ao salvar chamado: ' + err.message); 
     }
 }
+
 // ==========================================
 // ADMIN: EXPORTAR PDF
 // ==========================================
@@ -379,3 +422,4 @@ function mascaraTelefone(tel) {
     
     tel.value = v;
 }
+```
