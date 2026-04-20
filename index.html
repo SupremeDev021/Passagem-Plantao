@@ -1,8 +1,3 @@
-Aqui está o seu arquivo `index.html` completo e atualizado. Eu conectei todos os botões da aba Admin aos seus respectivos modais e criei as janelas com **todos os campos exatos** que você solicitou.
-
-Copie este código e substitua **todo** o conteúdo do seu `index.html`:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -217,7 +212,7 @@ Copie este código e substitua **todo** o conteúdo do seu `index.html`:
                         <label>Até:</label>
                         <input type="date" id="data-fim-relatorio">
                     </div>
-                    <button class="btn-success">Exportar Relatório (PDF/CSV)</button>
+                    <button class="btn-success" onclick="exportarPDF()">Exportar Relatório (PDF)</button>
                 </div>
 
                 <div class="admin-card">
@@ -258,7 +253,7 @@ Copie este código e substitua **todo** o conteúdo do seu `index.html`:
                 <input type="email" id="cad_email" placeholder="E-mail" required>
                 <input type="text" id="cad_usuario" placeholder="Usuário de Login" required>
                 <input type="password" id="cad_senha" placeholder="Senha Provisória" required>
-                <button type="button" class="btn-success">Criar Usuário</button>
+                <button type="button" class="btn-success" onclick="adminCriarUsuario()">Criar Usuário</button>
             </form>
         </div>
     </div>
@@ -304,10 +299,10 @@ Copie este código e substitua **todo** o conteúdo do seu `index.html`:
             <span class="close-modal" onclick="fecharModal('modal-chave')">&times;</span>
             <h3>Cadastrar Tipo de Chave</h3>
             <form>
-                <input type="text" placeholder="Nomenclatura (Ex: CPD, Sala Servidor)" required>
-                <input type="text" placeholder="Cor do Chaveiro" required>
-                <input type="text" placeholder="Localização / Prédio" required>
-                <button type="button" class="btn-success">Salvar Chave</button>
+                <input type="text" id="cad_chave_nome" placeholder="Nomenclatura (Ex: CPD, Sala Servidor)" required>
+                <input type="text" id="cad_chave_cor" placeholder="Cor do Chaveiro" required>
+                <input type="text" id="cad_chave_local" placeholder="Localização / Prédio" required>
+                <button type="button" class="btn-success" onclick="adminCadastrarChave()">Salvar Chave</button>
             </form>
         </div>
     </div>
@@ -317,9 +312,9 @@ Copie este código e substitua **todo** o conteúdo do seu `index.html`:
             <span class="close-modal" onclick="fecharModal('modal-toner')">&times;</span>
             <h3>Cadastrar Modelo de Toner</h3>
             <form>
-                <input type="text" placeholder="Modelo do Toner" required>
-                <input type="text" placeholder="Impressoras Compatíveis (Ex: Lexmark MS431)" required>
-                <button type="button" class="btn-success">Salvar Cadastro</button>
+                <input type="text" id="cad_toner_modelo" placeholder="Modelo do Toner" required>
+                <input type="text" id="cad_toner_imp" placeholder="Impressoras Compatíveis (Ex: Lexmark MS431)" required>
+                <button type="button" class="btn-success" onclick="adminCadastrarToner()">Salvar Cadastro</button>
             </form>
         </div>
     </div>
@@ -329,11 +324,11 @@ Copie este código e substitua **todo** o conteúdo do seu `index.html`:
             <span class="close-modal" onclick="fecharModal('modal-simpress')">&times;</span>
             <h3>Registrar Chamado Simpress</h3>
             <form>
-                <input type="text" placeholder="Número do Chamado" required>
-                <input type="text" placeholder="Modelo da Impressora" required>
-                <input type="text" placeholder="Número de Série" required>
-                <input type="text" placeholder="Localização da Impressora (Setor)" required>
-                <button type="button" class="btn-success">Abrir Chamado</button>
+                <input type="text" id="cad_sim_numero" placeholder="Número do Chamado" required>
+                <input type="text" id="cad_sim_modelo" placeholder="Modelo da Impressora" required>
+                <input type="text" id="cad_sim_serie" placeholder="Número de Série" required>
+                <input type="text" id="cad_sim_local" placeholder="Localização da Impressora (Setor)" required>
+                <button type="button" class="btn-success" onclick="adminCadastrarSimpress()">Abrir Chamado</button>
             </form>
         </div>
     </div>
@@ -343,4 +338,3 @@ Copie este código e substitua **todo** o conteúdo do seu `index.html`:
     <script src="app.js"></script>
 </body>
 </html>
-```
