@@ -74,11 +74,16 @@ async function carregarPerfil(user) {
         
         // Esconde login e mostra o App
         document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('app-container').classList.remove('hidden');
+        document.getElementById('app-wrapper').classList.remove('hidden');
+        
+        else {
+            console.error("Erro: 'login-container' ou 'app-wrapper' não encontrados no HTML.");
+        }
 
         // Se for Admin, mostra a aba Admin
-        if (perfil.role === 'admin') {
-            document.getElementById('btn-admin').classList.remove('hidden');
+       const btnAdmin = document.getElementById('btn-admin');
+        if (btnAdmin && perfil.role === 'admin') {
+            btnAdmin.classList.remove('hidden');
         }
         
         // Inicializa dados das abas (chaves, etc)
