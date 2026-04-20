@@ -35,12 +35,31 @@ async function salvarPlantao() {
         const dados = {
             usuario_id: usuarioAtual.id,
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
+            hora_largou: document.getElementById('p_hora_largou').value,
+            
             emails_resp: document.getElementById('p_emails').value === 'sim',
             motivo_emails: document.getElementById('p_motivo_emails').value,
+            
             chamados_pend: document.getElementById('p_chamados').value === 'sim',
             motivo_chamados: document.getElementById('p_motivo_chamados').value,
-            // (Adicione aqui a coleta das outras condicionais: maquinas, cadeiras, etc)
+            
+            forms_zerado: document.getElementById('p_forms').value === 'sim',
+            motivo_forms: document.getElementById('p_motivo_forms').value,
+            
+            maquinas_func: document.getElementById('p_maquinas').value === 'sim',
+            motivo_maquinas: document.getElementById('p_motivo_maquinas').value,
+            
+            cadeiras_lugar: document.getElementById('p_cadeiras').value === 'sim',
+            motivo_cadeiras: document.getElementById('p_motivo_cadeiras').value,
+            
+            painel_tv: document.getElementById('p_tv').value === 'sim',
+            motivo_tv: document.getElementById('p_motivo_tv').value,
+            
+            ocorrencias: document.getElementById('p_ocorrencias').value === 'sim',
+            motivo_ocorrencias: document.getElementById('p_motivo_ocorrencias').value,
+            
             assinatura_url: urlAssinatura
+        };
         };
 
         // 3. Salva no Supabase
