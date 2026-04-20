@@ -1,15 +1,4 @@
-João, percebi um detalhe crítico no código que você enviou: ao colar as funções novas, as funções da tabela de permissões (`carregarTabelaUsuarios`, `alterarNivelAcesso`, etc.) acabaram ficando **presas dentro** da função `adminCriarUsuario`. 
-
-No JavaScript, colocar uma função dentro de outra (nesse contexto) "quebra" o código, fazendo com que os botões não a encontrem.
-
-Eu fiz a limpeza completa, separei tudo nos devidos lugares e garanti que a regra de atualizar a tabela ao abrir o modal esteja lá. 
-
-Pode copiar este bloco com segurança e **substituir 100% do seu arquivo `app.js`**:
-
-```javascript
-// ==========================================
 // TROCA DE ABAS E MODAIS
-// ==========================================
 function abrirAba(idAba) {
     document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
