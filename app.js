@@ -210,7 +210,51 @@ async function adminCriarUsuario() {
         fecharModal('modal-usuario');
         
         // Opcional: recarregar a tabela de permissões se ela estiver aberta
-        // carregarTabelaUsuarios(); 
+       // 1. Função para carregar a lista de usuários na tabela de permissões
+async function carregarTabelaUsuarios() {
+    const { data: usuarios, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('nome', { ascending: true });
+
+    if (error) return console.error(error);
+
+    const tabela = document.getElementById('tabela-usuarios-admin');
+    tabela.innerHTML = usuarios.map(user => `
+        <tr>
+            <td>${user.nome}</td>
+            <td>${user.email}</td>
+            <td>
+                <select onchange="alterarNivelAcesso('${user.id}', this.value)" class="btn-sm">
+                    <option value="operacional" ${user.role === 'operacional' ? 'selected' : ''}>Operacional</option>
+                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+            </td>
+            <td>
+                <button class="btn-primary btn-sm" onclick="prepararEdicaoUsuario('${user.id}')">Alterar Dados</button>
+                <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// 2. Função para alterar apenas o nível (Admin/Operacional) rápido
+async function alterarNivelAcesso(userId, novoRole) {
+    const { error } = await supabase
+        .from('profiles')
+        .update({ role: novoRole })
+        .eq('id', userId);
+
+    if (error) alert("Erro ao mudar nível: " + error.message);
+    else alert("Nível de acesso atualizado!");
+}
+
+// 3. Preparar edição (Aqui você pode abrir o mesmo modal de cadastro, mas modo edição)
+function prepararEdicaoUsuario(userId) {
+    // Para simplificar, você pode usar um prompt ou criar um modal específico de edição.
+    // Dica: Use o mesmo modal-usuario, mas mude o título e o comportamento do botão.
+    alert("Função de edição selecionada para o ID: " + userId + ". Você pode agora carregar os dados no formulário para dar o Update.");
+}
 
     } catch (err) {
         console.error('Erro completo:', err);
