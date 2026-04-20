@@ -256,6 +256,27 @@
         </div>
     </div>
 
+    <div id="modal-editar-usuario" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-editar-usuario')">&times;</span>
+            <h3>Alterar Dados do Usuário</h3>
+            <form id="form-editar-usuario">
+                <input type="hidden" id="edit_id">
+                
+                <input type="text" id="edit_nome" placeholder="Nome Completo" required>
+                <select id="edit_turno" required>
+                    <option value="Seg a Sex">Diarista</option>
+                    <option value="Manhã">Diurno</option>
+                    <option value="Noite">Noturno</option>
+                </select>
+                <input type="text" id="edit_celular" placeholder="Celular (WhatsApp)" maxlength="15" oninput="mascaraTelefone(this)">
+                <input type="text" id="edit_cpf" placeholder="CPF" maxlength="14" oninput="mascaraCPF(this)">
+                
+                <button type="button" class="btn-success" onclick="salvarEdicaoUsuario()">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
     <div id="modal-permissoes" class="modal">
         <div class="modal-content large">
             <span class="close-modal" onclick="fecharModal('modal-permissoes')">&times;</span>
