@@ -115,3 +115,36 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 .date-group input {
     margin-bottom: 0;
 }
+
+/* =========================================================
+   JANELAS FLUTUANTES (MODAIS)
+   ========================================================= */
+.modal { 
+    display: none; /* Escondido por padrão */
+    position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh; 
+    background-color: rgba(0,0,0,0.6); 
+    align-items: center; justify-content: center; 
+}
+.modal.flex { display: flex !important; } /* Classe para forçar a abertura */
+
+.modal-content { 
+    background-color: #fff; padding: 25px; border-radius: 8px; 
+    width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; 
+    position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Modal mais largo para a tabela de permissões */
+.modal-content.large { max-width: 800px; }
+
+.close-modal { 
+    position: absolute; right: 15px; top: 15px; font-size: 28px; 
+    font-weight: bold; cursor: pointer; color: #7f8c8d; line-height: 1;
+}
+.close-modal:hover { color: #e74c3c; }
+
+/* Tabelas para o Gerenciamento de Usuários */
+.table-responsive { overflow-x: auto; margin-top: 15px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+th { background-color: #f4f7f6; color: #2c3e50; }
+.btn-sm { padding: 5px 10px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; width: auto;}
