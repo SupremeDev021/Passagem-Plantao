@@ -8,7 +8,9 @@
     <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="login-bg"> <div id="login-container">
+<body class="login-bg"> 
+    
+    <div id="login-container">
         <div class="logo-area">
             <h2>T.I Andaraí</h2>
             <p>Acesso ao Sistema</p>
@@ -67,116 +69,116 @@
                 </div>
             </section>
 
-          <section id="aba-plantao" class="tab-content hidden">
-    <h3>Registro de Plantão</h3>
-    <form id="form-plantao">
-        
-        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div class="form-group" style="flex: 1;">
-                <label>Qual hora assumiu o plantão?</label>
-                <input type="datetime-local" id="p_hora_assumiu" required>
-            </div>
-            <div class="form-group" style="flex: 1;">
-                <label>Qual hora está largando o plantão?</label>
-                <input type="datetime-local" id="p_hora_largou" required>
-            </div>
-        </div>
+            <section id="aba-plantao" class="tab-content hidden">
+                <h3>Registro de Plantão</h3>
+                <form id="form-plantao">
+                    
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Qual hora assumiu o plantão?</label>
+                            <input type="datetime-local" id="p_hora_assumiu" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Qual hora está largando o plantão?</label>
+                            <input type="datetime-local" id="p_hora_largou" required>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Todos os e-mails respondidos?</label>
-            <select id="p_emails" onchange="toggleCondicional('p_emails', 'div_m_emails', 'nao')">
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-            </select>
-            <div id="div_m_emails" class="condicional hidden mt-10">
-                <label>Quais e quantos são? Motivo de não ter respondido:</label>
-                <textarea id="p_motivo_emails"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Todos os e-mails respondidos?</label>
+                        <select id="p_emails" onchange="toggleCondicional('p_emails', 'div_m_emails', 'nao')">
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <div id="div_m_emails" class="condicional hidden mt-10">
+                            <label>Quais e quantos são? Motivo de não ter respondido:</label>
+                            <textarea id="p_motivo_emails"></textarea>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Algum chamado pendente?</label>
-            <select id="p_chamados" onchange="toggleCondicional('p_chamados', 'div_m_chamados', 'sim')">
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-            </select>
-            <div id="div_m_chamados" class="condicional hidden mt-10">
-                <label>Quais e quantos são? Motivo da pendência:</label>
-                <textarea id="p_motivo_chamados"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Algum chamado pendente?</label>
+                        <select id="p_chamados" onchange="toggleCondicional('p_chamados', 'div_m_chamados', 'sim')">
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                        <div id="div_m_chamados" class="condicional hidden mt-10">
+                            <label>Quais e quantos são? Motivo da pendência:</label>
+                            <textarea id="p_motivo_chamados"></textarea>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Forms de cadastro zerado?</label>
-            <select id="p_forms" onchange="toggleCondicional('p_forms', 'div_m_forms', 'nao')">
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-            </select>
-            <div id="div_m_forms" class="condicional hidden mt-10">
-                <label>Quais e quantos são? Motivo de não ter respondido:</label>
-                <textarea id="p_motivo_forms"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Forms de cadastro zerado?</label>
+                        <select id="p_forms" onchange="toggleCondicional('p_forms', 'div_m_forms', 'nao')">
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <div id="div_m_forms" class="condicional hidden mt-10">
+                            <label>Quais e quantos são? Motivo de não ter respondido:</label>
+                            <textarea id="p_motivo_forms"></textarea>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Todas as máquinas do setor de T.I funcionando?</label>
-            <select id="p_maquinas" onchange="toggleCondicional('p_maquinas', 'div_m_maquinas', 'nao')">
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-            </select>
-            <div id="div_m_maquinas" class="condicional hidden mt-10">
-                <label>Motivo de não estar funcionando:</label>
-                <textarea id="p_motivo_maquinas"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Todas as máquinas do setor de T.I funcionando?</label>
+                        <select id="p_maquinas" onchange="toggleCondicional('p_maquinas', 'div_m_maquinas', 'nao')">
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <div id="div_m_maquinas" class="condicional hidden mt-10">
+                            <label>Motivo de não estar funcionando:</label>
+                            <textarea id="p_motivo_maquinas"></textarea>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Todas as cadeiras do setor no lugar?</label>
-            <select id="p_cadeiras" onchange="toggleCondicional('p_cadeiras', 'div_m_cadeiras', 'nao')">
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-            </select>
-            <div id="div_m_cadeiras" class="condicional hidden mt-10">
-                <label>Motivo de não estarem no lugar:</label>
-                <textarea id="p_motivo_cadeiras"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Todas as cadeiras do setor no lugar?</label>
+                        <select id="p_cadeiras" onchange="toggleCondicional('p_cadeiras', 'div_m_cadeiras', 'nao')">
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <div id="div_m_cadeiras" class="condicional hidden mt-10">
+                            <label>Motivo de não estarem no lugar:</label>
+                            <textarea id="p_motivo_cadeiras"></textarea>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Painel de chamados aberto na TV?</label>
-            <select id="p_tv" onchange="toggleCondicional('p_tv', 'div_m_tv', 'nao')">
-                <option value="sim">Sim</option>
-                <option value="nao">Não</option>
-            </select>
-            <div id="div_m_tv" class="condicional hidden mt-10">
-                <label>Motivo de não estar aberto:</label>
-                <textarea id="p_motivo_tv"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Painel de chamados aberto na TV?</label>
+                        <select id="p_tv" onchange="toggleCondicional('p_tv', 'div_m_tv', 'nao')">
+                            <option value="sim">Sim</option>
+                            <option value="nao">Não</option>
+                        </select>
+                        <div id="div_m_tv" class="condicional hidden mt-10">
+                            <label>Motivo de não estar aberto:</label>
+                            <textarea id="p_motivo_tv"></textarea>
+                        </div>
+                    </div>
 
-        <div class="form-group question-group admin-card">
-            <label>Alguma ocorrência durante o plantão?</label>
-            <select id="p_ocorrencias" onchange="toggleCondicional('p_ocorrencias', 'div_m_ocorrencias', 'sim')">
-                <option value="nao">Não</option>
-                <option value="sim">Sim</option>
-            </select>
-            <div id="div_m_ocorrencias" class="condicional hidden mt-10">
-                <label>Quais foram as ocorrências?</label>
-                <textarea id="p_motivo_ocorrencias"></textarea>
-            </div>
-        </div>
+                    <div class="form-group question-group admin-card">
+                        <label>Alguma ocorrência durante o plantão?</label>
+                        <select id="p_ocorrencias" onchange="toggleCondicional('p_ocorrencias', 'div_m_ocorrencias', 'sim')">
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                        <div id="div_m_ocorrencias" class="condicional hidden mt-10">
+                            <label>Quais foram as ocorrências?</label>
+                            <textarea id="p_motivo_ocorrencias"></textarea>
+                        </div>
+                    </div>
 
-        <div class="signature-section mt-20">
-            <label>Assinatura Digital (Obrigatória):</label>
-            <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
-            <div class="sig-buttons mt-10">
-                <button type="button" class="btn-danger" style="width: auto;" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
-            </div>
-        </div>
+                    <div class="signature-section mt-20">
+                        <label>Assinatura Digital (Obrigatória):</label>
+                        <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
+                        <div class="sig-buttons mt-10">
+                            <button type="button" class="btn-danger" style="width: auto;" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
+                        </div>
+                    </div>
 
-        <button type="button" class="btn-success mt-20" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
-    </form>
-</section>
+                    <button type="button" class="btn-success mt-20" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
+                </form>
+            </section>
 
             <section id="aba-chaves" class="tab-content hidden">
                 <h3>Retirada e Devolução</h3>
@@ -185,66 +187,40 @@
 
             <section id="aba-ocorrencias" class="tab-content hidden">
                 <h3>Gestão de Ocorrências</h3>
-                </section>
+            </section>
 
             <section id="aba-toner" class="tab-content hidden">
                 <h3>Controle de Toner e Impressoras</h3>
-                </section>
+            </section>
             
             <section id="aba-admin" class="tab-content hidden">
-    <h3>Painel de Gestão (Admin)</h3>
-    
-    <div class="admin-card">
-        <h4>1. Gestão de Usuários (Acesso e Senhas)</h4>
-        <div class="button-group">
-            <button class="btn-primary">Cadastrar Novo Usuário</button>
-            <button class="btn-primary">Gerenciar Permissões</button>
-        </div>
-    </div>
-
-    <div class="admin-card">
-        <h4>2 e 3. Exportação de Logs e Auditoria</h4>
-        <div class="date-group">
-            <label>De:</label>
-            <input type="date" id="data-inicio-relatorio"> 
-            <label>Até:</label>
-            <input type="date" id="data-fim-relatorio">
-        </div>
-        <button class="btn-success">Exportar Relatório (PDF/CSV)</button>
-    </div>
-
-    <div class="admin-card">
-        <h4>5 e 6. Cadastros Base</h4>
-        <div class="button-group">
-            <button class="btn-primary">Cadastrar Tipo de Chave</button>
-            <button class="btn-primary">Cadastrar Tipo de Impressora</button>
-        </div>
-    </div>
-
-    <div class="admin-card">
-        <h4>7. Visto da Supervisão (Plantões Pendentes)</h4>
-        <div id="plantoes-para-visto" style="padding: 15px; background: #ecf0f1; border-radius: 6px;">
-            Nenhum plantão pendente de visto.
-        </div>
-    </div>
-</section>
+                <h3>Painel de Gestão (Admin)</h3>
                 
                 <div class="admin-card">
                     <h4>1. Gestão de Usuários (Acesso e Senhas)</h4>
-                    <button class="btn-primary mt-10">Cadastrar Novo Usuário</button>
-                    <button class="btn-primary mt-10">Gerenciar Permissões</button>
+                    <div class="button-group">
+                        <button class="btn-primary">Cadastrar Novo Usuário</button>
+                        <button class="btn-primary">Gerenciar Permissões</button>
+                    </div>
                 </div>
 
                 <div class="admin-card">
                     <h4>2 e 3. Exportação de Logs e Auditoria</h4>
-                    <input type="date"> até <input type="date">
+                    <div class="date-group">
+                        <label>De:</label>
+                        <input type="date" id="data-inicio-relatorio"> 
+                        <label>Até:</label>
+                        <input type="date" id="data-fim-relatorio">
+                    </div>
                     <button class="btn-success">Exportar Relatório (PDF/CSV)</button>
                 </div>
 
                 <div class="admin-card">
                     <h4>5 e 6. Cadastros Base</h4>
-                    <button class="btn-primary">Cadastrar Tipo de Chave</button>
-                    <button class="btn-primary mt-10">Cadastrar Tipo de Toner/Impressora</button>
+                    <div class="button-group">
+                        <button class="btn-primary">Cadastrar Tipo de Chave</button>
+                        <button class="btn-primary">Cadastrar Tipo de Impressora</button>
+                    </div>
                 </div>
 
                 <div class="admin-card">
