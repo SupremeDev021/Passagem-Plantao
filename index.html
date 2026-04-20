@@ -212,7 +212,7 @@
                         <label>Até:</label>
                         <input type="date" id="data-fim-relatorio">
                     </div>
-                    <button class="btn-success" onclick="exportarPDF()">Exportar Relatório (PDF)</button>
+                    <button class="btn-success" onclick="exportarPDF()">Exportar Relatório (PDF/CSV)</button>
                 </div>
 
                 <div class="admin-card">
@@ -247,10 +247,9 @@
                     <option value="Manhã">Diurno</option>
                     <option value="Noite">Noturno</option>
                 </select>
-                <input type="text" id="cad_celular" placeholder="Celular (WhatsApp)">
-                <input type="text" id="cad_cpf" placeholder="CPF">
+                <input type="text" id="cad_celular" placeholder="Celular (WhatsApp) Ex: (21) 99999-9999" maxlength="15" oninput="mascaraTelefone(this)">
+                <input type="text" id="cad_cpf" placeholder="CPF Ex: 111.111.111-11" maxlength="14" oninput="mascaraCPF(this)">
                 <input type="email" id="cad_email" placeholder="E-mail" required>
-                <input type="text" id="cad_usuario" placeholder="Usuário de Login" required>
                 <input type="password" id="cad_senha" placeholder="Senha Provisória" required>
                 <button type="button" class="btn-success" onclick="adminCriarUsuario()">Criar Usuário</button>
             </form>
@@ -282,7 +281,7 @@
                                 </select>
                             </td>
                             <td>
-                                <button class="btn-primary btn-sm">Salvar Edição</button>
+                                <button class="btn-primary btn-sm">Alterar Dados</button>
                                 <button class="btn-primary btn-sm">Redefinir Senha</button>
                                 <button class="btn-danger btn-sm">Excluir</button>
                             </td>
