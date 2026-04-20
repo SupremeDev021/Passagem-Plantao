@@ -245,3 +245,30 @@ async function exportarPDF() {
     const elementoParaExportar = document.getElementById('app-wrapper');
     html2pdf().from(elementoParaExportar).save('Relatorio_Plantao.pdf');
 }
+
+// ==========================================
+// MÁSCARAS DE FORMATAÇÃO (CPF e TELEFONE)
+// ==========================================
+
+function mascaraCPF(cpf) {
+    let v = cpf.value.replace(/\D/g, ""); // Remove tudo que não for número
+    if (v.length > 11) v = v.slice(0, 11); // Limita a 11 dígitos
+    
+    // Adiciona os pontos e traços
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    
+    cpf.value = v;
+}
+
+function mascaraTelefone(tel) {
+    let v = tel.value.replace(/\D/g, ""); // Remove tudo que não for número
+    if (v.length > 11) v = v.slice(0, 11); // Limita a 11 dígitos
+    
+    // Adiciona parênteses e traço
+    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+    
+    tel.value = v;
+}
