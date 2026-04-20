@@ -202,21 +202,32 @@ async function adminCadastrarChave() {
     } catch (err) { alert('Erro ao cadastrar chave: ' + err.message); }
 }
 
-// 3. Cadastrar Modelo de Toner
+// 3. Cadastrar Modelo de Toner (Atualizado com tabela cadastro_toner e quantidade)
 async function adminCadastrarToner() {
     const modelo = document.getElementById('cad_toner_modelo').value;
     const impressoras = document.getElementById('cad_toner_imp').value;
+    const quantidade = document.getElementById('cad_toner_qtd').value;
 
-    if(!modelo || !impressoras) return alert('Preencha todos os campos!');
+    if(!modelo || !impressoras || !quantidade) {
+        return alert('Preencha todos os campos, incluindo a quantidade!');
+    }
 
     try {
-        const { error } = await supabase.from('modelos_toner').insert([
-            { modelo: modelo, impressoras_compativeis: impressoras }
+        const { error } = await supabase.from('cadastro_toner').insert([
+            { 
+                modelo_toner: modelo, 
+                impressora_compativel: impressoras, 
+                quantidade_atual: parseInt(quantidade)
+            }
         ]);
+        
         if (error) throw error;
-        alert('Modelo de toner cadastrado!');
+        
+        alert('Toner cadastrado com sucesso no estoque!');
         fecharModal('modal-toner');
-    } catch (err) { alert('Erro: ' + err.message); }
+    } catch (err) { 
+        alert('Erro: ' + err.message); 
+    }
 }
 
 // 4. Cadastrar Chamado Simpress
