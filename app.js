@@ -230,25 +230,41 @@ async function adminCadastrarToner() {
     }
 }
 
-// 4. Cadastrar Chamado Simpress
+// 4. Cadastrar Chamado Simpress (Atualizado)
 async function adminCadastrarSimpress() {
     const numero = document.getElementById('cad_sim_numero').value;
     const modelo = document.getElementById('cad_sim_modelo').value;
     const serie = document.getElementById('cad_sim_serie').value;
     const local = document.getElementById('cad_sim_local').value;
 
-    if(!numero || !modelo || !serie || !local) return alert('Preencha tudo!');
+    if(!numero || !modelo || !serie || !local) return alert('Preencha todos os campos!');
 
     try {
-        const { error } = await supabase.from('chamados_simpress').insert([
-            { numero_chamado: numero, modelo_impressora: modelo, numero_serie: serie, localizacao: local, status: 'Aberto' }
+        // Nomes idênticos aos que você criou no Supabase!
+        const { error } = await supabase.from('chamado_simpress').insert([
+            { 
+                numero_chamado: numero, 
+                modelo_impressora: modelo, 
+                numero_serie: serie, 
+                setor_localizada: local 
+            }
         ]);
+        
         if (error) throw error;
-        alert('Chamado Simpress registrado!');
+        
+        alert('Chamado Simpress registrado com sucesso!');
         fecharModal('modal-simpress');
-    } catch (err) { alert('Erro: ' + err.message); }
-}
 
+        // Limpa os campos para o próximo cadastro
+        document.getElementById('cad_sim_numero').value = '';
+        document.getElementById('cad_sim_modelo').value = '';
+        document.getElementById('cad_sim_serie').value = '';
+        document.getElementById('cad_sim_local').value = '';
+
+    } catch (err) { 
+        alert('Erro ao salvar chamado: ' + err.message); 
+    }
+}
 // ==========================================
 // ADMIN: EXPORTAR PDF
 // ==========================================
