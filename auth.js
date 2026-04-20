@@ -8,6 +8,7 @@ var supabase = window.supabaseClient;
 
 let usuarioAtual = null;
 let perfilAtual = null;
+
 // Verifica se já está logado ao abrir a página
 window.onload = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -28,6 +29,7 @@ async function realizarLogin() {
         await carregarPerfil(data.user);
     }
 }
+
 // Função para detectar a tecla ENTER no campo de senha
 function verificarEnter(event) {
     if (event.key === "Enter") {
@@ -35,59 +37,53 @@ function verificarEnter(event) {
     }
 }
 
-// Dentro da sua função carregarPerfil(user), ache a parte que esconde o login e adicione a troca de background:
-async function carregarPerfil(user) {
-    usuarioAtual = user;
-    const { data: perfil, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-
-    if (perfil) {
-        perfilAtual = perfil;
-        document.getElementById('user-name').innerText = `Olá, ${perfil.nome}`;
-        document.getElementById('user-role').innerText = perfil.role.toUpperCase();
-        
-        // MUDANÇA DE BACKGROUND AQUI! Tira a imagem e coloca a cor do app
-        document.body.classList.remove('login-bg');
-        document.body.classList.add('app-bg');
-        
-        // Esconde login e mostra o App
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('app-wrapper').classList.remove('hidden'); // Note que mudou de app-container para app-wrapper
-
-        if (perfil.role === 'admin') document.getElementById('btn-admin').classList.remove('hidden');
-        carregarSelectChaves();
-    }
-}
+// Função ÚNICA e corrigida para carregar o perfil e montar a tela
 async function carregarPerfil(user) {
     usuarioAtual = user;
     
-    // Busca os dados adicionais na tabela profiles (Turno, Role, etc)
-    const { data: perfil, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+    try {
+        const { data: perfil, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-    if (perfil) {
-        perfilAtual = perfil;
-        document.getElementById('user-name').innerText = `Olá, ${perfil.nome}`;
-        document.getElementById('user-role').innerText = perfil.role.toUpperCase();
-        
-        // Esconde login e mostra o App
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('app-wrapper').classList.remove('hidden');
-        
-        else {
-            console.error("Erro: 'login-container' ou 'app-wrapper' não encontrados no HTML.");
-        }
+        if (error) throw error;
 
-        // Se for Admin, mostra a aba Admin
-       const btnAdmin = document.getElementById('btn-admin');
-        if (btnAdmin && perfil.role === 'admin') {
-            btnAdmin.classList.remove('hidden');
+        if (perfil) {
+            perfilAtual = perfil;
+            document.getElementById('user-name').innerText = `Olá, ${perfil.nome}`;
+            document.getElementById('user-role').innerText = perfil.role.toUpperCase();
+            
+            const loginContainer = document.getElementById('login-container');
+            const appWrapper = document.getElementById('app-wrapper');
+
+            // Verifica se os elementos existem antes de tentar mudar as classes (Evita erro de classList)
+            if (loginContainer && appWrapper) {
+                // MUDANÇA DE BACKGROUND: Tira a imagem e coloca a cor do app
+                document.body.classList.remove('login-bg');
+                document.body.classList.add('app-bg');
+                
+                // Esconde login e mostra o App
+                loginContainer.classList.add('hidden');
+                appWrapper.classList.remove('hidden');
+            } else {
+                console.error("Erro: 'login-container' ou 'app-wrapper' não encontrados no HTML.");
+            }
+
+            // Se for Admin, mostra a aba Admin
+            const btnAdmin = document.getElementById('btn-admin');
+            if (btnAdmin && perfil.role === 'admin') {
+                btnAdmin.classList.remove('hidden');
+            }
+            
+            // Inicializa dados das abas (chaves, etc)
+            if (typeof carregarSelectChaves === 'function') {
+                carregarSelectChaves();
+            }
         }
-        
-        // Inicializa dados das abas (chaves, etc)
-        carregarSelectChaves();
+    } catch (err) {
+        console.error("Erro ao processar o perfil:", err);
     }
 }
 
