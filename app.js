@@ -177,9 +177,45 @@ async function marcarChamadoAtendido(chamadoId) {
 
 // 1. Criar Usuário (Chama uma função segura no servidor)
 async function adminCriarUsuario() {
-    // ATENÇÃO: A criação de usuários com senha pelo front-end requer configurações avançadas 
-    // ou uma Edge Function no Supabase. Para agora, vamos exibir o alerta de estrutura pronta.
-    alert("Função pronta no Front-End! Requer criação da Função RPC no Supabase para rodar sem bloqueio de segurança.");
+    // 1. Pega os valores dos campos (IDs que ajustamos no HTML)
+    const nome = document.getElementById('cad_nome').value;
+    const turno = document.getElementById('cad_turno').value;
+    const celular = document.getElementById('cad_celular').value;
+    const cpf = document.getElementById('cad_cpf').value;
+    const email = document.getElementById('cad_email').value;
+    const senha = document.getElementById('cad_senha').value;
+
+    // Validação simples
+    if (!nome || !email || !senha || !turno) {
+        return alert('Por favor, preencha Nome, E-mail, Senha e Turno.');
+    }
+
+    try {
+        // 2. Chama a "Chave Mestra" (RPC) que criamos no SQL
+        const { error } = await supabase.rpc('admin_criar_usuario', {
+            p_email: email,
+            p_senha: senha,
+            p_nome: nome,
+            p_turno: turno,
+            p_celular: celular,
+            p_cpf: cpf
+        });
+
+        if (error) throw error;
+
+        alert(`Sucesso! O usuário ${nome} foi criado.`);
+        
+        // 3. Limpa o formulário e fecha a janela
+        document.getElementById('form-novo-usuario').reset();
+        fecharModal('modal-usuario');
+        
+        // Opcional: recarregar a tabela de permissões se ela estiver aberta
+        // carregarTabelaUsuarios(); 
+
+    } catch (err) {
+        console.error('Erro completo:', err);
+        alert('Erro ao criar usuário: ' + (err.message || 'Verifique se o e-mail já existe.'));
+    }
 }
 
 // 2. Cadastrar Chave Base
