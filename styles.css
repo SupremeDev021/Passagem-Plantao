@@ -43,7 +43,7 @@ button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; 
 .btn-danger { background: #e74c3c; color: white; width: auto; }
 
 /* ESTRUTURA DO APLICATIVO COM MENU LATERAL */
-#app-wrapper { display: flex; height: 100vh; overflow: hidden; }
+#app-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
 /* Sidebar Lateral */
 .sidebar {
@@ -84,3 +84,34 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 .admin-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
 .sig-canvas { border: 2px dashed #bdc3c7; border-radius: 8px; background: #fafafa; cursor: crosshair; touch-action: none; width: 100%; }
 .mt-20 { margin-top: 20px; }
+
+/* ORGANIZAÇÃO RESPONSIVA DE BOTÕES (PAINEL ADMIN) */
+.button-group {
+    display: flex;
+    flex-direction: column; /* No celular, um embaixo do outro */
+    gap: 15px; /* Espaço perfeito entre os botões */
+    margin-top: 15px;
+}
+
+/* Quando a tela for maior que um celular (ex: Monitor ou Tablet) */
+@media (min-width: 768px) {
+    .button-group {
+        flex-direction: row; /* Ficam lado a lado */
+    }
+    .button-group button {
+        flex: 1; /* Dividem o espaço igualmente, 50% para cada */
+        margin-bottom: 0;
+    }
+}
+
+/* Ajuste fino para os campos de data ficarem bonitos no relatório */
+.date-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* Evita que a tela quebre no celular */
+}
+.date-group input {
+    margin-bottom: 0;
+}
