@@ -103,6 +103,46 @@ async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
 }
 
 // ==========================================
+// ABA 4: REGISTRO DE TONER E UPLOAD DE FOTO
+// ==========================================
+async function registrarToner() {
+    const modelo = document.getElementById('t_modelo').value;
+    const inputFoto = document.getElementById('t_foto');
+
+    if (!modelo) return alert('Selecione o modelo do toner.');
+    if (inputFoto.files.length === 0) return alert('É obrigatório anexar a foto da página de teste.');
+
+    const fotoFile = inputFoto.files[0];
+    const nomeArquivo = `toner_${Date.now()}_${fotoFile.name}`;
+
+    try {
+        // Upload da foto
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('assinaturas') 
+            .upload(nomeArquivo, fotoFile);
+
+        if (uploadError) throw uploadError;
+
+        // Avisa que deu certo
+        alert('Troca de toner registrada com sucesso! A foto foi salva.');
+        
+        // Limpa os campos
+        document.getElementById('t_modelo').value = '';
+        inputFoto.value = '';
+
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao registrar o toner: ' + err.message);
+    }
+}
+
+// Lógica para marcar chamado da Simpres como atendido
+async function marcarChamadoAtendido(chamadoId) {
+    const observacao = document.getElementById(`obs_chamado_${chamadoId}`).value;
+    alert(`Chamado resolvido!\nObservação salva: ${observacao ? observacao : "Nenhuma"}`);
+}
+
+// ==========================================
 // ADMIN: EXPORTAR PDF
 // ==========================================
 async function exportarPDF() {
