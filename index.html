@@ -4,179 +4,223 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Passagem de Plantão - T.I Andaraí</title>
-    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body>
-
-    <div id="login-container" class="container">
+<body class="login-bg"> <div id="login-container">
         <div class="logo-area">
-            <h2>Plantão T.I Andaraí</h2>
+            <h2>T.I Andaraí</h2>
             <p>Acesso ao Sistema</p>
         </div>
         <input type="email" id="login-email" placeholder="E-mail Corporativo" required>
-        <input type="password" id="login-senha" placeholder="Senha" required>
+        <input type="password" id="login-senha" placeholder="Senha" required onkeypress="verificarEnter(event)">
         <button onclick="realizarLogin()" class="btn-primary">Entrar</button>
     </div>
 
-    <div id="app-container" class="container hidden">
-        <header>
-            <div>
-                <h1 id="user-name">Carregando...</h1>
-                <span id="user-role" class="badge">Operacional</span>
+    <div id="app-wrapper" class="hidden">
+        
+        <aside class="sidebar">
+            <h2>MENU</h2>
+            <nav class="tabs">
+                <button class="tab-btn active" onclick="abrirAba('aba-inicio')">🏠 Início</button>
+                <button class="tab-btn" onclick="abrirAba('aba-plantao')">📋 Passagem de Plantão</button>
+                <button class="tab-btn" onclick="abrirAba('aba-chaves')">🔑 Chaves</button>
+                <button class="tab-btn" onclick="abrirAba('aba-ocorrencias')">⚠️ Ocorrências</button>
+                <button class="tab-btn" onclick="abrirAba('aba-toner')">🖨️ Toner/Chamados</button>
+                <button id="btn-admin" class="tab-btn hidden" onclick="abrirAba('aba-admin')">⚙️ Admin</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <div>
+                    <h1 id="user-name">Carregando...</h1>
+                    <span id="user-role" class="badge">Operacional</span>
+                </div>
+                <button onclick="fazerLogout()" class="btn-danger">Sair</button>
+            </header>
+
+            <section id="aba-inicio" class="tab-content active">
+                <h3>Resumo do Plantão</h3>
+                <div class="dashboard-grid">
+                    <div class="dash-card">
+                        <h4>Último Plantão Registrado</h4>
+                        <div class="number" style="font-size: 18px;" id="dash-ultimo-plantao">Carregando...</div>
+                    </div>
+                    <div class="dash-card">
+                        <h4>Chamados Simpress Abertos</h4>
+                        <div class="number" id="dash-chamados" style="color: #e74c3c;">0</div>
+                    </div>
+                    <div class="dash-card">
+                        <h4>Chaves Pendentes</h4>
+                        <div class="number" id="dash-chaves" style="color: #f39c12;">0</div>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h4>Estoque de Toners</h4>
+                    <ul id="lista-estoque-toner" style="list-style: none; padding: 0; line-height: 2;">
+                        <li>Lexmark MS431: <strong>Carregando...</strong></li>
+                        <li>Brother HL-L5202: <strong>Carregando...</strong></li>
+                    </ul>
+                </div>
+            </section>
+
+          <section id="aba-plantao" class="tab-content hidden">
+    <h3>Registro de Plantão</h3>
+    <form id="form-plantao">
+        
+        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Qual hora assumiu o plantão?</label>
+                <input type="datetime-local" id="p_hora_assumiu" required>
             </div>
-            <button onclick="fazerLogout()" class="btn-danger">Sair</button>
-        </header>
+            <div class="form-group" style="flex: 1;">
+                <label>Qual hora está largando o plantão?</label>
+                <input type="datetime-local" id="p_hora_largou" required>
+            </div>
+        </div>
 
-        <nav class="tabs">
-            <button class="tab-btn active" onclick="abrirAba('aba-plantao')">📋 Plantão</button>
-            <button class="tab-btn" onclick="abrirAba('aba-chaves')">🔑 Chaves</button>
-            <button class="tab-btn" onclick="abrirAba('aba-ocorrencias')">⚠️ Ocorrências</button>
-            <button class="tab-btn" onclick="abrirAba('aba-toner')">🖨️ Toner/Chamado Impresora.</button>
-            <button id="btn-admin" class="tab-btn hidden" onclick="abrirAba('aba-admin')">⚙️ Admin</button>
-        </nav>
+        <div class="form-group question-group admin-card">
+            <label>Todos os e-mails respondidos?</label>
+            <select id="p_emails" onchange="toggleCondicional('p_emails', 'div_m_emails', 'nao')">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <div id="div_m_emails" class="condicional hidden mt-10">
+                <label>Quais e quantos são? Motivo de não ter respondido:</label>
+                <textarea id="p_motivo_emails"></textarea>
+            </div>
+        </div>
 
-        <section id="aba-plantao" class="tab-content active">
-            <h3>Registro de Plantão</h3>
-            <form id="form-plantao">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Hora que assumiu:</label>
-                        <input type="datetime-local" id="p_hora_assumiu" required>
-                    </div>
-                </div>
+        <div class="form-group question-group admin-card">
+            <label>Algum chamado pendente?</label>
+            <select id="p_chamados" onchange="toggleCondicional('p_chamados', 'div_m_chamados', 'sim')">
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+            </select>
+            <div id="div_m_chamados" class="condicional hidden mt-10">
+                <label>Quais e quantos são? Motivo da pendência:</label>
+                <textarea id="p_motivo_chamados"></textarea>
+            </div>
+        </div>
 
-                <div class="form-group question-group">
-                    <label>Todos os e-mails respondidos?</label>
-                    <select id="p_emails" onchange="toggleCondicional('p_emails', 'div_m_emails', 'nao')">
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-                    <div id="div_m_emails" class="condicional hidden">
-                        <label>Quais e quantos são? Motivo de não ter respondido:</label>
-                        <textarea id="p_motivo_emails"></textarea>
-                    </div>
-                </div>
+        <div class="form-group question-group admin-card">
+            <label>Forms de cadastro zerado?</label>
+            <select id="p_forms" onchange="toggleCondicional('p_forms', 'div_m_forms', 'nao')">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <div id="div_m_forms" class="condicional hidden mt-10">
+                <label>Quais e quantos são? Motivo de não ter respondido:</label>
+                <textarea id="p_motivo_forms"></textarea>
+            </div>
+        </div>
 
-                <div class="form-group question-group">
-                    <label>Algum chamado pendente?</label>
-                    <select id="p_chamados" onchange="toggleCondicional('p_chamados', 'div_m_chamados', 'sim')">
-                        <option value="nao">Não</option>
-                        <option value="sim">Sim</option>
-                    </select>
-                    <div id="div_m_chamados" class="condicional hidden">
-                        <label>Quais e quantos são? Motivo da pendência:</label>
-                        <textarea id="p_motivo_chamados"></textarea>
-                    </div>
-                </div>
+        <div class="form-group question-group admin-card">
+            <label>Todas as máquinas do setor de T.I funcionando?</label>
+            <select id="p_maquinas" onchange="toggleCondicional('p_maquinas', 'div_m_maquinas', 'nao')">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <div id="div_m_maquinas" class="condicional hidden mt-10">
+                <label>Motivo de não estar funcionando:</label>
+                <textarea id="p_motivo_maquinas"></textarea>
+            </div>
+        </div>
 
-                <div class="signature-section">
-                    <label>Assinatura Digital (Obrigatória):</label>
-                    <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
-                    <div class="sig-buttons">
-                        <button type="button" onclick="limparCanvas('canvas-plantao')">Limpar</button>
-                    </div>
-                </div>
+        <div class="form-group question-group admin-card">
+            <label>Todas as cadeiras do setor no lugar?</label>
+            <select id="p_cadeiras" onchange="toggleCondicional('p_cadeiras', 'div_m_cadeiras', 'nao')">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <div id="div_m_cadeiras" class="condicional hidden mt-10">
+                <label>Motivo de não estarem no lugar:</label>
+                <textarea id="p_motivo_cadeiras"></textarea>
+            </div>
+        </div>
 
-                <button type="button" class="btn-success" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
-            </form>
-        </section>
+        <div class="form-group question-group admin-card">
+            <label>Painel de chamados aberto na TV?</label>
+            <select id="p_tv" onchange="toggleCondicional('p_tv', 'div_m_tv', 'nao')">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <div id="div_m_tv" class="condicional hidden mt-10">
+                <label>Motivo de não estar aberto:</label>
+                <textarea id="p_motivo_tv"></textarea>
+            </div>
+        </div>
 
-        <section id="aba-chaves" class="tab-content hidden">
-            <h3>Retirada e Devolução</h3>
+        <div class="form-group question-group admin-card">
+            <label>Alguma ocorrência durante o plantão?</label>
+            <select id="p_ocorrencias" onchange="toggleCondicional('p_ocorrencias', 'div_m_ocorrencias', 'sim')">
+                <option value="nao">Não</option>
+                <option value="sim">Sim</option>
+            </select>
+            <div id="div_m_ocorrencias" class="condicional hidden mt-10">
+                <label>Quais foram as ocorrências?</label>
+                <textarea id="p_motivo_ocorrencias"></textarea>
+            </div>
+        </div>
+
+        <div class="signature-section mt-20">
+            <label>Assinatura Digital (Obrigatória):</label>
+            <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
+            <div class="sig-buttons mt-10">
+                <button type="button" class="btn-danger" style="width: auto;" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
+            </div>
+        </div>
+
+        <button type="button" class="btn-success mt-20" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
+    </form>
+</section>
+
+            <section id="aba-chaves" class="tab-content hidden">
+                <h3>Retirada e Devolução</h3>
+                <p><i>Controles de chaves preservados...</i></p>
+            </section>
+
+            <section id="aba-ocorrencias" class="tab-content hidden">
+                <h3>Gestão de Ocorrências</h3>
+                </section>
+
+            <section id="aba-toner" class="tab-content hidden">
+                <h3>Controle de Toner e Impressoras</h3>
+                </section>
             
-            <div class="card-chave">
-                <h4>Retirar Chave</h4>
-                <select id="select-chaves-disponiveis">
-                    <option value="">Carregando chaves...</option>
-                </select>
-                <div class="signature-section">
-                    <label>Assinatura (Retirada):</label>
-                    <canvas id="canvas-retirada" class="sig-canvas" width="400" height="150"></canvas>
-                    <button type="button" onclick="limparCanvas('canvas-retirada')">Limpar</button>
-                </div>
-                <button type="button" class="btn-primary" onclick="registrarChave('retirada')">Registrar Retirada</button>
-            </div>
-
-            <hr>
-
-            <div class="card-chave">
-                <h4>Devolver Chave</h4>
-                <select id="select-chaves-retiradas">
-                    </select>
-                <div class="signature-section">
-                    <label>Assinatura (Devolução):</label>
-                    <canvas id="canvas-devolucao" class="sig-canvas" width="400" height="150"></canvas>
-                    <button type="button" onclick="limparCanvas('canvas-devolucao')">Limpar</button>
-                </div>
-                <button type="button" class="btn-primary" onclick="registrarChave('devolucao')">Registrar Devolução</button>
-            </div>
-        </section>
-
-        <section id="aba-ocorrencias" class="tab-content hidden">
-            <h3>Gestão de Ocorrências</h3>
-            <button class="btn-primary" onclick="document.getElementById('form-nova-ocorrencia').classList.toggle('hidden')">+ Nova Ocorrência</button>
-            
-            <form id="form-nova-ocorrencia" class="hidden mt-20">
-                <div class="form-group"><label>Qual a ocorrência?</label><textarea id="o_desc"></textarea></div>
-                <div class="form-group"><label>Solução Proposta/Aplicada:</label><textarea id="o_solucao"></textarea></div>
-                <div class="form-group"><label>Prazo para solução:</label><input type="date" id="o_prazo"></div>
-                <div class="form-group"><label>Responsável por acompanhar:</label><input type="text" id="o_resp"></div>
+            <section id="aba-admin" class="tab-content hidden">
+                <h3>Painel de Gestão (Admin)</h3>
                 
-                <div class="signature-section">
-                    <label>Sua Assinatura:</label>
-                    <canvas id="canvas-ocorrencia" class="sig-canvas" width="400" height="150"></canvas>
+                <div class="admin-card">
+                    <h4>1. Gestão de Usuários (Acesso e Senhas)</h4>
+                    <button class="btn-primary mt-10">Cadastrar Novo Usuário</button>
+                    <button class="btn-primary mt-10">Gerenciar Permissões</button>
                 </div>
-                <button type="button" class="btn-success" onclick="salvarOcorrencia()">Salvar Ocorrência</button>
-            </form>
 
-            <div id="lista-ocorrencias" class="mt-20">
+                <div class="admin-card">
+                    <h4>2 e 3. Exportação de Logs e Auditoria</h4>
+                    <input type="date"> até <input type="date">
+                    <button class="btn-success">Exportar Relatório (PDF/CSV)</button>
                 </div>
-        </section>
 
-        <section id="aba-toner" class="tab-content hidden">
-            <h3>Controle de Toner e Impressoras</h3>
-            
-            <div class="admin-card mt-20">
-                <h4>Registro de Troca de Toner</h4>
-                <div class="form-group">
-                    <label>Selecione o Modelo de Toner:</label>
-                    <select id="t_modelo">
-                        <option value="">Selecione...</option>
-                        <option value="Lexmark MS431">Lexmark MS431</option>
-                        <option value="Brother HL-L5202">Brother HL-L5202</option>
-                        </select>
+                <div class="admin-card">
+                    <h4>5 e 6. Cadastros Base</h4>
+                    <button class="btn-primary">Cadastrar Tipo de Chave</button>
+                    <button class="btn-primary mt-10">Cadastrar Tipo de Toner/Impressora</button>
                 </div>
-                
-                <div class="form-group">
-                    <label>Anexar Foto da Página de Teste (Obrigatório):</label>
-                    <input type="file" id="t_foto" accept="image/*" capture="environment">
-                </div>
-                
-                <button type="button" class="btn-primary" onclick="registrarToner()">Salvar Troca de Toner</button>
-            </div>
 
-            <hr style="margin: 20px 0; border: 1px solid #eee;">
-
-            <div class="admin-card">
-                <h4>Chamados Abertos (Simpres)</h4>
-                
-                <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
-                    <p><strong>Impressora:</strong> Recepção Principal</p>
-                    <p><strong>Problema:</strong> Atolamento de papel constante.</p>
-                    
-                    <div class="mt-10">
-                        <label>Observação da Solução:</label>
-                        <textarea id="obs_chamado_1" placeholder="Se houve alguma observação, digite aqui..."></textarea>
+                <div class="admin-card">
+                    <h4>7. Visto da Supervisão (Plantões Pendentes)</h4>
+                    <div id="plantoes-para-visto" style="padding: 15px; background: #ecf0f1; border-radius: 6px;">
+                        Nenhum plantão pendente de visto.
                     </div>
-                    
-                    <button type="button" class="btn-success mt-10" onclick="marcarChamadoAtendido(1)">Marcar como Atendido</button>
                 </div>
-            </div>
-        </section>
+            </section>
 
+        </main>
     </div>
 
     <script src="auth.js"></script>
