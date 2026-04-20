@@ -3,25 +3,30 @@
 /* Background especial para a tela de login */
 body.login-bg {
     background: url("fundo.jpg") no-repeat center center fixed;
-    background-size: cover; /* Isso faz a imagem ocupar a tela toda sem distorcer */
+    background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    z-index: 1; /* Camada base */
 }
 
 body.app-bg { background-color: #f4f7f6; margin: 0; }
 
 /* Tela de Login Centralizada e Menor */
 #login-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98); /* Branco quase sólido para não confundir com o fundo */
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Sombra mais forte para dar profundidade */
     width: 100%;
-    max-width: 350px; /* Mais estreito padrão */
+    max-width: 350px;
     text-align: center;
+    
+    /* CAMADAS: Isso garante que a caixa fique na frente de tudo */
+    position: relative; 
+    z-index: 10; 
 }
 
 .logo-area h2 { color: #2c3e50; margin-bottom: 5px; }
