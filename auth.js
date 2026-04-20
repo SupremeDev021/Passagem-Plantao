@@ -28,7 +28,35 @@ async function realizarLogin() {
         await carregarPerfil(data.user);
     }
 }
+// Função para detectar a tecla ENTER no campo de senha
+function verificarEnter(event) {
+    if (event.key === "Enter") {
+        realizarLogin();
+    }
+}
 
+// Dentro da sua função carregarPerfil(user), ache a parte que esconde o login e adicione a troca de background:
+async function carregarPerfil(user) {
+    usuarioAtual = user;
+    const { data: perfil, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+
+    if (perfil) {
+        perfilAtual = perfil;
+        document.getElementById('user-name').innerText = `Olá, ${perfil.nome}`;
+        document.getElementById('user-role').innerText = perfil.role.toUpperCase();
+        
+        // MUDANÇA DE BACKGROUND AQUI! Tira a imagem e coloca a cor do app
+        document.body.classList.remove('login-bg');
+        document.body.classList.add('app-bg');
+        
+        // Esconde login e mostra o App
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('app-wrapper').classList.remove('hidden'); // Note que mudou de app-container para app-wrapper
+
+        if (perfil.role === 'admin') document.getElementById('btn-admin').classList.remove('hidden');
+        carregarSelectChaves();
+    }
+}
 async function carregarPerfil(user) {
     usuarioAtual = user;
     
