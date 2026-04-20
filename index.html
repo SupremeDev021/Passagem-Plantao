@@ -192,7 +192,42 @@
                 </section>
             
             <section id="aba-admin" class="tab-content hidden">
-                <h3>Painel de Gestão (Admin)</h3>
+    <h3>Painel de Gestão (Admin)</h3>
+    
+    <div class="admin-card">
+        <h4>1. Gestão de Usuários (Acesso e Senhas)</h4>
+        <div class="button-group">
+            <button class="btn-primary">Cadastrar Novo Usuário</button>
+            <button class="btn-primary">Gerenciar Permissões</button>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h4>2 e 3. Exportação de Logs e Auditoria</h4>
+        <div class="date-group">
+            <label>De:</label>
+            <input type="date" id="data-inicio-relatorio"> 
+            <label>Até:</label>
+            <input type="date" id="data-fim-relatorio">
+        </div>
+        <button class="btn-success">Exportar Relatório (PDF/CSV)</button>
+    </div>
+
+    <div class="admin-card">
+        <h4>5 e 6. Cadastros Base</h4>
+        <div class="button-group">
+            <button class="btn-primary">Cadastrar Tipo de Chave</button>
+            <button class="btn-primary">Cadastrar Tipo de Impressora</button>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h4>7. Visto da Supervisão (Plantões Pendentes)</h4>
+        <div id="plantoes-para-visto" style="padding: 15px; background: #ecf0f1; border-radius: 6px;">
+            Nenhum plantão pendente de visto.
+        </div>
+    </div>
+</section>
                 
                 <div class="admin-card">
                     <h4>1. Gestão de Usuários (Acesso e Senhas)</h4>
