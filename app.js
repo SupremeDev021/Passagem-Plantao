@@ -1,10 +1,24 @@
+// ==========================================
 // TROCA DE ABAS E MODAIS
+// ==========================================
 function abrirAba(idAba) {
+    // 1. Esconde todas as abas da tela
     document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
+    
+    // 2. Apaga o brilho (active) de todos os botões do menu
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    document.getElementById(idAba).classList.remove('hidden');
-    event.currentTarget.classList.add('active');
+    // 3. Mostra a aba que você escolheu
+    const abaAlvo = document.getElementById(idAba);
+    if (abaAlvo) {
+        abaAlvo.classList.remove('hidden');
+    }
+    
+    // 4. Encontra o botão exato no menu e acende ele (Sem usar o 'event' que estava travando)
+    const botaoClicado = document.querySelector(`button[onclick*="${idAba}"]`);
+    if (botaoClicado) {
+        botaoClicado.classList.add('active');
+    }
 }
 
 // Controle de Modais (Janelas Flutuantes)
@@ -411,4 +425,3 @@ function mascaraTelefone(tel) {
     
     tel.value = v;
 }
-```
