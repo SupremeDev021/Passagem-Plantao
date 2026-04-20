@@ -1,10 +1,28 @@
-// Troca de Abas
+// ==========================================
+// TROCA DE ABAS E MODAIS
+// ==========================================
 function abrirAba(idAba) {
     document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
     document.getElementById(idAba).classList.remove('hidden');
     event.currentTarget.classList.add('active');
+}
+
+// Controle de Modais (Janelas Flutuantes)
+function abrirModal(idModal) {
+    document.getElementById(idModal).classList.add('flex');
+}
+
+function fecharModal(idModal) {
+    document.getElementById(idModal).classList.remove('flex');
+}
+
+// Fechar modal ao clicar do lado de fora
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('flex');
+    }
 }
 
 // Lógica de Campos Condicionais (Sim/Não)
@@ -67,19 +85,24 @@ async function salvarPlantao() {
         alert('Erro ao salvar: Verifique se preencheu os horários e assinou.');
     }
 }
+
 // ==========================================
 // ABA 2: CHAVES
 // ==========================================
 async function carregarSelectChaves() {
-    // Carrega chaves disponíveis
-    const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
-    const selDisp = document.getElementById('select-chaves-disponiveis');
-    selDisp.innerHTML = disponiveis.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    try {
+        // Carrega chaves disponíveis
+        const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
+        const selDisp = document.getElementById('select-chaves-disponiveis');
+        if(selDisp) selDisp.innerHTML = disponiveis.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
 
-    // Carrega chaves retiradas
-    const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
-    const selRet = document.getElementById('select-chaves-retiradas');
-    selRet.innerHTML = retiradas.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        // Carrega chaves retiradas
+        const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
+        const selRet = document.getElementById('select-chaves-retiradas');
+        if(selRet) selRet.innerHTML = retiradas.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    } catch (err) {
+        console.log("Aba de chaves não encontrada ou erro no DB:", err);
+    }
 }
 
 async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
@@ -132,10 +155,8 @@ async function registrarToner() {
 
         if (uploadError) throw uploadError;
 
-        // Avisa que deu certo
         alert('Troca de toner registrada com sucesso! A foto foi salva.');
         
-        // Limpa os campos
         document.getElementById('t_modelo').value = '';
         inputFoto.value = '';
 
@@ -145,18 +166,82 @@ async function registrarToner() {
     }
 }
 
-// Lógica para marcar chamado da Simpres como atendido
 async function marcarChamadoAtendido(chamadoId) {
     const observacao = document.getElementById(`obs_chamado_${chamadoId}`).value;
     alert(`Chamado resolvido!\nObservação salva: ${observacao ? observacao : "Nenhuma"}`);
 }
 
 // ==========================================
+// ADMIN: FUNÇÕES DE CADASTRO (LÓGICA DOS MODAIS)
+// ==========================================
+
+// 1. Criar Usuário (Chama uma função segura no servidor)
+async function adminCriarUsuario() {
+    // ATENÇÃO: A criação de usuários com senha pelo front-end requer configurações avançadas 
+    // ou uma Edge Function no Supabase. Para agora, vamos exibir o alerta de estrutura pronta.
+    alert("Função pronta no Front-End! Requer criação da Função RPC no Supabase para rodar sem bloqueio de segurança.");
+}
+
+// 2. Cadastrar Chave Base
+async function adminCadastrarChave() {
+    const nome = document.getElementById('cad_chave_nome').value;
+    const cor = document.getElementById('cad_chave_cor').value;
+    const local = document.getElementById('cad_chave_local').value;
+
+    if(!nome || !cor || !local) return alert('Preencha todos os campos!');
+
+    try {
+        const { error } = await supabase.from('chaves').insert([
+            { nome: nome, cor: cor, localizacao: local, status: 'disponivel' }
+        ]);
+        
+        if (error) throw error;
+        alert('Chave cadastrada com sucesso!');
+        fecharModal('modal-chave');
+        carregarSelectChaves(); // Atualiza a lista da aba Chaves
+    } catch (err) { alert('Erro ao cadastrar chave: ' + err.message); }
+}
+
+// 3. Cadastrar Modelo de Toner
+async function adminCadastrarToner() {
+    const modelo = document.getElementById('cad_toner_modelo').value;
+    const impressoras = document.getElementById('cad_toner_imp').value;
+
+    if(!modelo || !impressoras) return alert('Preencha todos os campos!');
+
+    try {
+        const { error } = await supabase.from('modelos_toner').insert([
+            { modelo: modelo, impressoras_compativeis: impressoras }
+        ]);
+        if (error) throw error;
+        alert('Modelo de toner cadastrado!');
+        fecharModal('modal-toner');
+    } catch (err) { alert('Erro: ' + err.message); }
+}
+
+// 4. Cadastrar Chamado Simpress
+async function adminCadastrarSimpress() {
+    const numero = document.getElementById('cad_sim_numero').value;
+    const modelo = document.getElementById('cad_sim_modelo').value;
+    const serie = document.getElementById('cad_sim_serie').value;
+    const local = document.getElementById('cad_sim_local').value;
+
+    if(!numero || !modelo || !serie || !local) return alert('Preencha tudo!');
+
+    try {
+        const { error } = await supabase.from('chamados_simpress').insert([
+            { numero_chamado: numero, modelo_impressora: modelo, numero_serie: serie, localizacao: local, status: 'Aberto' }
+        ]);
+        if (error) throw error;
+        alert('Chamado Simpress registrado!');
+        fecharModal('modal-simpress');
+    } catch (err) { alert('Erro: ' + err.message); }
+}
+
+// ==========================================
 // ADMIN: EXPORTAR PDF
 // ==========================================
 async function exportarPDF() {
-    // Busca dados no Supabase e usa a biblioteca html2pdf
-    // Exemplo simplificado de trigger:
-    const elementoParaExportar = document.getElementById('app-container');
+    const elementoParaExportar = document.getElementById('app-wrapper');
     html2pdf().from(elementoParaExportar).save('Relatorio_Plantao.pdf');
 }
