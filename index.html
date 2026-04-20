@@ -135,22 +135,43 @@
                 </div>
         </section>
 
-        <section id="aba-toner" class="tab-content hidden"><h3>Toner e Impressoras</h3></section>
-        
-        <section id="aba-admin" class="tab-content hidden">
-            <h3>Painel de Supervisão e Gestão</h3>
+        <section id="aba-toner" class="tab-content hidden">
+            <h3>Controle de Toner e Impressoras</h3>
             
-            <div class="admin-grid">
-                <div class="admin-card">
-                    <h4>Visto da Supervisão</h4>
-                    <p>Plantoes aguardando assinatura.</p>
-                    <div id="plantoes-pendentes"></div>
+            <div class="admin-card mt-20">
+                <h4>Registro de Troca de Toner</h4>
+                <div class="form-group">
+                    <label>Selecione o Modelo de Toner:</label>
+                    <select id="t_modelo">
+                        <option value="">Selecione...</option>
+                        <option value="Lexmark MS431">Lexmark MS431</option>
+                        <option value="Brother HL-L5202">Brother HL-L5202</option>
+                        </select>
                 </div>
                 
-                <div class="admin-card">
-                    <h4>Exportar Relatórios</h4>
-                    <input type="date" id="export-inicio"> até <input type="date" id="export-fim">
-                    <button class="btn-primary mt-10" onclick="exportarPDF()">Exportar PDF</button>
+                <div class="form-group">
+                    <label>Anexar Foto da Página de Teste (Obrigatório):</label>
+                    <input type="file" id="t_foto" accept="image/*" capture="environment">
+                </div>
+                
+                <button type="button" class="btn-primary" onclick="registrarToner()">Salvar Troca de Toner</button>
+            </div>
+
+            <hr style="margin: 20px 0; border: 1px solid #eee;">
+
+            <div class="admin-card">
+                <h4>Chamados Abertos (Simpres)</h4>
+                
+                <div class="form-group" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
+                    <p><strong>Impressora:</strong> Recepção Principal</p>
+                    <p><strong>Problema:</strong> Atolamento de papel constante.</p>
+                    
+                    <div class="mt-10">
+                        <label>Observação da Solução:</label>
+                        <textarea id="obs_chamado_1" placeholder="Se houve alguma observação, digite aqui..."></textarea>
+                    </div>
+                    
+                    <button type="button" class="btn-success mt-10" onclick="marcarChamadoAtendido(1)">Marcar como Atendido</button>
                 </div>
             </div>
         </section>
