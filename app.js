@@ -192,7 +192,7 @@ async function marcarChamadoAtendido(chamadoId) {
 // ADMIN: FUNÇÕES DE CADASTRO E USUÁRIOS
 // ==========================================
 
-// 1. Criar Usuário (Chama uma função segura no servidor via RPC)
+// 1. Criar Usuário
 async function adminCriarUsuario() {
     const nome = document.getElementById('cad_nome').value;
     const turno = document.getElementById('cad_turno').value;
@@ -228,7 +228,7 @@ async function adminCriarUsuario() {
     }
 }
 
-// 2. Função para carregar a lista de usuários na tabela de permissões
+// 2. Carregar Tabela de Permissões
 async function carregarTabelaUsuarios() {
     try {
         const { data: usuarios, error } = await supabase
@@ -239,7 +239,7 @@ async function carregarTabelaUsuarios() {
         if (error) throw error;
 
         const tabela = document.getElementById('tabela-usuarios-admin');
-        tabela.innerHTML = ''; // Limpa antes de preencher
+        tabela.innerHTML = ''; 
 
         usuarios.forEach(user => {
             const tr = document.createElement('tr');
@@ -256,6 +256,7 @@ async function carregarTabelaUsuarios() {
                     <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                         <button class="btn-primary btn-sm" onclick="salvarNivelAcesso('${user.id}')">Salvar Edição</button>
                         <button class="btn-primary btn-sm" style="background: #8e44ad;" onclick="prepararEdicaoCompleta('${user.id}')">Alterar Dados</button>
+                        <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="redefinirSenhaUsuario('${user.email}')">Redefinir Senha</button>
                         <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
                     </div>
                 </td>
@@ -267,7 +268,7 @@ async function carregarTabelaUsuarios() {
     }
 }
 
-// 3. Função para alterar apenas o nível (Admin/Operacional) rápido
+// 3. Salvar Nível de Acesso (Select)
 async function salvarNivelAcesso(userId) {
     const novoRole = document.getElementById(`role-${userId}`).value;
 
@@ -284,12 +285,65 @@ async function salvarNivelAcesso(userId) {
     }
 }
 
-// 4. Preparar edição completa
-function prepararEdicaoCompleta(userId) {
-    alert("Iniciando edição completa para o ID: " + userId);
+// 4. Preparar edição completa (Carrega dados no modal)
+async function prepararEdicaoCompleta(userId) {
+    try {
+        const { data: user, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+        if (error) throw error;
+
+        // Preenche o formulário com os dados do banco
+        document.getElementById('edit_id').value = user.id;
+        document.getElementById('edit_nome').value = user.nome || '';
+        document.getElementById('edit_turno').value = user.turno || '';
+        document.getElementById('edit_celular').value = user.celular || '';
+        document.getElementById('edit_cpf').value = user.cpf || '';
+
+        abrirModal('modal-editar-usuario');
+    } catch (err) {
+        alert("Erro ao buscar dados: " + err.message);
+    }
 }
 
-// 5. Função para deletar usuário
+// 4.1 Salvar edição completa
+async function salvarEdicaoUsuario() {
+    const userId = document.getElementById('edit_id').value;
+    const nome = document.getElementById('edit_nome').value;
+    const turno = document.getElementById('edit_turno').value;
+    const celular = document.getElementById('edit_celular').value;
+    const cpf = document.getElementById('edit_cpf').value;
+
+    try {
+        const { error } = await supabase.from('profiles').update({
+            nome: nome,
+            turno: turno,
+            celular: celular,
+            cpf: cpf
+        }).eq('id', userId);
+
+        if (error) throw error;
+
+        alert("Dados alterados com sucesso!");
+        fecharModal('modal-editar-usuario');
+        carregarTabelaUsuarios(); 
+    } catch (err) {
+        alert("Erro ao salvar: " + err.message);
+    }
+}
+
+// 4.2 Redefinir Senha
+async function redefinirSenhaUsuario(email) {
+    if (!confirm(`Enviar link de redefinição de senha para o e-mail: ${email}?`)) return;
+    
+    try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        alert("E-mail de redefinição enviado com sucesso! O usuário receberá um link na caixa de entrada.");
+    } catch (err) {
+        alert("Erro ao enviar redefinição: " + err.message);
+    }
+}
+
+// 5. Deletar usuário
 async function deletarUsuario(userId) {
     if (!confirm("Tem certeza que deseja excluir este usuário permanentemente?")) return;
 
