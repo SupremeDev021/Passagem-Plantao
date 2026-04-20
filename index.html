@@ -1,3 +1,8 @@
+Aqui está o seu arquivo `index.html` completo e atualizado. Eu conectei todos os botões da aba Admin aos seus respectivos modais e criei as janelas com **todos os campos exatos** que você solicitou.
+
+Copie este código e substitua **todo** o conteúdo do seu `index.html`:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -199,8 +204,8 @@
                 <div class="admin-card">
                     <h4>1. Gestão de Usuários (Acesso e Senhas)</h4>
                     <div class="button-group">
-                        <button class="btn-primary">Cadastrar Novo Usuário</button>
-                        <button class="btn-primary">Gerenciar Permissões</button>
+                        <button class="btn-primary" onclick="abrirModal('modal-usuario')">Cadastrar Novo Usuário</button>
+                        <button class="btn-primary" onclick="abrirModal('modal-permissoes')">Gerenciar Permissões</button>
                     </div>
                 </div>
 
@@ -216,16 +221,16 @@
                 </div>
 
                 <div class="admin-card">
-                    <h4>Cadastros</h4>
+                    <h4>Cadastros Base e Chamados</h4>
                     <div class="button-group">
-                        <button class="btn-primary">Cadastrar Tipo de Chave</button>
-                        <button class="btn-primary">Cadastrar Modelo de Toner</button>
-                        <button class="btn-primary">Chamado com a Simpress</button>
+                        <button class="btn-primary" onclick="abrirModal('modal-chave')">Cadastrar Tipo de Chave</button>
+                        <button class="btn-primary" onclick="abrirModal('modal-toner')">Cadastrar Modelo de Toner</button>
+                        <button class="btn-primary" onclick="abrirModal('modal-simpress')">Chamado com a Simpress</button>
                     </div>
                 </div>
 
                 <div class="admin-card">
-                    <h4>7. Visto da Supervisão (Plantões Pendentes)</h4>
+                    <h4>Visto da Supervisão (Plantões Pendentes)</h4>
                     <div id="plantoes-para-visto" style="padding: 15px; background: #ecf0f1; border-radius: 6px;">
                         Nenhum plantão pendente de visto.
                     </div>
@@ -235,8 +240,107 @@
         </main>
     </div>
 
+    <div id="modal-usuario" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-usuario')">&times;</span>
+            <h3>Cadastrar Novo Usuário</h3>
+            <form id="form-novo-usuario">
+                <input type="text" id="cad_nome" placeholder="Nome Completo" required>
+                <select id="cad_turno" required>
+                    <option value="">Selecione o Turno</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noite">Noite</option>
+                    <option value="Geral">Geral / Administrativo</option>
+                </select>
+                <input type="text" id="cad_celular" placeholder="Celular (WhatsApp)">
+                <input type="text" id="cad_cpf" placeholder="CPF">
+                <input type="email" id="cad_email" placeholder="E-mail" required>
+                <input type="text" id="cad_usuario" placeholder="Usuário de Login" required>
+                <input type="password" id="cad_senha" placeholder="Senha Provisória" required>
+                <button type="button" class="btn-success">Criar Usuário</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-permissoes" class="modal">
+        <div class="modal-content large">
+            <span class="close-modal" onclick="fecharModal('modal-permissoes')">&times;</span>
+            <h3>Gerenciar Permissões</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Usuário/E-mail</th>
+                            <th>Nível</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-usuarios-admin">
+                        <tr>
+                            <td>Exemplo Silva</td>
+                            <td>exemplo@hospital.com</td>
+                            <td>
+                                <select class="btn-sm">
+                                    <option value="operacional">Operacional</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-primary btn-sm">Salvar Edição</button>
+                                <button class="btn-primary btn-sm">Redefinir Senha</button>
+                                <button class="btn-danger btn-sm">Excluir</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-chave" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-chave')">&times;</span>
+            <h3>Cadastrar Tipo de Chave</h3>
+            <form>
+                <input type="text" placeholder="Nomenclatura (Ex: CPD, Sala Servidor)" required>
+                <input type="text" placeholder="Cor do Chaveiro" required>
+                <input type="text" placeholder="Localização / Prédio" required>
+                <button type="button" class="btn-success">Salvar Chave</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-toner" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-toner')">&times;</span>
+            <h3>Cadastrar Modelo de Toner</h3>
+            <form>
+                <input type="text" placeholder="Modelo do Toner" required>
+                <input type="text" placeholder="Impressoras Compatíveis (Ex: Lexmark MS431)" required>
+                <button type="button" class="btn-success">Salvar Cadastro</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-simpress" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-simpress')">&times;</span>
+            <h3>Registrar Chamado Simpress</h3>
+            <form>
+                <input type="text" placeholder="Número do Chamado" required>
+                <input type="text" placeholder="Modelo da Impressora" required>
+                <input type="text" placeholder="Número de Série" required>
+                <input type="text" placeholder="Localização da Impressora (Setor)" required>
+                <button type="button" class="btn-success">Abrir Chamado</button>
+            </form>
+        </div>
+    </div>
+
     <script src="auth.js"></script>
     <script src="signature.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
+```
