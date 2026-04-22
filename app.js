@@ -1,10 +1,3 @@
-João, analisei o seu código e vi exatamente o que ficou de fora! A parte inteira do **Dashboard (Tela Inicial)** e da **Passagem de Plantão para a Supervisão dar o Visto** não estava no arquivo que você mandou.
-
-Eu peguei exatamente o seu código, mantive todas as suas abas intactas e apenas **adicionei as engrenagens do Dashboard** (lá no topo e no final do arquivo) para que a sua tela inicial ganhe vida e mostre tudo em tempo real.
-
-Pode copiar este código inteiro e substituir no seu `app.js`:
-
-```javascript
 // ==========================================
 // AUTENTICAÇÃO E DASHBOARD INICIAL
 // ==========================================
