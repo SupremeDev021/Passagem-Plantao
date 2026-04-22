@@ -1,3 +1,6 @@
+// ==========================================
+// AUTENTICAÇÃO E DASHBOARD INICIAL
+// ==========================================
 let usuarioAtual = null;
 
 // Fica escutando para ver se alguém fez login no sistema
@@ -8,6 +11,12 @@ supabase.auth.onAuthStateChange((event, session) => {
         usuarioAtual = null;
     }
 });
+
+// Carrega o dashboard automaticamente quando a página iniciar
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(carregarResumoDashboard, 1000); // Espera 1 seg para o Supabase conectar
+});
+
 // ==========================================
 // TROCA DE ABAS E MODAIS
 // ==========================================
@@ -30,18 +39,17 @@ function abrirAba(idAba) {
         botaoClicado.classList.add('active');
     }
 
-    // AJUSTE CORRIGIDO: Este bloco deve ficar DENTRO da função
+    // GATILHOS PARA CARREGAR AS TABELAS AUTOMATICAMENTE:
+    if (idAba === 'aba-home') {
+        carregarResumoDashboard();
+    }
     if (idAba === 'aba-toner') {
         carregarListaToners();
         carregarListaChamados();
     }
-    
-    // GATILHO DA ABA DE OCORRÊNCIAS
     if (idAba === 'aba-ocorrencias') {
         carregarListaOcorrencias();
     }
-
-    // GATILHO DA ABA DE CHAVES
     if (idAba === 'aba-chaves') {
         carregarSelectChaves();
     }
@@ -130,7 +138,7 @@ async function salvarPlantao() {
 }
 
 // ==========================================
-// ABA 2: CHAVES (ATUALIZADO)
+// ABA 2: CHAVES
 // ==========================================
 async function carregarSelectChaves() {
     try {
@@ -438,7 +446,6 @@ async function salvarAtendimentoChamado() {
 // ADMIN: FUNÇÕES DE CADASTRO E USUÁRIOS
 // ==========================================
 
-// 1. Criar Usuário
 async function adminCriarUsuario() {
     const nome = document.getElementById('cad_nome').value;
     const turno = document.getElementById('cad_turno').value;
@@ -473,7 +480,6 @@ async function adminCriarUsuario() {
     }
 }
 
-// 2. Carregar Tabela de Permissões
 async function carregarTabelaUsuarios() {
     try {
         const { data: usuarios, error } = await supabase
@@ -488,7 +494,6 @@ async function carregarTabelaUsuarios() {
 
         usuarios.forEach(user => {
             const tr = document.createElement('tr');
-            // Repassamos o CPF para a função de redefinir senha
             const cpfUser = user.cpf ? `'${user.cpf}'` : `null`;
             
             tr.innerHTML = `
@@ -516,7 +521,6 @@ async function carregarTabelaUsuarios() {
     }
 }
 
-// 3. Salvar Nível de Acesso (Select)
 async function salvarNivelAcesso(userId) {
     const novoRole = document.getElementById(`role-${userId}`).value;
 
@@ -533,16 +537,13 @@ async function salvarNivelAcesso(userId) {
     }
 }
 
-// 4. Preparar edição completa (Impede sobreposição de telas e inclui o E-mail)
 async function prepararEdicaoCompleta(userId) {
     try {
         const { data: user, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
         if (error) throw error;
 
-        // FECHA O MODAL ANTERIOR PARA NÃO SOBREPOR
         fecharModal('modal-permissoes');
 
-        // Preenche o formulário
         document.getElementById('edit_id').value = user.id;
         document.getElementById('edit_nome').value = user.nome || '';
         document.getElementById('edit_turno').value = user.turno || '';
@@ -550,14 +551,12 @@ async function prepararEdicaoCompleta(userId) {
         document.getElementById('edit_cpf').value = user.cpf || '';
         document.getElementById('edit_email').value = user.email || '';
 
-        // ABRE O NOVO MODAL
         abrirModal('modal-editar-usuario');
     } catch (err) {
         alert("Erro ao buscar dados: " + err.message);
     }
 }
 
-// 4.1 Salvar edição completa
 async function salvarEdicaoUsuario() {
     const userId = document.getElementById('edit_id').value;
     const nome = document.getElementById('edit_nome').value;
@@ -579,20 +578,18 @@ async function salvarEdicaoUsuario() {
 
         alert("Dados alterados com sucesso no Perfil!");
         fecharModal('modal-editar-usuario');
-        abrirModal('modal-permissoes'); // Volta para a tabela
+        abrirModal('modal-permissoes'); 
         
     } catch (err) {
         alert("Erro ao salvar: " + err.message);
     }
 }
 
-// 4.2 Redefinir Senha Automática (4 primeiros dígitos do CPF)
 async function redefinirSenhaUsuario(userId, cpfUsuario) {
     if (!cpfUsuario || cpfUsuario.length < 4) {
         return alert("Erro: O usuário não possui um CPF cadastrado ou válido para gerar a senha.");
     }
 
-    // Extrai apenas os números do CPF e pega os 4 primeiros
     const cpfNumeros = cpfUsuario.replace(/\D/g, ""); 
     const novaSenha = cpfNumeros.substring(0, 4);
 
@@ -601,7 +598,6 @@ async function redefinirSenhaUsuario(userId, cpfUsuario) {
     }
     
     try {
-        // Aciona o script SQL criado para atualizar direto no auth.users
         const { error } = await supabase.rpc('admin_redefinir_senha', { 
             p_user_id: userId, 
             p_nova_senha: novaSenha 
@@ -615,7 +611,6 @@ async function redefinirSenhaUsuario(userId, cpfUsuario) {
     }
 }
 
-// 5. Deletar usuário
 async function deletarUsuario(userId) {
     if (!confirm("Tem certeza que deseja excluir este usuário permanentemente?")) return;
 
@@ -698,20 +693,93 @@ async function adminCadastrarSimpress() {
         alert('Chamado Simpress registrado com sucesso!');
         fecharModal('modal-simpress');
         
-        // Limpa os campos
         document.getElementById('cad_sim_numero').value = '';
         document.getElementById('cad_sim_modelo').value = '';
         document.getElementById('cad_sim_serie').value = '';
         document.getElementById('cad_sim_local').value = '';
 
-        // Já recarrega a lista para caso o admin vá na aba ver
         carregarListaChamados();
 
     } catch (err) { alert('Erro ao salvar chamado: ' + err.message); }
 }
 
 // ==========================================
-// ADMIN: EXPORTAR PDF E MÁSCARAS
+// TELA INICIAL / DASHBOARD (TEMPO REAL)
+// ==========================================
+
+async function carregarResumoDashboard() {
+    try {
+        // 1. Estoque de Toners
+        const { data: toners } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
+        const dashToners = document.getElementById('dash-toners');
+        if (dashToners) {
+            dashToners.innerHTML = toners && toners.length 
+                ? toners.map(t => `<li>📦 ${t.modelo_toner}: <strong style="color: ${t.quantidade_atual <= 1 ? 'red' : 'green'}">${t.quantidade_atual} un.</strong></li>`).join('') 
+                : '<li>Nenhum toner cadastrado.</li>';
+        }
+
+        // 2. Chaves Pendentes (Em Uso)
+        const { data: chaves } = await supabase.from('chaves').select('*').eq('status', 'retirada');
+        const dashChaves = document.getElementById('dash-chaves');
+        if (dashChaves) {
+            dashChaves.innerHTML = chaves && chaves.length 
+                ? chaves.map(c => `<li>🔑 ${c.nome} - <span style="color: red; font-weight: bold;">Em uso</span></li>`).join('') 
+                : '<li>✅ Todas as chaves na base.</li>';
+        }
+
+        // 3. Chamados Simpress (Abertos)
+        const { data: chamados } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto');
+        const dashChamados = document.getElementById('dash-chamados');
+        if (dashChamados) {
+            dashChamados.innerHTML = chamados && chamados.length 
+                ? chamados.map(c => `<li>🖨️ N ${c.numero_chamado} (${c.setor_localizada})</li>`).join('') 
+                : '<li>✅ Nenhum chamado aberto.</li>';
+        }
+
+        // 4. Ocorrências Pendentes / Em Andamento
+        const { data: ocorrencias } = await supabase.from('ocorrencias').select('*').neq('status', 'Solucionada');
+        const dashOcorrencias = document.getElementById('dash-ocorrencias');
+        if (dashOcorrencias) {
+            dashOcorrencias.innerHTML = ocorrencias && ocorrencias.length 
+                ? ocorrencias.map(o => `<li>⚠️ ${o.descricao} <br><small style="color: #666;">Prazo: ${o.prazo ? o.prazo.split('-').reverse().join('/') : '-'} | ${o.status}</small></li>`).join('') 
+                : '<li>✅ Nenhuma ocorrência pendente.</li>';
+        }
+
+        // 5. Plantões Aguardando Visto
+        const { data: plantoes } = await supabase.from('plantoes').select('*').eq('visto_supervisao', false).order('created_at', { ascending: false });
+        const dashPlantoes = document.getElementById('dash-plantoes');
+        if (dashPlantoes) {
+            dashPlantoes.innerHTML = plantoes && plantoes.length 
+                ? plantoes.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
+                        <td><button class="btn-success btn-sm" onclick="darVistoPlantao('${p.id}')">Dar Visto ✔️</button></td>
+                    </tr>
+                `).join('') 
+                : '<tr><td colspan="3" style="text-align: center;">✅ Todos os plantões estão com visto da supervisão.</td></tr>';
+        }
+
+    } catch (err) {
+        console.error("Erro ao carregar Dashboard:", err.message);
+    }
+}
+
+// Função do Botão de "Dar Visto"
+async function darVistoPlantao(idPlantao) {
+    if (!confirm("Confirmar VISTO DA SUPERVISÃO neste plantão? Ele será arquivado.")) return;
+    try {
+        const { error } = await supabase.from('plantoes').update({ visto_supervisao: true }).eq('id', idPlantao);
+        if (error) throw error;
+        alert("Visto registrado com sucesso!");
+        carregarResumoDashboard(); // Some com o plantão da tela na mesma hora
+    } catch (err) {
+        alert("Erro ao dar visto: " + err.message);
+    }
+}
+
+// ==========================================
+// MÁSCARAS DE FORMATAÇÃO (CPF e TELEFONE)
 // ==========================================
 async function exportarPDF() {
     const elementoParaExportar = document.getElementById('app-wrapper');
