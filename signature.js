@@ -1,72 +1,135 @@
-// Função genérica para inicializar qualquer canvas na tela
-function setupCanvas(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return null;
+// ==========================================
+// INTELIGÊNCIA DAS ASSINATURAS (CANVAS)
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    inicializarAssinaturas();
+});
+
+function inicializarAssinaturas() {
+    const canvases = document.querySelectorAll('.sig-canvas');
     
-    const ctx = canvas.getContext('2d');
-    let desenhando = false;
+    canvases.forEach(canvas => {
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
 
-    // Mouse
-    canvas.addEventListener('mousedown', iniciar);
-    canvas.addEventListener('mousemove', desenhar);
-    canvas.addEventListener('mouseup', parar);
-    canvas.addEventListener('mouseout', parar);
+        // Ajusta a resolução interna do canvas para bater com o CSS (Evita distorção)
+        function calibrarCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            // Só ajusta se ele estiver visível e se o tamanho interno estiver diferente do real
+            if (rect.width > 0 && canvas.width !== Math.round(rect.width)) {
+                canvas.width = rect.width;
+                canvas.height = 150; // Altura padrão para todos os campos
+                
+                // Preenche com fundo branco para não dar erro no Supabase
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
 
-    // Touch (Mobile/Tablet)
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); iniciar(e.touches[0]); });
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); desenhar(e.touches[0]); });
-    canvas.addEventListener('touchend', parar);
+        // Calibra a caneta toda vez que o mouse/dedo entra no quadro
+        canvas.addEventListener('mouseenter', calibrarCanvas);
+        canvas.addEventListener('touchstart', calibrarCanvas, { passive: true });
 
-    function iniciar(e) {
-        desenhando = true;
-        ctx.beginPath();
-        ctx.moveTo(getPosX(e), getPosY(e));
-    }
-
-    function desenhar(e) {
-        if (!desenhando) return;
-        ctx.lineTo(getPosX(e), getPosY(e));
-        ctx.stroke();
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-    }
-
-    function parar() { desenhando = false; }
-    
-    function getPosX(e) { return e.clientX - canvas.getBoundingClientRect().left; }
-    function getPosY(e) { return e.clientY - canvas.getBoundingClientRect().top; }
-
-    return canvas;
-}
-
-// Inicializa os canvas das abas
-const canvasPlantao = setupCanvas('canvas-plantao');
-const canvasRetirada = setupCanvas('canvas-retirada');
-const canvasDevolucao = setupCanvas('canvas-devolucao');
-const canvasOcorrencia = setupCanvas('canvas-ocorrencia');
-
-function limparCanvas(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-// Função centralizada para fazer Upload da assinatura para o Supabase Storage
-async function uploadAssinatura(canvasElement, prefixo = 'sig') {
-    return new Promise((resolve, reject) => {
-        canvasElement.toBlob(async (blob) => {
-            if (!blob) return reject("Canvas vazio");
-
-            const nomeArquivo = `${prefixo}_${Date.now()}.png`;
+        // Captura a posição exata da caneta (Mouse ou Touch)
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             
-            const { data, error } = await supabase.storage
-                .from('assinaturas')
-                .upload(nomeArquivo, blob);
+            // Calcula a proporção exata
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
 
-            if (error) reject(error);
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
 
-            const { data: publicData } = supabase.storage.from('assinaturas').getPublicUrl(nomeArquivo);
-            resolve(publicData.publicUrl);
+        // EVENTOS DE DESENHO
+        function startDrawing(e) {
+            if (e.cancelable) e.preventDefault(); // Evita a tela rolar no celular
+            calibrarCanvas();
+            isDrawing = true;
+            const pos = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#000000';
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            if (e.cancelable) e.preventDefault(); // Evita a tela rolar no celular
+            const pos = getCoordinates(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Mouse (Computador)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch (Celular/Tablet)
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+
+        // Inicialização padrão
+        setTimeout(calibrarCanvas, 500); 
+    });
+}
+
+// Botão "Limpar Assinatura"
+function limparCanvas(idCanvas) {
+    const canvas = document.getElementById(idCanvas);
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+// Função que envia a imagem gerada para o Supabase
+async function uploadAssinatura(canvas, prefixo) {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(async (blob) => {
+            if (!blob) return reject(new Error("Falha ao gerar a assinatura. Tente desenhar novamente."));
+            
+            const fileName = `assinatura_${prefixo}_${Date.now()}.png`;
+            
+            try {
+                // Envia para o bucket "assinaturas" no Supabase
+                const { data, error } = await supabase.storage
+                    .from('assinaturas')
+                    .upload(fileName, blob, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                    
+                if (error) throw error;
+                
+                // Pega a URL pública para salvar no banco de dados
+                const { data: urlData } = supabase.storage
+                    .from('assinaturas')
+                    .getPublicUrl(fileName);
+                    
+                resolve(urlData.publicUrl);
+            } catch (err) {
+                reject(err);
+            }
         }, 'image/png');
     });
 }
