@@ -493,6 +493,30 @@
             </form>
         </div>
     </div>
+   
+    <div id="modal-finalizar-ocorrencia" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-finalizar-ocorrencia')">&times;</span>
+            <h3>Finalizar Ocorrência</h3>
+            <form id="form-finalizar-ocorrencia">
+                <input type="hidden" id="f_ocorrencia_id">
+                
+                <label>Descreva a solução aplicada:</label>
+                <textarea id="f_solucao" placeholder="Como isso foi resolvido?" required></textarea>
+                
+                <input type="text" id="f_quem_solucionou" placeholder="Quem solucionou?" required>
+                <input type="text" id="f_quem_acompanhou" placeholder="Quem acompanhou? (Técnico T.I)" required>
+                
+                <div class="signature-section mt-10">
+                    <label>Assinatura (De quem resolveu ou acompanhou):</label>
+                    <canvas id="canvas-finalizar-ocorrencia" class="sig-canvas" width="400" height="200"></canvas>
+                    <button type="button" class="btn-danger btn-sm mt-10" style="width: auto;" onclick="limparCanvas('canvas-finalizar-ocorrencia')">Limpar Assinatura</button>
+                </div>
+
+                <button type="button" class="btn-success mt-20" onclick="finalizarOcorrencia()">Finalizar Ocorrência</button>
+            </form>
+        </div>
+    </div>
 
     <script src="auth.js"></script>
     <script src="signature.js"></script>
