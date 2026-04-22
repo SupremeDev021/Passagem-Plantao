@@ -15,9 +15,12 @@ function abrirAba(idAba) {
         botaoClicado.classList.add('active');
     }
 }
-
+    if (idAba === 'aba-toner') {
+        carregarListaToners();
+        carregarListaChamados();
+    }
 // Controle de Modais
-function abrirModal(idModal) {
+    function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
     if (idModal === 'modal-permissoes') {
         carregarTabelaUsuarios();
