@@ -74,7 +74,7 @@
 
                 </div>
 
-                <div class="admin-card mt-20">
+               <div class="admin-card mt-20">
                     <h4>📋 Plantões Aguardando Visto (Supervisão)</h4>
                     <div class="table-responsive">
                         <table>
@@ -82,7 +82,7 @@
                                 <tr>
                                     <th>Data</th>
                                     <th>Turno (Assumiu - Largou)</th>
-                                    <th>Ação</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="dash-plantoes">
@@ -381,10 +381,20 @@
                     </div>
                 </div>
 
-                <div class="admin-card">
-                    <h4>Visto da Supervisão (Plantões Pendentes)</h4>
-                    <div id="plantoes-para-visto" style="padding: 15px; background: #ecf0f1; border-radius: 6px;">
-                        Nenhum plantão pendente de visto.
+                <div class="admin-card mt-20">
+                    <h4>Plantões Pendentes de Visto</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Turno</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-plantoes-lista">
+                                </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
