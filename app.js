@@ -1,3 +1,13 @@
+let usuarioAtual = null;
+
+// Fica escutando para ver se alguém fez login no sistema
+supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+        usuarioAtual = session.user; // Guarda o ID do técnico
+    } else {
+        usuarioAtual = null;
+    }
+});
 // ==========================================
 // TROCA DE ABAS E MODAIS
 // ==========================================
