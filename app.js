@@ -3,18 +3,27 @@
 // ==========================================
 let usuarioAtual = null;
 
-// Fica escutando para ver se alguém fez login no sistema
-supabase.auth.onAuthStateChange((event, session) => {
-    if (session) {
-        usuarioAtual = session.user; // Guarda o ID do técnico
-    } else {
-        usuarioAtual = null;
-    }
-});
-
-// Carrega o dashboard automaticamente quando a página iniciar
+// Espera a página inteira carregar antes de tentar chamar o Supabase
 document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(carregarResumoDashboard, 1000); // Espera 1 seg para o Supabase conectar
+    try {
+        // Fica escutando para ver se alguém fez login no sistema
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                usuarioAtual = session.user; // Guarda o ID do técnico
+            } else {
+                usuarioAtual = null;
+            }
+        });
+    } catch (e) {
+        console.error("Aguardando Supabase carregar...", e);
+    }
+
+    // Carrega o dashboard automaticamente após 1 segundo
+    setTimeout(() => {
+        if(typeof carregarResumoDashboard === 'function') {
+            carregarResumoDashboard();
+        }
+    }, 1000); 
 });
 
 // ==========================================
@@ -33,7 +42,7 @@ function abrirAba(idAba) {
         abaAlvo.classList.remove('hidden');
     }
     
-    // 4. Encontra o botão exato no menu e acende ele (Sem usar o 'event' que estava travando)
+    // 4. Encontra o botão exato no menu e acende ele
     const botaoClicado = document.querySelector(`button[onclick*="${idAba}"]`);
     if (botaoClicado) {
         botaoClicado.classList.add('active');
@@ -59,7 +68,6 @@ function abrirAba(idAba) {
 function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
     
-    // Se abrir o modal de permissões, carrega a tabela automaticamente
     if (idModal === 'modal-permissoes') {
         carregarTabelaUsuarios();
     }
@@ -88,7 +96,7 @@ function toggleCondicional(selectId, divId, condicaoShow) {
     } else {
         div.classList.add('hidden');
         textarea.required = false;
-        textarea.value = ''; // Limpa se o usuário mudar de ideia
+        textarea.value = ''; 
     }
 }
 
@@ -97,10 +105,8 @@ function toggleCondicional(selectId, divId, condicaoShow) {
 // ==========================================
 async function salvarPlantao() {
     try {
-        // 1. Faz upload da assinatura
         const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
-        // 2. Coleta os dados
         const dados = {
             usuario_id: usuarioAtual.id,
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
@@ -122,7 +128,6 @@ async function salvarPlantao() {
             assinatura_url: urlAssinatura
         };
 
-        // 3. Salva no Supabase
         const { error } = await supabase.from('plantoes').insert([dados]);
 
         if (error) throw error;
@@ -142,7 +147,6 @@ async function salvarPlantao() {
 // ==========================================
 async function carregarSelectChaves() {
     try {
-        // Carrega chaves disponíveis
         const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
         const selDisp = document.getElementById('select-chaves-disponiveis');
         if(selDisp) {
@@ -150,7 +154,6 @@ async function carregarSelectChaves() {
                                 disponiveis.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
         }
 
-        // Carrega chaves em uso (retiradas)
         const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
         const selRet = document.getElementById('select-chaves-retiradas');
         if(selRet) {
@@ -163,7 +166,6 @@ async function carregarSelectChaves() {
 }
 
 async function registrarChave(tipo) { 
-    // tipo = 'retirada' ou 'devolucao'
     const selectId = tipo === 'retirada' ? 'select-chaves-disponiveis' : 'select-chaves-retiradas';
     const canvasId = tipo === 'retirada' ? 'canvas-retirada' : 'canvas-devolucao';
     const horaId = tipo === 'retirada' ? 'hora-retirada' : 'hora-devolucao';
@@ -181,17 +183,15 @@ async function registrarChave(tipo) {
     try {
         const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
-        // 1. Registra o movimento na tabela de histórico
         await supabase.from('movimentacao_chaves').insert([{
             chave_id: chaveId,
-            usuario_id: usuarioAtual.id,
+            usuario_id: usuarioAtual ? usuarioAtual.id : null,
             tipo_movimento: tipo,
             data_hora: dataHora,
             responsavel: responsavel,
             assinatura_url: urlAssinatura
         }]);
 
-        // 2. Atualiza o status físico da chave
         const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
         await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
 
@@ -199,7 +199,7 @@ async function registrarChave(tipo) {
         
         document.getElementById(formId).reset();
         limparCanvas(canvasId);
-        carregarSelectChaves(); // Recarrega os dropdowns na mesma hora
+        carregarSelectChaves(); 
 
     } catch (err) { 
         alert('Erro ao processar chave: ' + err.message); 
@@ -393,7 +393,7 @@ async function salvarTrocaToner() {
 
         await supabase.from('registro_troca_toner').insert([{
             toner_id: tonerId,
-            usuario_id: usuarioAtual.id,
+            usuario_id: usuarioAtual ? usuarioAtual.id : null,
             foto_teste_url: fotoUrl,
             setor: setor,
             andar: andar,
@@ -779,7 +779,7 @@ async function darVistoPlantao(idPlantao) {
 }
 
 // ==========================================
-// MÁSCARAS DE FORMATAÇÃO (CPF e TELEFONE)
+// ADMIN: EXPORTAR PDF E MÁSCARAS
 // ==========================================
 async function exportarPDF() {
     const elementoParaExportar = document.getElementById('app-wrapper');
