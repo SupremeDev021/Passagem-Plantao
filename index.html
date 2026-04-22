@@ -602,6 +602,21 @@
         </div>
     </div>
 
+<div id="modal-ver-plantao" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" onclick="fecharModal('modal-ver-plantao')">&times;</span>
+        <h3 style="margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📋 Detalhes da Passagem de Plantão</h3>
+        
+        <div id="detalhes-plantao-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;">
+            </div>
+
+        <div style="margin-top: 25px; text-align: center; border-top: 2px solid #eee; padding-top: 15px;">
+            <input type="hidden" id="visto_plantao_id">
+            <button class="btn-success" onclick="confirmarVistoPlantao()" style="width: 100%; font-size: 16px;">Assinar Visto da Supervisão ✔️</button>
+        </div>
+    </div>
+</div>
+
     <script src="auth.js"></script>
     <script src="signature.js"></script>
     <script src="app.js"></script>
