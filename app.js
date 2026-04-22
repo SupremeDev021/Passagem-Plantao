@@ -2,26 +2,36 @@
 // TROCA DE ABAS E MODAIS
 // ==========================================
 function abrirAba(idAba) {
+    // 1. Esconde todas as abas da tela
     document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
+    
+    // 2. Apaga o brilho (active) de todos os botões do menu
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
+    // 3. Mostra a aba que você escolheu
     const abaAlvo = document.getElementById(idAba);
     if (abaAlvo) {
         abaAlvo.classList.remove('hidden');
     }
     
+    // 4. Encontra o botão exato no menu e acende ele (Sem usar o 'event' que estava travando)
     const botaoClicado = document.querySelector(`button[onclick*="${idAba}"]`);
     if (botaoClicado) {
         botaoClicado.classList.add('active');
     }
-}
+
+    // AJUSTE CORRIGIDO: Este bloco deve ficar DENTRO da função
     if (idAba === 'aba-toner') {
         carregarListaToners();
         carregarListaChamados();
     }
-// Controle de Modais
-    function abrirModal(idModal) {
+}
+
+// Controle de Modais (Janelas Flutuantes)
+function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
+    
+    // Se abrir o modal de permissões, carrega a tabela automaticamente
     if (idModal === 'modal-permissoes') {
         carregarTabelaUsuarios();
     }
@@ -31,13 +41,14 @@ function fecharModal(idModal) {
     document.getElementById(idModal).classList.remove('flex');
 }
 
+// Fechar modal ao clicar do lado de fora
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.classList.remove('flex');
     }
 }
 
-// Lógica Condicional
+// Lógica de Campos Condicionais (Sim/Não)
 function toggleCondicional(selectId, divId, condicaoShow) {
     const valor = document.getElementById(selectId).value;
     const div = document.getElementById(divId);
@@ -49,7 +60,7 @@ function toggleCondicional(selectId, divId, condicaoShow) {
     } else {
         div.classList.add('hidden');
         textarea.required = false;
-        textarea.value = '';
+        textarea.value = ''; // Limpa se o usuário mudar de ideia
     }
 }
 
@@ -58,8 +69,10 @@ function toggleCondicional(selectId, divId, condicaoShow) {
 // ==========================================
 async function salvarPlantao() {
     try {
+        // 1. Faz upload da assinatura
         const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
+        // 2. Coleta os dados
         const dados = {
             usuario_id: usuarioAtual.id,
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
@@ -81,7 +94,9 @@ async function salvarPlantao() {
             assinatura_url: urlAssinatura
         };
 
+        // 3. Salva no Supabase
         const { error } = await supabase.from('plantoes').insert([dados]);
+
         if (error) throw error;
 
         alert('Plantão registrado com sucesso!');
@@ -99,19 +114,21 @@ async function salvarPlantao() {
 // ==========================================
 async function carregarSelectChaves() {
     try {
+        // Carrega chaves disponíveis
         const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
         const selDisp = document.getElementById('select-chaves-disponiveis');
         if(selDisp) selDisp.innerHTML = disponiveis.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
 
+        // Carrega chaves retiradas
         const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
         const selRet = document.getElementById('select-chaves-retiradas');
         if(selRet) selRet.innerHTML = retiradas.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
     } catch (err) {
-        console.log("Erro no DB:", err);
+        console.log("Aba de chaves não encontrada ou erro no DB:", err);
     }
 }
 
-async function registrarChave(tipo) {
+async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
     const selectId = tipo === 'retirada' ? 'select-chaves-disponiveis' : 'select-chaves-retiradas';
     const canvasId = tipo === 'retirada' ? 'canvas-retirada' : 'canvas-devolucao';
     const chaveId = document.getElementById(selectId).value;
@@ -121,6 +138,7 @@ async function registrarChave(tipo) {
     try {
         const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
+        // 1. Registra o movimento
         await supabase.from('movimentacao_chaves').insert([{
             chave_id: chaveId,
             usuario_id: usuarioAtual.id,
@@ -128,49 +146,143 @@ async function registrarChave(tipo) {
             assinatura_url: urlAssinatura
         }]);
 
+        // 2. Atualiza o status da chave
         const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
         await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
 
         alert(`Chave ${tipo} registrada com sucesso!`);
         limparCanvas(canvasId);
-        carregarSelectChaves(); 
+        carregarSelectChaves(); // Recarrega as listas
 
     } catch (err) { alert('Erro: ' + err); }
 }
 
 // ==========================================
-// ABA 4: REGISTRO DE TONER
+// ABA 4: CONTROLE DE TONERS E IMPRESSORAS
 // ==========================================
-async function registrarToner() {
-    const modelo = document.getElementById('t_modelo').value;
-    const inputFoto = document.getElementById('t_foto');
 
-    if (!modelo) return alert('Selecione o modelo do toner.');
-    if (inputFoto.files.length === 0) return alert('É obrigatório anexar a foto da página de teste.');
-
-    const fotoFile = inputFoto.files[0];
-    const nomeArquivo = `toner_${Date.now()}_${fotoFile.name}`;
-
+async function carregarListaToners() {
     try {
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('assinaturas') 
-            .upload(nomeArquivo, fotoFile);
-
-        if (uploadError) throw uploadError;
-
-        alert('Troca de toner registrada com sucesso! A foto foi salva.');
-        document.getElementById('t_modelo').value = '';
-        inputFoto.value = '';
-
-    } catch (err) {
-        console.error(err);
-        alert('Erro ao registrar o toner: ' + err.message);
-    }
+        const { data, error } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
+        if (error) throw error;
+        
+        const tbody = document.getElementById('lista-toners-aba');
+        if(tbody) {
+            tbody.innerHTML = data.map(t => `
+                <tr>
+                    <td>${t.modelo_toner}</td>
+                    <td><strong>${t.quantidade_atual}</strong></td>
+                    <td>
+                        <button class="btn-primary btn-sm" onclick="abrirModalTrocaToner('${t.id}')" ${t.quantidade_atual <= 0 ? 'disabled' : ''}>Trocar Toner</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar toners:", err.message); }
 }
 
-async function marcarChamadoAtendido(chamadoId) {
-    const observacao = document.getElementById(`obs_chamado_${chamadoId}`).value;
-    alert(`Chamado resolvido!\nObservação salva: ${observacao ? observacao : "Nenhuma"}`);
+async function carregarListaChamados() {
+    try {
+        const { data, error } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto').order('created_at', {ascending: false});
+        if (error) throw error;
+
+        const tbody = document.getElementById('lista-chamados-aba');
+        if(tbody) {
+            tbody.innerHTML = data.map(c => `
+                <tr>
+                    <td>${c.numero_chamado}</td>
+                    <td>${c.modelo_impressora} <br><small>Série: ${c.numero_serie}</small></td>
+                    <td>${c.setor_localizada}</td>
+                    <td>
+                        <button class="btn-success btn-sm" onclick="abrirModalAtenderChamado('${c.id}')">Atendido</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar chamados:", err.message); }
+}
+
+function abrirModalTrocaToner(idToner) {
+    document.getElementById('tt_toner_id').value = idToner;
+    limparCanvas('canvas-troca-toner');
+    abrirModal('modal-troca-toner');
+}
+
+function abrirModalAtenderChamado(idChamado) {
+    document.getElementById('ac_chamado_id').value = idChamado;
+    limparCanvas('canvas-atender-chamado');
+    abrirModal('modal-atender-chamado');
+}
+
+async function salvarTrocaToner() {
+    const tonerId = document.getElementById('tt_toner_id').value;
+    const inputFoto = document.getElementById('tt_foto');
+    const setor = document.getElementById('tt_setor').value;
+    const andar = document.getElementById('tt_andar').value;
+    const predio = document.getElementById('tt_predio').value;
+
+    if (!setor || !andar || !predio || inputFoto.files.length === 0) {
+        return alert("Preencha todos os campos e anexe a foto da página de teste.");
+    }
+
+    try {
+        const fotoFile = inputFoto.files[0];
+        const nomeFoto = `teste_${Date.now()}_${fotoFile.name}`;
+        const { error: errFoto } = await supabase.storage.from('assinaturas').upload(nomeFoto, fotoFile);
+        if (errFoto) throw errFoto;
+        const fotoUrl = supabase.storage.from('assinaturas').getPublicUrl(nomeFoto).data.publicUrl;
+
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-troca-toner'), 'troca_toner');
+
+        await supabase.from('registro_troca_toner').insert([{
+            toner_id: tonerId,
+            usuario_id: usuarioAtual.id,
+            foto_teste_url: fotoUrl,
+            setor: setor,
+            andar: andar,
+            predio: predio,
+            assinatura_tecnico_url: sigUrl
+        }]);
+
+        const { data: tonerAtual } = await supabase.from('cadastro_toner').select('quantidade_atual').eq('id', tonerId).single();
+        await supabase.from('cadastro_toner').update({ quantidade_atual: tonerAtual.quantidade_atual - 1 }).eq('id', tonerId);
+
+        alert("Troca registrada com sucesso! Estoque atualizado.");
+        document.getElementById('form-troca-toner').reset();
+        fecharModal('modal-troca-toner');
+        carregarListaToners(); 
+
+    } catch (e) { alert("Erro ao salvar troca: " + e.message); }
+}
+
+async function salvarAtendimentoChamado() {
+    const chamadoId = document.getElementById('ac_chamado_id').value;
+    const solucao = document.getElementById('ac_solucao').value;
+    const temObs = document.getElementById('ac_tem_obs').value;
+    const obs = temObs === 'sim' ? document.getElementById('ac_obs_texto').value : '';
+    const tecnico = document.getElementById('ac_tecnico').value;
+
+    if (!solucao || !tecnico) return alert("Preencha a Solução e o Técnico responsável.");
+
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-atender-chamado'), 'atend_simpress');
+
+        const { error } = await supabase.from('chamado_simpress').update({
+            status: 'Atendido',
+            solucao_aplicada: solucao,
+            observacao: obs,
+            tecnico_acompanhante: tecnico,
+            assinatura_tecnico_url: sigUrl
+        }).eq('id', chamadoId);
+
+        if (error) throw error;
+
+        alert("Atendimento registrado! O chamado foi movido para os concluídos.");
+        document.getElementById('form-atender-chamado').reset();
+        fecharModal('modal-atender-chamado');
+        carregarListaChamados(); 
+
+    } catch (e) { alert("Erro ao salvar atendimento: " + e.message); }
 }
 
 // ==========================================
