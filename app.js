@@ -25,12 +25,16 @@ function abrirAba(idAba) {
         carregarListaToners();
         carregarListaChamados();
     }
+    
+    // GATILHO DA ABA DE OCORRÊNCIAS
+    if (idAba === 'aba-ocorrencias') {
+        carregarListaOcorrencias();
+    }
 }
 
 // Controle de Modais (Janelas Flutuantes)
 function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
-    
     // Se abrir o modal de permissões, carrega a tabela automaticamente
     if (idModal === 'modal-permissoes') {
         carregarTabelaUsuarios();
@@ -158,9 +162,117 @@ async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
 }
 
 // ==========================================
+// ABA 3: GESTÃO DE OCORRÊNCIAS (NOVO)
+// ==========================================
+async function salvarOcorrencia() {
+    const descricao = document.getElementById('o_descricao').value;
+    const proposta = document.getElementById('o_proposta').value;
+    const prazo = document.getElementById('o_prazo').value;
+    const responsavel = document.getElementById('o_responsavel').value;
+    const observacao = document.getElementById('o_observacao').value;
+
+    if (!descricao || !proposta || !prazo || !responsavel) {
+        return alert("Preencha todos os campos obrigatórios da ocorrência.");
+    }
+
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-nova-ocorrencia'), 'abertura_ocorrencia');
+
+        const { error } = await supabase.from('ocorrencias').insert([{
+            descricao: descricao,
+            solucao_proposta: proposta,
+            prazo: prazo,
+            observacao: observacao,
+            responsavel_abertura: responsavel,
+            assinatura_abertura_url: sigUrl,
+            status: 'Pendente' 
+        }]);
+
+        if (error) throw error;
+
+        alert("Ocorrência registrada com sucesso!");
+        document.getElementById('form-nova-ocorrencia').reset();
+        limparCanvas('canvas-nova-ocorrencia');
+        carregarListaOcorrencias();
+
+    } catch (err) {
+        alert("Erro ao salvar ocorrência: " + err.message);
+    }
+}
+
+async function carregarListaOcorrencias() {
+    try {
+        const { data, error } = await supabase.from('ocorrencias').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+
+        const tbody = document.getElementById('lista-ocorrencias-aba');
+        if (tbody) {
+            tbody.innerHTML = data.map(o => {
+                const prazoFormatado = o.prazo ? o.prazo.split('-').reverse().join('/') : '-';
+                
+                let corStatus = '#e74c3c'; 
+                if (o.status === 'Solucionada') corStatus = '#2ecc71'; 
+                else if (o.status === 'Em andamento') corStatus = '#f39c12'; 
+
+                return `
+                    <tr>
+                        <td>${o.descricao}</td>
+                        <td>${prazoFormatado}</td>
+                        <td>${o.responsavel_abertura}</td>
+                        <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${o.status}</span></td>
+                        <td>
+                            ${o.status !== 'Solucionada' ? `<button class="btn-success btn-sm" onclick="abrirModalFinalizarOcorrencia('${o.id}')">Marcar como Solucionada</button>` : '<em>Finalizada</em>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar ocorrências:", err.message); }
+}
+
+function abrirModalFinalizarOcorrencia(id) {
+    document.getElementById('f_ocorrencia_id').value = id;
+    limparCanvas('canvas-finalizar-ocorrencia');
+    abrirModal('modal-finalizar-ocorrencia');
+}
+
+async function finalizarOcorrencia() {
+    const id = document.getElementById('f_ocorrencia_id').value;
+    const solucao = document.getElementById('f_solucao').value;
+    const solucionador = document.getElementById('f_quem_solucionou').value;
+    const acompanhante = document.getElementById('f_quem_acompanhou').value;
+
+    if (!solucao || !solucionador || !acompanhante) {
+        return alert("Preencha todos os campos do formulário.");
+    }
+
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-finalizar-ocorrencia'), 'fechamento_ocorrencia');
+
+        const { error } = await supabase.from('ocorrencias').update({
+            status: 'Solucionada',
+            solucao_aplicada: solucao,
+            quem_solucionou: solucionador,
+            quem_acompanhou: acompanhante,
+            assinatura_fechamento_url: sigUrl,
+            data_finalizacao: new Date().toISOString() 
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        alert("Ocorrência solucionada com sucesso!");
+        document.getElementById('form-finalizar-ocorrencia').reset();
+        fecharModal('modal-finalizar-ocorrencia');
+        carregarListaOcorrencias(); 
+
+    } catch (err) {
+        alert("Erro ao finalizar ocorrência: " + err.message);
+    }
+}
+
+// ==========================================
 // ABA 4: CONTROLE DE TONERS E IMPRESSORAS
 // ==========================================
-
 async function carregarListaToners() {
     try {
         const { data, error } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
