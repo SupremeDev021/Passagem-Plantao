@@ -189,9 +189,44 @@
                 <h3>Gestão de Ocorrências</h3>
             </section>
 
-            <section id="aba-toner" class="tab-content hidden">
-                <h3>Controle de Toner e Impressoras</h3>
-            </section>
+           <section id="aba-toner" class="tab-content hidden">
+            <h3>Controle de Toner e Impressoras</h3>
+    
+        <div class="admin-card">
+        <h4>📦 Estoque de Toners</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Modelo do Toner</th>
+                        <th>Qtd Disponível</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-toners-aba">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h4>🖨️ Chamados Simpress (Abertos)</h4>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nº Chamado</th>
+                        <th>Modelo / Série</th>
+                        <th>Setor</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-chamados-aba">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</section>
             
             <section id="aba-admin" class="tab-content hidden">
                 <h3>Painel de Gestão (Admin)</h3>
@@ -350,6 +385,63 @@
                 <input type="text" id="cad_sim_serie" placeholder="Número de Série" required>
                 <input type="text" id="cad_sim_local" placeholder="Localização da Impressora (Setor)" required>
                 <button type="button" class="btn-success" onclick="adminCadastrarSimpress()">Abrir Chamado</button>
+            </form>
+        </div>
+    </div>
+    <div id="modal-troca-toner" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-troca-toner')">&times;</span>
+            <h3>Registrar Troca de Toner</h3>
+            <form id="form-troca-toner">
+                <input type="hidden" id="tt_toner_id">
+                
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Foto da Página de Teste (Assinada):</label>
+                <input type="file" id="tt_foto" accept="image/*" required>
+                
+                <input type="text" id="tt_setor" placeholder="Setor (Ex: Recepção, CTI)" required>
+                <input type="text" id="tt_andar" placeholder="Andar" required>
+                <input type="text" id="tt_predio" placeholder="Prédio" required>
+                
+                <div class="signature-section mt-10">
+                    <label>Sua Assinatura:</label>
+                    <canvas id="canvas-troca-toner" class="sig-canvas" width="400" height="200"></canvas>
+                    <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-troca-toner')">Limpar Assinatura</button>
+                </div>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarTrocaToner()">Salvar Troca</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-atender-chamado" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-atender-chamado')">&times;</span>
+            <h3>Atender Chamado Simpress</h3>
+            <form id="form-atender-chamado">
+                <input type="hidden" id="ac_chamado_id">
+                
+                <input type="text" id="ac_solucao" placeholder="Solução da Simpress" required>
+                
+                <div class="form-group question-group mt-10">
+                    <label>Alguma observação?</label>
+                    <select id="ac_tem_obs" onchange="toggleCondicional('ac_tem_obs', 'div_ac_obs', 'sim')">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim</option>
+                    </select>
+                    <div id="div_ac_obs" class="condicional hidden mt-10">
+                        <textarea id="ac_obs_texto" placeholder="Descreva a observação..."></textarea>
+                    </div>
+                </div>
+
+                <input type="text" id="ac_tecnico" placeholder="Técnico que acompanhou a Simpress" class="mt-10" required>
+                
+                <div class="signature-section mt-10">
+                    <label>Sua Assinatura:</label>
+                    <canvas id="canvas-atender-chamado" class="sig-canvas" width="400" height="200"></canvas>
+                    <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-atender-chamado')">Limpar Assinatura</button>
+                </div>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarAtendimentoChamado()">Salvar Atendimento</button>
             </form>
         </div>
     </div>
