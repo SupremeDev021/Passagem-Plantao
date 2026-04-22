@@ -2,30 +2,23 @@
 // TROCA DE ABAS E MODAIS
 // ==========================================
 function abrirAba(idAba) {
-    // 1. Esconde todas as abas da tela
     document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
-    
-    // 2. Apaga o brilho (active) de todos os botões do menu
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    // 3. Mostra a aba que você escolheu
     const abaAlvo = document.getElementById(idAba);
     if (abaAlvo) {
         abaAlvo.classList.remove('hidden');
     }
     
-    // 4. Encontra o botão exato no menu e acende ele (Sem usar o 'event' que estava travando)
     const botaoClicado = document.querySelector(`button[onclick*="${idAba}"]`);
     if (botaoClicado) {
         botaoClicado.classList.add('active');
     }
 }
 
-// Controle de Modais (Janelas Flutuantes)
+// Controle de Modais
 function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
-    
-    // Se abrir o modal de permissões, carrega a tabela automaticamente
     if (idModal === 'modal-permissoes') {
         carregarTabelaUsuarios();
     }
@@ -35,14 +28,13 @@ function fecharModal(idModal) {
     document.getElementById(idModal).classList.remove('flex');
 }
 
-// Fechar modal ao clicar do lado de fora
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.classList.remove('flex');
     }
 }
 
-// Lógica de Campos Condicionais (Sim/Não)
+// Lógica Condicional
 function toggleCondicional(selectId, divId, condicaoShow) {
     const valor = document.getElementById(selectId).value;
     const div = document.getElementById(divId);
@@ -54,7 +46,7 @@ function toggleCondicional(selectId, divId, condicaoShow) {
     } else {
         div.classList.add('hidden');
         textarea.required = false;
-        textarea.value = ''; // Limpa se o usuário mudar de ideia
+        textarea.value = '';
     }
 }
 
@@ -63,10 +55,8 @@ function toggleCondicional(selectId, divId, condicaoShow) {
 // ==========================================
 async function salvarPlantao() {
     try {
-        // 1. Faz upload da assinatura
         const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
-        // 2. Coleta os dados
         const dados = {
             usuario_id: usuarioAtual.id,
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
@@ -88,9 +78,7 @@ async function salvarPlantao() {
             assinatura_url: urlAssinatura
         };
 
-        // 3. Salva no Supabase
         const { error } = await supabase.from('plantoes').insert([dados]);
-
         if (error) throw error;
 
         alert('Plantão registrado com sucesso!');
@@ -108,21 +96,19 @@ async function salvarPlantao() {
 // ==========================================
 async function carregarSelectChaves() {
     try {
-        // Carrega chaves disponíveis
         const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
         const selDisp = document.getElementById('select-chaves-disponiveis');
         if(selDisp) selDisp.innerHTML = disponiveis.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
 
-        // Carrega chaves retiradas
         const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
         const selRet = document.getElementById('select-chaves-retiradas');
         if(selRet) selRet.innerHTML = retiradas.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
     } catch (err) {
-        console.log("Aba de chaves não encontrada ou erro no DB:", err);
+        console.log("Erro no DB:", err);
     }
 }
 
-async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
+async function registrarChave(tipo) {
     const selectId = tipo === 'retirada' ? 'select-chaves-disponiveis' : 'select-chaves-retiradas';
     const canvasId = tipo === 'retirada' ? 'canvas-retirada' : 'canvas-devolucao';
     const chaveId = document.getElementById(selectId).value;
@@ -132,7 +118,6 @@ async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
     try {
         const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
-        // 1. Registra o movimento
         await supabase.from('movimentacao_chaves').insert([{
             chave_id: chaveId,
             usuario_id: usuarioAtual.id,
@@ -140,19 +125,18 @@ async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
             assinatura_url: urlAssinatura
         }]);
 
-        // 2. Atualiza o status da chave
         const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
         await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
 
         alert(`Chave ${tipo} registrada com sucesso!`);
         limparCanvas(canvasId);
-        carregarSelectChaves(); // Recarrega as listas
+        carregarSelectChaves(); 
 
     } catch (err) { alert('Erro: ' + err); }
 }
 
 // ==========================================
-// ABA 4: REGISTRO DE TONER E UPLOAD DE FOTO
+// ABA 4: REGISTRO DE TONER
 // ==========================================
 async function registrarToner() {
     const modelo = document.getElementById('t_modelo').value;
@@ -165,7 +149,6 @@ async function registrarToner() {
     const nomeArquivo = `toner_${Date.now()}_${fotoFile.name}`;
 
     try {
-        // Upload da foto
         const { data: uploadData, error: uploadError } = await supabase.storage
             .from('assinaturas') 
             .upload(nomeArquivo, fotoFile);
@@ -173,7 +156,6 @@ async function registrarToner() {
         if (uploadError) throw uploadError;
 
         alert('Troca de toner registrada com sucesso! A foto foi salva.');
-        
         document.getElementById('t_modelo').value = '';
         inputFoto.value = '';
 
@@ -218,7 +200,6 @@ async function adminCriarUsuario() {
         if (error) throw error;
 
         alert(`Sucesso! O usuário ${nome} foi criado.`);
-        
         document.getElementById('form-novo-usuario').reset();
         fecharModal('modal-usuario');
         
@@ -243,6 +224,9 @@ async function carregarTabelaUsuarios() {
 
         usuarios.forEach(user => {
             const tr = document.createElement('tr');
+            // Repassamos o CPF para a função de redefinir senha
+            const cpfUser = user.cpf ? `'${user.cpf}'` : `null`;
+            
             tr.innerHTML = `
                 <td>${user.nome}</td>
                 <td>${user.email}</td>
@@ -256,7 +240,7 @@ async function carregarTabelaUsuarios() {
                     <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                         <button class="btn-primary btn-sm" onclick="salvarNivelAcesso('${user.id}')">Salvar Edição</button>
                         <button class="btn-primary btn-sm" style="background: #8e44ad;" onclick="prepararEdicaoCompleta('${user.id}')">Alterar Dados</button>
-                        <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="redefinirSenhaUsuario('${user.email}')">Redefinir Senha</button>
+                        <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="redefinirSenhaUsuario('${user.id}', ${cpfUser})">Redefinir Senha</button>
                         <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
                     </div>
                 </td>
@@ -285,19 +269,24 @@ async function salvarNivelAcesso(userId) {
     }
 }
 
-// 4. Preparar edição completa (Carrega dados no modal)
+// 4. Preparar edição completa (Impede sobreposição de telas e inclui o E-mail)
 async function prepararEdicaoCompleta(userId) {
     try {
         const { data: user, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
         if (error) throw error;
 
-        // Preenche o formulário com os dados do banco
+        // FECHA O MODAL ANTERIOR PARA NÃO SOBREPOR
+        fecharModal('modal-permissoes');
+
+        // Preenche o formulário
         document.getElementById('edit_id').value = user.id;
         document.getElementById('edit_nome').value = user.nome || '';
         document.getElementById('edit_turno').value = user.turno || '';
         document.getElementById('edit_celular').value = user.celular || '';
         document.getElementById('edit_cpf').value = user.cpf || '';
+        document.getElementById('edit_email').value = user.email || '';
 
+        // ABRE O NOVO MODAL
         abrirModal('modal-editar-usuario');
     } catch (err) {
         alert("Erro ao buscar dados: " + err.message);
@@ -311,35 +300,54 @@ async function salvarEdicaoUsuario() {
     const turno = document.getElementById('edit_turno').value;
     const celular = document.getElementById('edit_celular').value;
     const cpf = document.getElementById('edit_cpf').value;
+    const email = document.getElementById('edit_email').value;
 
     try {
         const { error } = await supabase.from('profiles').update({
             nome: nome,
             turno: turno,
             celular: celular,
-            cpf: cpf
+            cpf: cpf,
+            email: email
         }).eq('id', userId);
 
         if (error) throw error;
 
-        alert("Dados alterados com sucesso!");
+        alert("Dados alterados com sucesso no Perfil!");
         fecharModal('modal-editar-usuario');
-        carregarTabelaUsuarios(); 
+        abrirModal('modal-permissoes'); // Volta para a tabela
+        
     } catch (err) {
         alert("Erro ao salvar: " + err.message);
     }
 }
 
-// 4.2 Redefinir Senha
-async function redefinirSenhaUsuario(email) {
-    if (!confirm(`Enviar link de redefinição de senha para o e-mail: ${email}?`)) return;
+// 4.2 Redefinir Senha Automática (4 primeiros dígitos do CPF)
+async function redefinirSenhaUsuario(userId, cpfUsuario) {
+    if (!cpfUsuario || cpfUsuario.length < 4) {
+        return alert("Erro: O usuário não possui um CPF cadastrado ou válido para gerar a senha.");
+    }
+
+    // Extrai apenas os números do CPF e pega os 4 primeiros
+    const cpfNumeros = cpfUsuario.replace(/\D/g, ""); 
+    const novaSenha = cpfNumeros.substring(0, 4);
+
+    if (!confirm(`A nova senha deste usuário será os 4 primeiros dígitos do CPF (${novaSenha}). Confirmar operação?`)) {
+        return;
+    }
     
     try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        // Aciona o script SQL criado para atualizar direto no auth.users
+        const { error } = await supabase.rpc('admin_redefinir_senha', { 
+            p_user_id: userId, 
+            p_nova_senha: novaSenha 
+        });
+
         if (error) throw error;
-        alert("E-mail de redefinição enviado com sucesso! O usuário receberá um link na caixa de entrada.");
+        
+        alert(`Sucesso! A senha foi redefinida para: ${novaSenha}`);
     } catch (err) {
-        alert("Erro ao enviar redefinição: " + err.message);
+        alert("Erro ao redefinir senha: " + err.message);
     }
 }
 
@@ -362,7 +370,6 @@ async function deletarUsuario(userId) {
 // ADMIN: FUNÇÕES DE CADASTRO BASE
 // ==========================================
 
-// Cadastrar Chave Base
 async function adminCadastrarChave() {
     const nome = document.getElementById('cad_chave_nome').value;
     const cor = document.getElementById('cad_chave_cor').value;
@@ -378,39 +385,31 @@ async function adminCadastrarChave() {
         if (error) throw error;
         alert('Chave cadastrada com sucesso!');
         fecharModal('modal-chave');
-        carregarSelectChaves(); // Atualiza a lista da aba Chaves
-    } catch (err) { alert('Erro ao cadastrar chave: ' + err.message); }
+        carregarSelectChaves(); 
+    } catch (err) { alert('Erro: ' + err.message); }
 }
 
-// Cadastrar Modelo de Toner
 async function adminCadastrarToner() {
     const modelo = document.getElementById('cad_toner_modelo').value;
     const impressoras = document.getElementById('cad_toner_imp').value;
     const quantidade = document.getElementById('cad_toner_qtd').value;
 
     if(!modelo || !impressoras || !quantidade) {
-        return alert('Preencha todos os campos, incluindo a quantidade!');
+        return alert('Preencha todos os campos!');
     }
 
     try {
         const { error } = await supabase.from('cadastro_toner').insert([
-            { 
-                modelo_toner: modelo, 
-                impressora_compativel: impressoras, 
-                quantidade_atual: parseInt(quantidade)
-            }
+            { modelo_toner: modelo, impressora_compativel: impressoras, quantidade_atual: parseInt(quantidade) }
         ]);
         
         if (error) throw error;
         
         alert('Toner cadastrado com sucesso no estoque!');
         fecharModal('modal-toner');
-    } catch (err) { 
-        alert('Erro: ' + err.message); 
-    }
+    } catch (err) { alert('Erro: ' + err.message); }
 }
 
-// Cadastrar Chamado Simpress
 async function adminCadastrarSimpress() {
     const numero = document.getElementById('cad_sim_numero').value;
     const modelo = document.getElementById('cad_sim_modelo').value;
@@ -421,47 +420,33 @@ async function adminCadastrarSimpress() {
 
     try {
         const { error } = await supabase.from('chamado_simpress').insert([
-            { 
-                numero_chamado: numero, 
-                modelo_impressora: modelo, 
-                numero_serie: serie, 
-                setor_localizada: local 
-            }
+            { numero_chamado: numero, modelo_impressora: modelo, numero_serie: serie, setor_localizada: local }
         ]);
         
         if (error) throw error;
         
         alert('Chamado Simpress registrado com sucesso!');
         fecharModal('modal-simpress');
-
-        // Limpa os campos para o próximo cadastro
+        
         document.getElementById('cad_sim_numero').value = '';
         document.getElementById('cad_sim_modelo').value = '';
         document.getElementById('cad_sim_serie').value = '';
         document.getElementById('cad_sim_local').value = '';
-
-    } catch (err) { 
-        alert('Erro ao salvar chamado: ' + err.message); 
-    }
+    } catch (err) { alert('Erro: ' + err.message); }
 }
 
 // ==========================================
-// ADMIN: EXPORTAR PDF
+// ADMIN: EXPORTAR PDF E MÁSCARAS
 // ==========================================
 async function exportarPDF() {
     const elementoParaExportar = document.getElementById('app-wrapper');
     html2pdf().from(elementoParaExportar).save('Relatorio_Plantao.pdf');
 }
 
-// ==========================================
-// MÁSCARAS DE FORMATAÇÃO (CPF e TELEFONE)
-// ==========================================
-
 function mascaraCPF(cpf) {
-    let v = cpf.value.replace(/\D/g, ""); // Remove tudo que não for número
-    if (v.length > 11) v = v.slice(0, 11); // Limita a 11 dígitos
+    let v = cpf.value.replace(/\D/g, ""); 
+    if (v.length > 11) v = v.slice(0, 11); 
     
-    // Adiciona os pontos e traços
     v = v.replace(/(\d{3})(\d)/, "$1.$2");
     v = v.replace(/(\d{3})(\d)/, "$1.$2");
     v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
@@ -470,10 +455,9 @@ function mascaraCPF(cpf) {
 }
 
 function mascaraTelefone(tel) {
-    let v = tel.value.replace(/\D/g, ""); // Remove tudo que não for número
-    if (v.length > 11) v = v.slice(0, 11); // Limita a 11 dígitos
+    let v = tel.value.replace(/\D/g, ""); 
+    if (v.length > 11) v = v.slice(0, 11); 
     
-    // Adiciona parênteses e traço
     v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
     v = v.replace(/(\d)(\d{4})$/, "$1-$2");
     
