@@ -183,7 +183,7 @@ async function carregarListaToners() {
 
 async function carregarListaChamados() {
     try {
-        const { data, error } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto').order('created_at', {ascending: false});
+        const { data, error } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto');
         if (error) throw error;
 
         const tbody = document.getElementById('lista-chamados-aba');
@@ -535,7 +535,13 @@ async function adminCadastrarSimpress() {
 
     try {
         const { error } = await supabase.from('chamado_simpress').insert([
-            { numero_chamado: numero, modelo_impressora: modelo, numero_serie: serie, setor_localizada: local }
+            { 
+                numero_chamado: numero, 
+                modelo_impressora: modelo, 
+                numero_serie: serie, 
+                setor_localizada: local,
+                status: 'Aberto' // <--- O PULO DO GATO ESTAVA AQUI!
+            }
         ]);
         
         if (error) throw error;
@@ -543,11 +549,16 @@ async function adminCadastrarSimpress() {
         alert('Chamado Simpress registrado com sucesso!');
         fecharModal('modal-simpress');
         
+        // Limpa os campos
         document.getElementById('cad_sim_numero').value = '';
         document.getElementById('cad_sim_modelo').value = '';
         document.getElementById('cad_sim_serie').value = '';
         document.getElementById('cad_sim_local').value = '';
-    } catch (err) { alert('Erro: ' + err.message); }
+
+        // Já recarrega a lista para caso o admin vá na aba ver
+        carregarListaChamados();
+
+    } catch (err) { alert('Erro ao salvar chamado: ' + err.message); }
 }
 
 // ==========================================
