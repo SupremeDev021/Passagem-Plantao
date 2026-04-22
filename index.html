@@ -43,29 +43,46 @@
                 <button onclick="fazerLogout()" class="btn-danger">Sair</button>
             </header>
 
-            <section id="aba-inicio" class="tab-content active">
-                <h3>Resumo do Plantão</h3>
-                <div class="dashboard-grid">
-                    <div class="dash-card">
-                        <h4>Último Plantão Registrado</h4>
-                        <div class="number" style="font-size: 18px;" id="dash-ultimo-plantao">Carregando...</div>
+            <section id="aba-inicio" class="tab-content">
+                <h3>Visão Geral (Dashboard)</h3>
+                
+                <div class="form-row" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    
+                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                        <h4>🔑 Chaves Pendentes</h4>
+                        <ul id="dash-chaves" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
+                            </ul>
                     </div>
-                    <div class="dash-card">
-                        <h4>Chamados Simpress Abertos</h4>
-                        <div class="number" id="dash-chamados" style="color: #e74c3c;">0</div>
+
+                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                        <h4>🖨️ Chamados Abertos (Simpress)</h4>
+                        <ul id="dash-chamados" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
+                            </ul>
                     </div>
-                    <div class="dash-card">
-                        <h4>Chaves Pendentes</h4>
-                        <div class="number" id="dash-chaves" style="color: #f39c12;">0</div>
+
+                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                        <h4>📦 Estoque de Toners</h4>
+                        <ul id="dash-toners" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
+                            </ul>
                     </div>
+
                 </div>
 
-                <div class="admin-card">
-                    <h4>Estoque de Toners</h4>
-                    <ul id="lista-estoque-toner" style="list-style: none; padding: 0; line-height: 2;">
-                        <li>Lexmark MS431: <strong>Carregando...</strong></li>
-                        <li>Brother HL-L5202: <strong>Carregando...</strong></li>
-                    </ul>
+                <div class="admin-card mt-20">
+                    <h4>📋 Plantões Aguardando Visto (Supervisão)</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Turno (Assumiu - Largou)</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-plantoes">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
