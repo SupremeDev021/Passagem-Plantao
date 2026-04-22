@@ -185,8 +185,56 @@
                 <p><i>Controles de chaves preservados...</i></p>
             </section>
 
-            <section id="aba-ocorrencias" class="tab-content hidden">
+           <section id="aba-ocorrencias" class="tab-content hidden">
                 <h3>Gestão de Ocorrências</h3>
+                
+                <div class="admin-card">
+                    <h4>➕ Nova Ocorrência</h4>
+                    <form id="form-nova-ocorrencia">
+                        <input type="text" id="o_descricao" placeholder="Qual a ocorrência?" required>
+                        <input type="text" id="o_proposta" placeholder="Solução proposta?" required>
+                        
+                        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Prazo para solução:</label>
+                                <input type="date" id="o_prazo" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Responsável por acompanhar:</label>
+                                <input type="text" id="o_responsavel" placeholder="Nome do Técnico Responsável" required>
+                            </div>
+                        </div>
+
+                        <textarea id="o_observacao" placeholder="Alguma observação? (Opcional)"></textarea>
+
+                        <div class="signature-section mt-10">
+                            <label>Assinatura de quem abriu a ocorrência:</label>
+                            <canvas id="canvas-nova-ocorrencia" class="sig-canvas" width="400" height="200"></canvas>
+                            <button type="button" class="btn-danger btn-sm mt-10" style="width: auto;" onclick="limparCanvas('canvas-nova-ocorrencia')">Limpar Assinatura</button>
+                        </div>
+
+                        <button type="button" class="btn-success mt-20" onclick="salvarOcorrencia()">Salvar Ocorrência</button>
+                    </form>
+                </div>
+
+                <div class="admin-card mt-20">
+                    <h4>📋 Ocorrências Registradas</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ocorrência</th>
+                                    <th>Prazo</th>
+                                    <th>Responsável</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-ocorrencias-aba">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
            <section id="aba-toner" class="tab-content hidden">
