@@ -48,6 +48,11 @@ function abrirAba(idAba) {
     if (idAba === 'aba-chaves') {
         carregarSelectChaves();
     }
+
+    // GATILHO DA ABA ADMIN (NOVO)
+    if (idAba === 'aba-admin') {
+        carregarPlantoesAdmin();
+    }
 }
 
 // Controle de Modais (Janelas Flutuantes)
@@ -698,7 +703,7 @@ async function adminCadastrarSimpress() {
 }
 
 // ==========================================
-// TELA INICIAL / DASHBOARD (TEMPO REAL)
+// TELA INICIAL E AUDITORIA DE PLANTÕES (ADMIN)
 // ==========================================
 
 async function carregarResumoDashboard() {
@@ -743,7 +748,7 @@ async function carregarResumoDashboard() {
                     <tr>
                         <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
                         <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
-                        <td><button class="btn-success btn-sm" onclick="darVistoPlantao('${p.id}')">Dar Visto ✔️</button></td>
+                        <td style="color: #f39c12; font-weight: bold;">⏳ Pendente</td>
                     </tr>
                 `).join('') 
                 : '<tr><td colspan="3" style="text-align: center;">✅ Todos os plantões estão com visto da supervisão.</td></tr>';
@@ -754,13 +759,88 @@ async function carregarResumoDashboard() {
     }
 }
 
-async function darVistoPlantao(idPlantao) {
-    if (!confirm("Confirmar VISTO DA SUPERVISÃO neste plantão? Ele será arquivado.")) return;
+async function carregarPlantoesAdmin() {
+    try {
+        const { data: plantoes } = await supabase.from('plantoes').select('*').eq('visto_supervisao', false).order('created_at', { ascending: false });
+        const adminPlantoes = document.getElementById('admin-plantoes-lista');
+        if (adminPlantoes) {
+            adminPlantoes.innerHTML = plantoes && plantoes.length 
+                ? plantoes.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
+                        <td><button class="btn-primary btn-sm" style="background: #3498db;" onclick="visualizarPlantao('${p.id}')">👁️ Abrir Ficha de Visto</button></td>
+                    </tr>
+                `).join('') 
+                : '<tr><td colspan="3" style="text-align: center;">✅ Nada para auditar.</td></tr>';
+        }
+    } catch (err) {
+        console.error("Erro ao carregar Plantões no Admin:", err.message);
+    }
+}
+
+async function visualizarPlantao(idPlantao) {
+    try {
+        const { data: p, error } = await supabase.from('plantoes').select('*').eq('id', idPlantao).single();
+        if (error) throw error;
+
+        const conteudo = document.getElementById('detalhes-plantao-conteudo');
+        conteudo.innerHTML = `
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <strong>Data de Registro:</strong> ${new Date(p.created_at).toLocaleDateString('pt-BR')} às ${new Date(p.created_at).toLocaleTimeString('pt-BR')}<br>
+                <strong>Turno do Técnico:</strong> ${p.hora_assumiu} às ${p.hora_largou}
+            </div>
+            
+            <p>📧 <strong>E-mails todos respondidos?</strong> <span style="color: ${p.emails_resp ? 'green' : 'red'}; font-weight: bold;">${p.emails_resp ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_emails ? `↳ Obs: ${p.motivo_emails}` : ''}</span></p>
+
+            <p>🖨️ <strong>Há chamados pendentes?</strong> <span style="color: ${p.chamados_pend ? 'red' : 'green'}; font-weight: bold;">${p.chamados_pend ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_chamados ? `↳ Obs: ${p.motivo_chamados}` : ''}</span></p>
+
+            <p>📝 <strong>MS Forms zerado?</strong> <span style="color: ${p.forms_zerado ? 'green' : 'red'}; font-weight: bold;">${p.forms_zerado ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_forms ? `↳ Obs: ${p.motivo_forms}` : ''}</span></p>
+
+            <p>💻 <strong>Todas as máquinas funcionando?</strong> <span style="color: ${p.maquinas_func ? 'green' : 'red'}; font-weight: bold;">${p.maquinas_func ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_maquinas ? `↳ Obs: ${p.motivo_maquinas}` : ''}</span></p>
+
+            <p>🪑 <strong>Cadeiras nos lugares?</strong> <span style="color: ${p.cadeiras_lugar ? 'green' : 'red'}; font-weight: bold;">${p.cadeiras_lugar ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_cadeiras ? `↳ Obs: ${p.motivo_cadeiras}` : ''}</span></p>
+
+            <p>📺 <strong>Painel de TV em operação?</strong> <span style="color: ${p.painel_tv ? 'green' : 'red'}; font-weight: bold;">${p.painel_tv ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_tv ? `↳ Obs: ${p.motivo_tv}` : ''}</span></p>
+
+            <p>⚠️ <strong>Houve ocorrências no plantão?</strong> <span style="color: ${p.ocorrencias ? 'red' : 'green'}; font-weight: bold;">${p.ocorrencias ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_ocorrencias ? `↳ Obs: ${p.motivo_ocorrencias}` : ''}</span></p>
+
+            <div style="margin-top: 15px;">
+                <strong>✍️ Assinatura do Técnico:</strong><br>
+                <img src="${p.assinatura_url}" style="max-width: 250px; height: auto; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 5px;">
+            </div>
+        `;
+
+        document.getElementById('visto_plantao_id').value = idPlantao;
+        abrirModal('modal-ver-plantao');
+
+    } catch (err) {
+        alert("Erro ao buscar detalhes do plantão: " + err.message);
+    }
+}
+
+async function confirmarVistoPlantao() {
+    const idPlantao = document.getElementById('visto_plantao_id').value;
+    
+    if (!confirm("Tem certeza que deseja aplicar o visto da supervisão? Este plantão será arquivado e sairá do painel pendente.")) return;
+    
     try {
         const { error } = await supabase.from('plantoes').update({ visto_supervisao: true }).eq('id', idPlantao);
         if (error) throw error;
+        
         alert("Visto registrado com sucesso!");
+        fecharModal('modal-ver-plantao');
+        
         carregarResumoDashboard(); 
+        if(typeof carregarPlantoesAdmin === 'function') carregarPlantoesAdmin();
+        
     } catch (err) {
         alert("Erro ao dar visto: " + err.message);
     }
