@@ -30,11 +30,17 @@ function abrirAba(idAba) {
     if (idAba === 'aba-ocorrencias') {
         carregarListaOcorrencias();
     }
+
+    // GATILHO DA ABA DE CHAVES
+    if (idAba === 'aba-chaves') {
+        carregarSelectChaves();
+    }
 }
 
 // Controle de Modais (Janelas Flutuantes)
 function abrirModal(idModal) {
     document.getElementById(idModal).classList.add('flex');
+    
     // Se abrir o modal de permissões, carrega a tabela automaticamente
     if (idModal === 'modal-permissoes') {
         carregarTabelaUsuarios();
@@ -114,55 +120,76 @@ async function salvarPlantao() {
 }
 
 // ==========================================
-// ABA 2: CHAVES
+// ABA 2: CHAVES (ATUALIZADO)
 // ==========================================
 async function carregarSelectChaves() {
     try {
         // Carrega chaves disponíveis
         const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
         const selDisp = document.getElementById('select-chaves-disponiveis');
-        if(selDisp) selDisp.innerHTML = disponiveis.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        if(selDisp) {
+            selDisp.innerHTML = '<option value="">Selecione a chave...</option>' + 
+                                disponiveis.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
+        }
 
-        // Carrega chaves retiradas
+        // Carrega chaves em uso (retiradas)
         const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
         const selRet = document.getElementById('select-chaves-retiradas');
-        if(selRet) selRet.innerHTML = retiradas.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        if(selRet) {
+            selRet.innerHTML = '<option value="">Selecione a chave...</option>' + 
+                               retiradas.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
+        }
     } catch (err) {
-        console.log("Aba de chaves não encontrada ou erro no DB:", err);
+        console.log("Erro no DB (Chaves):", err);
     }
 }
 
-async function registrarChave(tipo) { // tipo = 'retirada' ou 'devolucao'
+async function registrarChave(tipo) { 
+    // tipo = 'retirada' ou 'devolucao'
     const selectId = tipo === 'retirada' ? 'select-chaves-disponiveis' : 'select-chaves-retiradas';
     const canvasId = tipo === 'retirada' ? 'canvas-retirada' : 'canvas-devolucao';
-    const chaveId = document.getElementById(selectId).value;
+    const horaId = tipo === 'retirada' ? 'hora-retirada' : 'hora-devolucao';
+    const responsavelId = tipo === 'retirada' ? 'responsavel-retirada' : 'responsavel-devolucao';
+    const formId = tipo === 'retirada' ? 'form-retirada-chave' : 'form-devolucao-chave';
 
-    if (!chaveId) return alert('Selecione uma chave.');
+    const chaveId = document.getElementById(selectId).value;
+    const dataHora = document.getElementById(horaId).value;
+    const responsavel = document.getElementById(responsavelId).value;
+
+    if (!chaveId || !dataHora || !responsavel) {
+        return alert('Preencha todos os campos antes de prosseguir.');
+    }
 
     try {
         const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
-        // 1. Registra o movimento
+        // 1. Registra o movimento na tabela de histórico
         await supabase.from('movimentacao_chaves').insert([{
             chave_id: chaveId,
             usuario_id: usuarioAtual.id,
             tipo_movimento: tipo,
+            data_hora: dataHora,
+            responsavel: responsavel,
             assinatura_url: urlAssinatura
         }]);
 
-        // 2. Atualiza o status da chave
+        // 2. Atualiza o status físico da chave
         const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
         await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
 
-        alert(`Chave ${tipo} registrada com sucesso!`);
+        alert(`Sucesso! Chave ${tipo === 'retirada' ? 'retirada' : 'devolvida'}.`);
+        
+        document.getElementById(formId).reset();
         limparCanvas(canvasId);
-        carregarSelectChaves(); // Recarrega as listas
+        carregarSelectChaves(); // Recarrega os dropdowns na mesma hora
 
-    } catch (err) { alert('Erro: ' + err); }
+    } catch (err) { 
+        alert('Erro ao processar chave: ' + err.message); 
+    }
 }
 
 // ==========================================
-// ABA 3: GESTÃO DE OCORRÊNCIAS (NOVO)
+// ABA 3: GESTÃO DE OCORRÊNCIAS 
 // ==========================================
 async function salvarOcorrencia() {
     const descricao = document.getElementById('o_descricao').value;
@@ -652,7 +679,7 @@ async function adminCadastrarSimpress() {
                 modelo_impressora: modelo, 
                 numero_serie: serie, 
                 setor_localizada: local,
-                status: 'Aberto' // <--- O PULO DO GATO ESTAVA AQUI!
+                status: 'Aberto' 
             }
         ]);
         
