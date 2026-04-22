@@ -1,9 +1,27 @@
 // ==========================================
-// INICIALIZAÇÃO DA TELA (DASHBOARD)
+// AUTENTICAÇÃO E DASHBOARD INICIAL
 // ==========================================
-// Espera a página inteira carregar antes de puxar os dados
+let usuarioAtual = null;
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Carrega o dashboard automaticamente após 1 segundo
+    // 1. Tenta identificar quem está logado de forma totalmente segura
+    try {
+        if (typeof supabase !== 'undefined') {
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (session) {
+                    usuarioAtual = session.user; // Guarda o ID do técnico
+                } else {
+                    usuarioAtual = null;
+                }
+            });
+        } else {
+            console.warn("Aviso: Supabase carregando mais lento que o normal.");
+        }
+    } catch (e) {
+        console.error("Erro no módulo de login:", e);
+    }
+
+    // 2. Carrega o dashboard automaticamente após 1 segundo
     setTimeout(() => {
         if(typeof carregarResumoDashboard === 'function') {
             carregarResumoDashboard();
@@ -33,18 +51,17 @@ function abrirAba(idAba) {
         botaoClicado.classList.add('active');
     }
 
-    // AJUSTE CORRIGIDO: Este bloco deve ficar DENTRO da função
+    // GATILHOS PARA CARREGAR AS TABELAS AUTOMATICAMENTE:
+    if (idAba === 'aba-home') {
+        carregarResumoDashboard();
+    }
     if (idAba === 'aba-toner') {
         carregarListaToners();
         carregarListaChamados();
     }
-    
-    // GATILHO DA ABA DE OCORRÊNCIAS
     if (idAba === 'aba-ocorrencias') {
         carregarListaOcorrencias();
     }
-
-    // GATILHO DA ABA DE CHAVES
     if (idAba === 'aba-chaves') {
         carregarSelectChaves();
     }
@@ -92,12 +109,10 @@ function toggleCondicional(selectId, divId, condicaoShow) {
 // ==========================================
 async function salvarPlantao() {
     try {
-        // 1. Faz upload da assinatura
         const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
-        // 2. Coleta os dados
         const dados = {
-            usuario_id: usuarioAtual.id,
+            usuario_id: usuarioAtual ? usuarioAtual.id : null,
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
             hora_largou: document.getElementById('p_hora_largou').value,
             emails_resp: document.getElementById('p_emails').value === 'sim',
@@ -117,7 +132,6 @@ async function salvarPlantao() {
             assinatura_url: urlAssinatura
         };
 
-        // 3. Salva no Supabase
         const { error } = await supabase.from('plantoes').insert([dados]);
 
         if (error) throw error;
@@ -137,7 +151,6 @@ async function salvarPlantao() {
 // ==========================================
 async function carregarSelectChaves() {
     try {
-        // Carrega chaves disponíveis
         const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
         const selDisp = document.getElementById('select-chaves-disponiveis');
         if(selDisp) {
@@ -145,7 +158,6 @@ async function carregarSelectChaves() {
                                 disponiveis.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
         }
 
-        // Carrega chaves em uso (retiradas)
         const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
         const selRet = document.getElementById('select-chaves-retiradas');
         if(selRet) {
@@ -175,7 +187,6 @@ async function registrarChave(tipo) {
     try {
         const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
-        // 1. Registra o movimento na tabela de histórico
         await supabase.from('movimentacao_chaves').insert([{
             chave_id: chaveId,
             usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
@@ -185,7 +196,6 @@ async function registrarChave(tipo) {
             assinatura_url: urlAssinatura
         }]);
 
-        // 2. Atualiza o status físico da chave
         const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
         await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
 
@@ -193,7 +203,7 @@ async function registrarChave(tipo) {
         
         document.getElementById(formId).reset();
         limparCanvas(canvasId);
-        carregarSelectChaves(); // Recarrega os dropdowns na mesma hora
+        carregarSelectChaves(); 
 
     } catch (err) { 
         alert('Erro ao processar chave: ' + err.message); 
