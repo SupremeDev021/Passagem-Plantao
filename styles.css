@@ -140,58 +140,131 @@ button {
 }
 
 /* =========================================================
-   5. LAYOUT PRINCIPAL (App Wrapper, Sidebar, Header)
+   5. LAYOUT PRINCIPAL E SIDEBAR FUTURISTA
    ========================================================= */
 #app-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-/* Sidebar Premium (Dark Slate com Glass sutil) */
+/* Sidebar Ultra-Tech (Profundidade e Grade) */
 .sidebar {
     width: 280px;
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    background: radial-gradient(circle at top left, #1e293b 0%, #020617 100%);
+    border-right: 1px solid rgba(59, 130, 246, 0.15);
+    box-shadow: 8px 0 30px rgba(0,0,0,0.6);
     color: white;
     display: flex;
     flex-direction: column;
-    padding: 24px 0;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+    padding: 35px 0;
     z-index: 20;
+    position: relative;
+    overflow: hidden;
 }
 
+/* Efeito de Grade de Holograma (Grid Pattern sutil) */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Título Neon Estilo Computador Quântico */
 .sidebar h2 { 
+    position: relative;
+    z-index: 1;
     text-align: center; 
-    margin-bottom: 30px; 
-    font-size: 20px; 
-    font-weight: 800;
-    letter-spacing: 1px;
-    border-bottom: 1px solid rgba(255,255,255,0.08); 
-    padding-bottom: 20px; 
-    color: #f8fafc;
+    margin-bottom: 40px; 
+    font-size: 22px; 
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #ffffff;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(59,130,246,0.8), 0 0 20px rgba(59,130,246,0.4);
+    border-bottom: none; 
+    padding-bottom: 0;
 }
 
+/* Feixe de luz sob o título */
+.sidebar h2::after {
+    content: '';
+    display: block;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    margin: 15px auto 0;
+    box-shadow: 0 0 10px #3b82f6;
+}
+
+/* Container dos botões do Menu */
+.tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Botões Flutuantes com Aspecto de Cápsula de Controle */
 .tab-btn {
-    background: transparent; 
+    background: rgba(15, 23, 42, 0.6); 
     color: #94a3b8; 
     text-align: left; 
-    padding: 16px 28px;
-    border-radius: 0; 
-    border-left: 4px solid transparent; 
+    padding: 14px 20px;
+    border-radius: 12px; 
+    border: 1px solid rgba(255,255,255,0.03); 
     width: 100%;
-    font-size: 15px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-.tab-btn:hover { 
-    background: rgba(255,255,255,0.04); 
-    color: #f8fafc; 
-    padding-left: 32px; /* Efeito hover de avanço */
-}
-.tab-btn.active { 
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%); 
-    color: #60a5fa; 
-    border-left-color: #3b82f6; 
-    font-weight: 600; 
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Área de Conteúdo */
+/* Barra LED de Indicação (Fica apagada e escondida) */
+.tab-btn::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    height: 60%;
+    width: 4px;
+    background: #3b82f6;
+    border-radius: 0 4px 4px 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px #3b82f6, 0 0 20px #3b82f6;
+}
+
+/* Efeito Hover: Botão "pula" para a frente e acende fundo sutil */
+.tab-btn:hover { 
+    background: rgba(59, 130, 246, 0.1); 
+    color: #ffffff; 
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateX(6px); /* Efeito gaveta abrindo */
+    box-shadow: inset 0 0 20px rgba(59,130,246,0.05);
+}
+
+/* Estado Ativo (Painel Ligado) */
+.tab-btn.active { 
+    background: linear-gradient(90deg, rgba(59,130,246,0.2) 0%, rgba(15,23,42,0.8) 100%); 
+    color: #ffffff; 
+    border-color: rgba(59, 130, 246, 0.6); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 0 15px rgba(59,130,246,0.15);
+    text-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+
+/* Acende a barra LED na opção selecionada */
+.tab-btn.active::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+/* Área de Conteúdo e Header Glassmorphism (Mantidos da versão anterior) */
 .main-content {
     flex: 1; 
     padding: 40px; 
@@ -199,31 +272,18 @@ button {
     position: relative;
 }
 
-/* Header Glassmorphism Flutuante */
 header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    background: rgba(255, 255, 255, 0.85); 
-    backdrop-filter: blur(12px);
-    padding: 20px 25px; 
-    margin-bottom: 35px; 
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    border: 1px solid rgba(255,255,255,0.6);
+    display: flex; justify-content: space-between; align-items: center; 
+    background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px);
+    padding: 20px 25px; margin-bottom: 35px; border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid rgba(255,255,255,0.6);
 }
 header h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
 
-/* Badge de Ouro Moderno */
 .badge { 
-    background: linear-gradient(135deg, #f59e0b, #d97706); 
-    color: #fff; 
-    padding: 6px 12px; 
-    border-radius: 20px; 
-    font-size: 12px; 
-    font-weight: 700; 
-    margin-left: 12px; 
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; 
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; 
+    margin-left: 12px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .hidden { display: none !important; }
