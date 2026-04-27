@@ -35,6 +35,8 @@
                 <button class="tab-btn" onclick="abrirAba('aba-ocorrencias')">⚠️ Ocorrências</button>
                 <button class="tab-btn" onclick="abrirAba('aba-toner')">🖨️ Toner/Chamados</button>
                 
+                <button class="tab-btn" onclick="abrirAba('aba-treinamentos')">📚 Treinamentos</button>
+                
                 <button id="btn-config" class="tab-btn hidden" onclick="abrirAba('aba-config')">⚙️ Configurações</button>
                 
                 <button id="btn-admin" class="tab-btn hidden" onclick="abrirAba('aba-admin')">⚙️ Admin</button>
@@ -95,6 +97,26 @@
                                 </tr>
                             </thead>
                             <tbody id="dash-plantoes">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="admin-card mt-20">
+                    <h4>📚 Próximos Treinamentos Agendados</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Colaborador</th>
+                                    <th>Tema</th>
+                                    <th>Local (Prédio/Setor/Andar)</th>
+                                    <th>Contato</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-treinamentos">
+                                <tr><td colspan="5" style="text-align: center;">Carregando...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -376,6 +398,68 @@
                     </div>
                 </div>
             </section>
+            
+            <section id="aba-treinamentos" class="tab-content hidden">
+                <h3>Agendamento de Treinamentos</h3>
+                
+                <div class="admin-card">
+                    <h4>➕ Agendar Novo Treinamento</h4>
+                    <form id="form-novo-treinamento">
+                        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label>Colaborador:</label>
+                                <input type="text" id="tr_colaborador" placeholder="Nome de quem vai receber o treinamento" required>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 200px;">
+                                <label>Telefone p/ Contato:</label>
+                                <input type="text" id="tr_telefone" placeholder="(21) 99999-9999" maxlength="15" oninput="mascaraTelefone(this)" required>
+                            </div>
+                        </div>
+                        
+                        <label>Tema do Treinamento:</label>
+                        <input type="text" id="tr_tema" placeholder="Ex: Uso do novo sistema de PEP, Configuração da Impressora..." required>
+
+                        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 150px;">
+                                <label>Prédio:</label>
+                                <input type="text" id="tr_predio" placeholder="Ex: Principal, Anexo..." required>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 150px;">
+                                <label>Setor:</label>
+                                <input type="text" id="tr_setor" placeholder="Ex: CTI, Faturamento..." required>
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 100px;">
+                                <label>Andar:</label>
+                                <input type="text" id="tr_andar" placeholder="Ex: 3º Andar" required>
+                            </div>
+                        </div>
+
+                        <label>Data e Horário Marcado:</label>
+                        <input type="datetime-local" id="tr_data_hora" required>
+
+                        <button type="button" class="btn-success mt-20" onclick="salvarTreinamento()">Agendar Treinamento</button>
+                    </form>
+                </div>
+
+                <div class="admin-card mt-20">
+                    <h4>📋 Treinamentos na Agenda</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Colaborador</th>
+                                    <th>Tema</th>
+                                    <th>Local</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-treinamentos-aba">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
             <section id="aba-config" class="tab-content hidden">
                 <h3>Minhas Configurações</h3>
@@ -385,6 +469,9 @@
                     <div class="admin-card">
                         <h4>👤 Alterar Meus Dados</h4>
                         <form id="form-meus-dados">
+                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">E-mail Corporativo:</label>
+                            <input type="email" id="meu_email" required>
+
                             <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Nome Completo:</label>
                             <input type="text" id="meu_nome" required>
                             
@@ -393,9 +480,6 @@
                             
                             <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">CPF:</label>
                             <input type="text" id="meu_cpf" maxlength="14" oninput="mascaraCPF(this)">
-
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">E-mail Corporativo:</label>
-                            <input type="email" id="meu_email" required>
                             
                             <button type="button" class="btn-primary mt-20" onclick="salvarMeusDados()">Salvar Alterações</button>
                         </form>
