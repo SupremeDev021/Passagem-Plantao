@@ -5,32 +5,44 @@ body.login-bg {
     background: url("fundo.png") no-repeat center center fixed;
     background-size: cover;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end; /* Joga o bloco para a DIREITA */
     align-items: center;
     height: 100vh;
     margin: 0;
+    padding-right: 8%; /* Espaço de respiro para não grudar na borda da tela */
     z-index: 1; /* Camada base */
+}
+
+/* Garante que no celular o bloco volte para o centro para não cortar na tela pequena */
+@media (max-width: 768px) {
+    body.login-bg {
+        justify-content: center;
+        padding-right: 0;
+    }
 }
 
 body.app-bg { background-color: #f4f7f6; margin: 0; }
 
-/* Tela de Login Centralizada e Menor */
+/* Tela de Login Maior, à Direita e Personalizada (Glassmorphism) */
 #login-container {
-    background: rgba(255, 255, 255, 0.98); /* Branco quase sólido para não confundir com o fundo */
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Sombra mais forte para dar profundidade */
+    background: rgba(255, 255, 255, 0.95); /* Branco com leve transparência */
+    backdrop-filter: blur(10px); /* Efeito de vidro embaçado atrás do bloco */
+    padding: 50px 40px; /* Aumentamos o espaço interno */
+    border-radius: 16px; /* Bordas mais arredondadas */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); /* Sombra mais imponente */
     width: 100%;
-    max-width: 350px;
+    max-width: 420px; /* Bloco de login maior (era 350px) */
     text-align: center;
     
     /* CAMADAS: Isso garante que a caixa fique na frente de tudo */
     position: relative; 
     z-index: 10; 
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Borda sutil de vidro */
 }
 
-.logo-area h2 { color: #2c3e50; margin-bottom: 5px; }
-.logo-area p { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
+/* Ajuste fino nos títulos do login */
+.logo-area h2 { color: #2c3e50; font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+.logo-area p { color: #7f8c8d; margin-bottom: 35px; font-size: 15px; }
 
 input[type="email"], input[type="password"], input[type="text"], input[type="date"], input[type="datetime-local"], select, textarea {
     width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
