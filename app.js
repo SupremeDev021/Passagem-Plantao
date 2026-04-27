@@ -193,17 +193,43 @@ async function registrarChave(tipo) {
     }
 
     try {
+        let urlFoto = null;
+        
+        // NOVO: Lógica de upload de foto exclusiva para DEVOLUÇÃO
+        if (tipo === 'devolucao') {
+            const inputFoto = document.getElementById('foto-devolucao');
+            if (inputFoto.files.length === 0) {
+                return alert("Anexe a foto da chave/local para registrar a devolução.");
+            }
+            
+            const fotoFile = inputFoto.files[0];
+            const nomeFoto = `devolucao_chave_${Date.now()}_${fotoFile.name}`;
+            
+            // Usando o mesmo bucket 'assinaturas' que você já tem para armazenar
+            const { error: errFoto } = await supabase.storage.from('assinaturas').upload(nomeFoto, fotoFile);
+            if (errFoto) throw errFoto;
+            
+            urlFoto = supabase.storage.from('assinaturas').getPublicUrl(nomeFoto).data.publicUrl;
+        }
+
         const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
         // 1. Registra o movimento na tabela de histórico
-        await supabase.from('movimentacao_chaves').insert([{
+        const payloadMovimento = {
             chave_id: chaveId,
             usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
             tipo_movimento: tipo,
             data_hora: dataHora,
             responsavel: responsavel,
             assinatura_url: urlAssinatura
-        }]);
+        };
+        
+        // Se tiver foto (Devolução), adiciona no payload de salvamento
+        if (urlFoto) {
+            payloadMovimento.foto_url = urlFoto; 
+        }
+
+        await supabase.from('movimentacao_chaves').insert([payloadMovimento]);
 
         // 2. Atualiza o status físico da chave
         const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
