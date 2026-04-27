@@ -2,7 +2,7 @@
 
 /* Background especial para a tela de login */
 body.login-bg {
-    background: url("fundo.jpg") no-repeat center center fixed;
+    background: url("fundo.png") no-repeat center center fixed;
     background-size: cover;
     display: flex;
     justify-content: center;
