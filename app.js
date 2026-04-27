@@ -59,6 +59,10 @@ function abrirAba(idAba) {
         carregarSelectChaves();
     }
 
+    if (idAba === 'aba-treinamentos') {
+        carregarListaTreinamentos();
+    }
+
     if (idAba === 'aba-config') {
         carregarMeusDados();
     }
@@ -559,32 +563,111 @@ async function salvarAtendimentoChamado() {
 }
 
 // ==========================================
+// ABA: GESTÃO DE TREINAMENTOS
+// ==========================================
+async function salvarTreinamento() {
+    const colaborador = document.getElementById('tr_colaborador').value;
+    const telefone = document.getElementById('tr_telefone').value;
+    const tema = document.getElementById('tr_tema').value;
+    const predio = document.getElementById('tr_predio').value;
+    const setor = document.getElementById('tr_setor').value;
+    const andar = document.getElementById('tr_andar').value;
+    const dataHora = document.getElementById('tr_data_hora').value;
+
+    if (!colaborador || !tema || !dataHora || !setor) {
+        return alert("Preencha os campos obrigatórios.");
+    }
+
+    try {
+        const { error } = await supabase.from('treinamentos').insert([{
+            colaborador: colaborador,
+            telefone: telefone,
+            tema: tema,
+            predio: predio,
+            setor: setor,
+            andar: andar,
+            data_hora: dataHora,
+            status: 'Agendado'
+        }]);
+
+        if (error) throw error;
+
+        alert("Treinamento agendado com sucesso!");
+        document.getElementById('form-novo-treinamento').reset();
+        carregarListaTreinamentos();
+        carregarResumoDashboard(); 
+
+    } catch (err) {
+        alert("Erro ao agendar treinamento: " + err.message);
+    }
+}
+
+async function carregarListaTreinamentos() {
+    try {
+        const { data, error } = await supabase.from('treinamentos')
+            .select('*')
+            .eq('status', 'Agendado')
+            .order('data_hora', { ascending: true }); 
+
+        if (error) throw error;
+
+        const tbody = document.getElementById('lista-treinamentos-aba');
+        if (tbody) {
+            tbody.innerHTML = data.length > 0 ? data.map(t => {
+                const dataFormatada = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
+                return `
+                    <tr>
+                        <td><strong>${dataFormatada}</strong></td>
+                        <td>${t.colaborador}<br><small>${t.telefone}</small></td>
+                        <td>${t.tema}</td>
+                        <td>${t.predio} - ${t.setor} (${t.andar})</td>
+                        <td>
+                            <button class="btn-success btn-sm" onclick="concluirTreinamento('${t.id}')">✔️ Concluído</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="5" style="text-align: center;">Nenhum treinamento agendado.</td></tr>';
+        }
+    } catch (err) { console.error("Erro ao carregar treinamentos:", err); }
+}
+
+async function concluirTreinamento(id) {
+    if(!confirm("Deseja marcar este treinamento como concluído?")) return;
+    try {
+        const { error } = await supabase.from('treinamentos').update({ status: 'Concluído' }).eq('id', id);
+        if (error) throw error;
+        carregarListaTreinamentos();
+        carregarResumoDashboard();
+    } catch (err) { alert("Erro ao concluir: " + err.message); }
+}
+
+// ==========================================
 // ABA CONFIGURAÇÕES (SOMENTE OPERACIONAL)
 // ==========================================
 
 function carregarMeusDados() {
     if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+        document.getElementById('meu_email').value = usuarioAtual.email || '';
         document.getElementById('meu_nome').value = usuarioAtual.nome || '';
         document.getElementById('meu_celular').value = usuarioAtual.celular || '';
         document.getElementById('meu_cpf').value = usuarioAtual.cpf || '';
-        document.getElementById('meu_email').value = usuarioAtual.email || '';
     }
 }
 
 async function salvarMeusDados() {
+    const email = document.getElementById('meu_email').value;
     const nome = document.getElementById('meu_nome').value;
     const celular = document.getElementById('meu_celular').value;
     const cpf = document.getElementById('meu_cpf').value;
-    const email = document.getElementById('meu_email').value
 
-    if (!nome) return alert("O nome completo não pode ficar em branco.");
+    if (!nome || !email) return alert("Nome e E-mail são obrigatórios.");
 
     try {
         const { error } = await supabase.from('profiles').update({
+            email: email,
             nome: nome,
             celular: celular,
-            cpf: cpf,
-            email: email
+            cpf: cpf
         }).eq('id', usuarioAtual.id);
 
         if (error) throw error;
@@ -592,15 +675,14 @@ async function salvarMeusDados() {
         alert("Seus dados foram atualizados com sucesso!");
         
         // Atualiza a memória local
+        usuarioAtual.email = email;
         usuarioAtual.nome = nome;
         usuarioAtual.celular = celular;
         usuarioAtual.cpf = cpf;
-        usuarioAtual.email = email;
         
-        // Atualiza o nome exibido no Header ali no topo da tela
+        // Atualiza o nome exibido no Header
         const userNameHeader = document.getElementById('user-name');
         if (userNameHeader) {
-            // Pega só o primeiro nome para ficar elegante no cabeçalho
             userNameHeader.innerText = `Olá, ${nome.split(' ')[0]}`; 
         }
         
@@ -630,6 +712,7 @@ async function salvarMinhaSenha() {
         alert("Erro ao alterar a senha: " + err.message);
     }
 }
+
 
 // ==========================================
 // ADMIN: FUNÇÕES DE CADASTRO E USUÁRIOS
@@ -942,6 +1025,31 @@ async function carregarResumoDashboard() {
                     </tr>
                 `).join('') 
                 : '<tr><td colspan="3" style="text-align: center;">✅ Todos os plantões estão com visto da supervisão.</td></tr>';
+        }
+
+        // Puxando Treinamentos para o Dashboard
+        const { data: treinamentos } = await supabase.from('treinamentos')
+            .select('*')
+            .eq('status', 'Agendado')
+            .order('data_hora', { ascending: true })
+            .limit(5); // Puxa só os 5 próximos para não lotar a tela
+
+        const dashTreinamentos = document.getElementById('dash-treinamentos');
+        if (dashTreinamentos) {
+            dashTreinamentos.innerHTML = treinamentos && treinamentos.length > 0
+                ? treinamentos.map(t => {
+                    const dataF = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
+                    return `
+                        <tr>
+                            <td style="color: #42B9EB; font-weight: bold;">${dataF}</td>
+                            <td>${t.colaborador}</td>
+                            <td>${t.tema}</td>
+                            <td>${t.predio} / ${t.setor}</td>
+                            <td>${t.telefone}</td>
+                        </tr>
+                    `;
+                }).join('') 
+                : '<tr><td colspan="5" style="text-align: center;">✅ Agenda de treinamentos livre.</td></tr>';
         }
 
     } catch (err) {
