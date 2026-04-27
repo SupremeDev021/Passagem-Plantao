@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Passagem de Plantão - T.I Andaraí</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -46,35 +50,35 @@
             <section id="aba-inicio" class="tab-content">
                 <h3>Visão Geral (Dashboard)</h3>
                 
-                <div class="form-row" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div class="dashboard-grid">
                     
-                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                    <div class="admin-card">
                         <h4>🔑 Chaves Pendentes</h4>
                         <ul id="dash-chaves" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                            </ul>
+                        </ul>
                     </div>
 
-                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                    <div class="admin-card">
                         <h4>🖨️ Chamados Abertos (Simpress)</h4>
                         <ul id="dash-chamados" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                            </ul>
+                        </ul>
                     </div>
 
-                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                    <div class="admin-card">
                         <h4>📦 Estoque de Toners</h4>
                         <ul id="dash-toners" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                            </ul>
+                        </ul>
                     </div>
 
-                    <div class="admin-card" style="flex: 1; min-width: 250px;">
+                    <div class="admin-card">
                         <h4>⚠️ Ocorrências Pendentes</h4>
                         <ul id="dash-ocorrencias" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                            </ul>
+                        </ul>
                     </div>
 
                 </div>
 
-               <div class="admin-card mt-20">
+                <div class="admin-card mt-20">
                     <h4>📋 Plantões Aguardando Visto (Supervisão)</h4>
                     <div class="table-responsive">
                         <table>
@@ -86,7 +90,7 @@
                                 </tr>
                             </thead>
                             <tbody id="dash-plantoes">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -96,12 +100,12 @@
                 <h3>Registro de Plantão</h3>
                 <form id="form-plantao">
                     
-                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
-                        <div class="form-group" style="flex: 1;">
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
                             <label>Qual hora assumiu o plantão?</label>
                             <input type="datetime-local" id="p_hora_assumiu" required>
                         </div>
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
                             <label>Qual hora está largando o plantão?</label>
                             <input type="datetime-local" id="p_hora_largou" required>
                         </div>
@@ -191,11 +195,11 @@
                         </div>
                     </div>
 
-                    <div class="signature-section mt-20">
+                    <div class="signature-section admin-card mt-20">
                         <label>Assinatura Digital (Obrigatória):</label>
                         <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
                         <div class="sig-buttons mt-10">
-                            <button type="button" class="btn-danger" style="width: auto;" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
+                            <button type="button" class="btn-danger btn-sm" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
                         </div>
                     </div>
 
@@ -206,9 +210,9 @@
             <section id="aba-chaves" class="tab-content hidden">
                 <h3>Controle de Retirada e Devolução</h3>
                 
-                <div class="form-row" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div class="dashboard-grid">
                     
-                    <div class="admin-card" style="flex: 1; min-width: 300px;">
+                    <div class="admin-card">
                         <h4>🔑 Retirar Chave</h4>
                         <form id="form-retirada-chave">
                             <label>Selecione a Chave Disponível:</label>
@@ -224,15 +228,15 @@
                             
                             <div class="signature-section mt-10">
                                 <label>Assinatura (Responsável):</label>
-                                <canvas id="canvas-retirada" class="sig-canvas" width="100%" height="150" style="width: 100%; border: 1px solid #ccc; border-radius: 4px;"></canvas>
-                                <button type="button" class="btn-danger btn-sm mt-10" style="width: auto;" onclick="limparCanvas('canvas-retirada')">Limpar Assinatura</button>
+                                <canvas id="canvas-retirada" class="sig-canvas" width="400" height="150"></canvas>
+                                <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-retirada')">Limpar Assinatura</button>
                             </div>
 
                             <button type="button" class="btn-success mt-20" onclick="registrarChave('retirada')">Retirar Chave</button>
                         </form>
                     </div>
 
-                    <div class="admin-card" style="flex: 1; min-width: 300px;">
+                    <div class="admin-card">
                         <h4>↩️ Devolver Chave</h4>
                         <form id="form-devolucao-chave">
                             <label>Selecione a Chave em Uso:</label>
@@ -248,8 +252,8 @@
                             
                             <div class="signature-section mt-10">
                                 <label>Assinatura (Responsável):</label>
-                                <canvas id="canvas-devolucao" class="sig-canvas" width="100%" height="150" style="width: 100%; border: 1px solid #ccc; border-radius: 4px;"></canvas>
-                                <button type="button" class="btn-danger btn-sm mt-10" style="width: auto;" onclick="limparCanvas('canvas-devolucao')">Limpar Assinatura</button>
+                                <canvas id="canvas-devolucao" class="sig-canvas" width="400" height="150"></canvas>
+                                <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-devolucao')">Limpar Assinatura</button>
                             </div>
 
                             <button type="button" class="btn-success mt-20" onclick="registrarChave('devolucao')">Devolver Chave</button>
@@ -259,7 +263,7 @@
                 </div>
             </section>
 
-           <section id="aba-ocorrencias" class="tab-content hidden">
+            <section id="aba-ocorrencias" class="tab-content hidden">
                 <h3>Gestão de Ocorrências</h3>
                 
                 <div class="admin-card">
@@ -268,12 +272,12 @@
                         <input type="text" id="o_descricao" placeholder="Qual a ocorrência?" required>
                         <input type="text" id="o_proposta" placeholder="Solução proposta?" required>
                         
-                        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <div class="form-group" style="flex: 1;">
+                        <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 1; min-width: 250px;">
                                 <label>Prazo para solução:</label>
                                 <input type="date" id="o_prazo" required>
                             </div>
-                            <div class="form-group" style="flex: 1;">
+                            <div class="form-group" style="flex: 1; min-width: 250px;">
                                 <label>Responsável por acompanhar:</label>
                                 <input type="text" id="o_responsavel" placeholder="Nome do Técnico Responsável" required>
                             </div>
@@ -284,7 +288,7 @@
                         <div class="signature-section mt-10">
                             <label>Assinatura de quem abriu a ocorrência:</label>
                             <canvas id="canvas-nova-ocorrencia" class="sig-canvas" width="400" height="200"></canvas>
-                            <button type="button" class="btn-danger btn-sm mt-10" style="width: auto;" onclick="limparCanvas('canvas-nova-ocorrencia')">Limpar Assinatura</button>
+                            <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-nova-ocorrencia')">Limpar Assinatura</button>
                         </div>
 
                         <button type="button" class="btn-success mt-20" onclick="salvarOcorrencia()">Salvar Ocorrência</button>
@@ -305,50 +309,50 @@
                                 </tr>
                             </thead>
                             <tbody id="lista-ocorrencias-aba">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-           <section id="aba-toner" class="tab-content hidden">
-            <h3>Controle de Toner e Impressoras</h3>
-    
-        <div class="admin-card">
-        <h4>📦 Estoque de Toners</h4>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Modelo do Toner</th>
-                        <th>Qtd Disponível</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="lista-toners-aba">
-                    </tbody>
-            </table>
-        </div>
-    </div>
+            <section id="aba-toner" class="tab-content hidden">
+                <h3>Controle de Toner e Impressoras</h3>
+        
+                <div class="admin-card">
+                    <h4>📦 Estoque de Toners</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Modelo do Toner</th>
+                                    <th>Qtd Disponível</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-toners-aba">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-    <div class="admin-card">
-        <h4>🖨️ Chamados Simpress (Abertos)</h4>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nº Chamado</th>
-                        <th>Modelo / Série</th>
-                        <th>Setor</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="lista-chamados-aba">
-                    </tbody>
-            </table>
-        </div>
-    </div>
-</section>
+                <div class="admin-card">
+                    <h4>🖨️ Chamados Simpress (Abertos)</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nº Chamado</th>
+                                    <th>Modelo / Série</th>
+                                    <th>Setor</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-chamados-aba">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
             
             <section id="aba-admin" class="tab-content hidden">
                 <h3>Painel de Gestão (Admin)</h3>
@@ -393,7 +397,7 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-plantoes-lista">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -418,7 +422,7 @@
                 <input type="text" id="cad_cpf" placeholder="CPF Ex: 111.111.111-11" maxlength="14" oninput="mascaraCPF(this)">
                 <input type="email" id="cad_email" placeholder="E-mail" required>
                 <input type="password" id="cad_senha" placeholder="Senha Provisória" required>
-                <button type="button" class="btn-success" onclick="adminCriarUsuario()">Criar Usuário</button>
+                <button type="button" class="btn-success mt-20" onclick="adminCriarUsuario()">Criar Usuário</button>
             </form>
         </div>
     </div>
@@ -440,7 +444,7 @@
                 <input type="text" id="edit_cpf" placeholder="CPF" maxlength="14" oninput="mascaraCPF(this)">
                 <input type="email" id="edit_email" placeholder="E-mail Corporativo" required>
                 
-                <button type="button" class="btn-success" onclick="salvarEdicaoUsuario()">Salvar Alterações</button>
+                <button type="button" class="btn-success mt-20" onclick="salvarEdicaoUsuario()">Salvar Alterações</button>
             </form>
         </div>
     </div>
@@ -460,22 +464,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabela-usuarios-admin">
-                        <tr>
-                            <td>Exemplo Silva</td>
-                            <td>exemplo@hospital.com</td>
-                            <td>
-                                <select class="btn-sm">
-                                    <option value="operacional">Operacional</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn-primary btn-sm">Alterar Dados</button>
-                                <button class="btn-primary btn-sm">Redefinir Senha</button>
-                                <button class="btn-danger btn-sm">Excluir</button>
-                            </td>
-                        </tr>
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -489,7 +478,7 @@
                 <input type="text" id="cad_chave_nome" placeholder="Nomenclatura (Ex: CPD, Sala Servidor)" required>
                 <input type="text" id="cad_chave_cor" placeholder="Cor do Chaveiro" required>
                 <input type="text" id="cad_chave_local" placeholder="Localização / Prédio" required>
-                <button type="button" class="btn-success" onclick="adminCadastrarChave()">Salvar Chave</button>
+                <button type="button" class="btn-success mt-20" onclick="adminCadastrarChave()">Salvar Chave</button>
             </form>
         </div>
     </div>
@@ -502,7 +491,7 @@
                 <input type="text" id="cad_toner_modelo" placeholder="Modelo do Toner" required>
                 <input type="text" id="cad_toner_imp" placeholder="Impressoras Compatíveis (Ex: Lexmark MS431)" required>
                 <input type="number" id="cad_toner_qtd" placeholder="Quantidade Atual em Estoque" required>
-                <button type="button" class="btn-success" onclick="adminCadastrarToner()">Salvar Cadastro</button>
+                <button type="button" class="btn-success mt-20" onclick="adminCadastrarToner()">Salvar Cadastro</button>
             </form>
         </div>
     </div>
@@ -516,10 +505,11 @@
                 <input type="text" id="cad_sim_modelo" placeholder="Modelo da Impressora" required>
                 <input type="text" id="cad_sim_serie" placeholder="Número de Série" required>
                 <input type="text" id="cad_sim_local" placeholder="Localização da Impressora (Setor)" required>
-                <button type="button" class="btn-success" onclick="adminCadastrarSimpress()">Abrir Chamado</button>
+                <button type="button" class="btn-success mt-20" onclick="adminCadastrarSimpress()">Abrir Chamado</button>
             </form>
         </div>
     </div>
+
     <div id="modal-troca-toner" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModal('modal-troca-toner')">&times;</span>
@@ -594,7 +584,7 @@
                 <div class="signature-section mt-10">
                     <label>Assinatura (De quem resolveu ou acompanhou):</label>
                     <canvas id="canvas-finalizar-ocorrencia" class="sig-canvas" width="400" height="200"></canvas>
-                    <button type="button" class="btn-danger btn-sm mt-10" style="width: auto;" onclick="limparCanvas('canvas-finalizar-ocorrencia')">Limpar Assinatura</button>
+                    <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-finalizar-ocorrencia')">Limpar Assinatura</button>
                 </div>
 
                 <button type="button" class="btn-success mt-20" onclick="finalizarOcorrencia()">Finalizar Ocorrência</button>
@@ -602,20 +592,20 @@
         </div>
     </div>
 
-<div id="modal-ver-plantao" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <span class="close-modal" onclick="fecharModal('modal-ver-plantao')">&times;</span>
-        <h3 style="margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📋 Detalhes da Passagem de Plantão</h3>
-        
-        <div id="detalhes-plantao-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;">
+    <div id="modal-ver-plantao" class="modal">
+        <div class="modal-content large">
+            <span class="close-modal" onclick="fecharModal('modal-ver-plantao')">&times;</span>
+            <h3 style="margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📋 Detalhes da Passagem de Plantão</h3>
+            
+            <div id="detalhes-plantao-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;">
             </div>
 
-        <div style="margin-top: 25px; text-align: center; border-top: 2px solid #eee; padding-top: 15px;">
-            <input type="hidden" id="visto_plantao_id">
-            <button class="btn-success" onclick="confirmarVistoPlantao()" style="width: 100%; font-size: 16px;">Assinar Visto da Supervisão ✔️</button>
+            <div style="margin-top: 25px; text-align: center; border-top: 2px solid #e2e8f0; padding-top: 15px;">
+                <input type="hidden" id="visto_plantao_id">
+                <button class="btn-success" onclick="confirmarVistoPlantao()" style="width: 100%; font-size: 16px;">Assinar Visto da Supervisão ✔️</button>
+            </div>
         </div>
     </div>
-</div>
 
     <script src="auth.js"></script>
     <script src="signature.js"></script>
