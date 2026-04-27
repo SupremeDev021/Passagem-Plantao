@@ -170,6 +170,15 @@
                                 </div>
 
                                 <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_forms_treinamento" checked onchange="toggleCondicionalCheckbox(this, 'div_m_treinamento', false)">
+                                    <label for="p_forms_treinamento">Forms de Treinamentos zerado?</label>
+                                </div>
+                                <div id="div_m_treinamento" class="condicional hidden">
+                                    <label>Motivo de não ter zerado os treinamentos:</label>
+                                    <textarea id="p_motivo_treinamento"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
                                     <input type="checkbox" id="p_maquinas" checked onchange="toggleCondicionalCheckbox(this, 'div_m_maquinas', false)">
                                     <label for="p_maquinas">Todas as máquinas do setor T.I funcionando?</label>
                                 </div>
@@ -723,29 +732,6 @@
                 <input type="hidden" id="visto_plantao_id">
                 <button class="btn-success" onclick="confirmarVistoPlantao()" style="width: 100%; font-size: 16px;">Assinar Visto da Supervisão ✔️</button>
             </div>
-        </div>
-    </div>
-
-    <div id="modal-finalizar-treinamento" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="fecharModal('modal-finalizar-treinamento')">&times;</span>
-            <h3>Finalizar Treinamento</h3>
-            <form id="form-finalizar-treinamento">
-                <input type="hidden" id="ft_treinamento_id">
-                
-                <label>Técnico Responsável por Ministrar:</label>
-                <select id="ft_tecnico" required>
-                    <option value="">Carregando...</option>
-                </select>
-                
-                <div class="signature-section mt-10">
-                    <label>Assinatura do Técnico:</label>
-                    <canvas id="canvas-finalizar-treinamento" class="sig-canvas" width="400" height="200"></canvas>
-                    <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-finalizar-treinamento')">Limpar Assinatura</button>
-                </div>
-
-                <button type="button" class="btn-success mt-20" onclick="salvarTreinamentoConcluido()">Concluir Treinamento</button>
-            </form>
         </div>
     </div>
 
