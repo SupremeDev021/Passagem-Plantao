@@ -34,11 +34,8 @@
                 <button class="tab-btn" onclick="abrirAba('aba-chaves')">🔑 Chaves</button>
                 <button class="tab-btn" onclick="abrirAba('aba-ocorrencias')">⚠️ Ocorrências</button>
                 <button class="tab-btn" onclick="abrirAba('aba-toner')">🖨️ Toner/Chamados</button>
-                
                 <button class="tab-btn" onclick="abrirAba('aba-treinamentos')">📚 Treinamentos</button>
-                
                 <button id="btn-config" class="tab-btn hidden" onclick="abrirAba('aba-config')">⚙️ Configurações</button>
-                
                 <button id="btn-admin" class="tab-btn hidden" onclick="abrirAba('aba-admin')">⚙️ Admin</button>
             </nav>
 
@@ -58,31 +55,25 @@
                 <h3>Visão Geral (Dashboard)</h3>
                 
                 <div class="dashboard-grid">
-                    
                     <div class="admin-card">
                         <h4>🔑 Chaves Pendentes</h4>
-                        <ul id="dash-chaves" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                        </ul>
+                        <ul id="dash-chaves" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;"></ul>
                     </div>
 
                     <div class="admin-card">
                         <h4>🖨️ Chamados Abertos (Simpress)</h4>
-                        <ul id="dash-chamados" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                        </ul>
+                        <ul id="dash-chamados" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;"></ul>
                     </div>
 
                     <div class="admin-card">
                         <h4>📦 Estoque de Toners</h4>
-                        <ul id="dash-toners" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                        </ul>
+                        <ul id="dash-toners" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;"></ul>
                     </div>
 
                     <div class="admin-card">
                         <h4>⚠️ Ocorrências Pendentes</h4>
-                        <ul id="dash-ocorrencias" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;">
-                        </ul>
+                        <ul id="dash-ocorrencias" style="list-style: none; padding: 0; margin-top: 10px; line-height: 1.8;"></ul>
                     </div>
-
                 </div>
 
                 <div class="admin-card mt-20">
@@ -96,8 +87,7 @@
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="dash-plantoes">
-                            </tbody>
+                            <tbody id="dash-plantoes"></tbody>
                         </table>
                     </div>
                 </div>
@@ -126,7 +116,6 @@
             <section id="aba-plantao" class="tab-content hidden">
                 <h3>Registro de Plantão</h3>
                 <form id="form-plantao">
-                    
                     <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; justify-content: flex-start;">
                         <div class="form-group" style="width: 280px;">
                             <label>Qual hora assumiu o plantão?</label>
@@ -139,7 +128,6 @@
                     </div>
 
                     <div style="display: flex; gap: 25px; align-items: flex-start; flex-wrap: wrap;">
-                        
                         <div style="flex: 2; min-width: 300px;">
                             <div class="admin-card" style="margin-bottom: 0;">
                                 
@@ -253,7 +241,6 @@
                 <h3>Controle de Retirada e Devolução</h3>
                 
                 <div class="dashboard-grid">
-                    
                     <div class="admin-card">
                         <h4>🔑 Retirar Chave</h4>
                         <form id="form-retirada-chave">
@@ -304,7 +291,6 @@
                             <button type="button" class="btn-success mt-20" onclick="registrarChave('devolucao')">Devolver Chave</button>
                         </form>
                     </div>
-
                 </div>
             </section>
 
@@ -353,8 +339,7 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="lista-ocorrencias-aba">
-                            </tbody>
+                            <tbody id="lista-ocorrencias-aba"></tbody>
                         </table>
                     </div>
                 </div>
@@ -374,8 +359,7 @@
                                     <th>Ação</th>
                                 </tr>
                             </thead>
-                            <tbody id="lista-toners-aba">
-                            </tbody>
+                            <tbody id="lista-toners-aba"></tbody>
                         </table>
                     </div>
                 </div>
@@ -392,13 +376,12 @@
                                     <th>Ação</th>
                                 </tr>
                             </thead>
-                            <tbody id="lista-chamados-aba">
-                            </tbody>
+                            <tbody id="lista-chamados-aba"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
-            
+
             <section id="aba-treinamentos" class="tab-content hidden">
                 <h3>Agendamento de Treinamentos</h3>
                 
@@ -454,8 +437,7 @@
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="lista-treinamentos-aba">
-                            </tbody>
+                            <tbody id="lista-treinamentos-aba"></tbody>
                         </table>
                     </div>
                 </div>
@@ -465,7 +447,6 @@
                 <h3>Minhas Configurações</h3>
                 
                 <div class="dashboard-grid">
-                    
                     <div class="admin-card">
                         <h4>👤 Alterar Meus Dados</h4>
                         <form id="form-meus-dados">
@@ -497,7 +478,6 @@
                             <button type="button" class="btn-danger mt-20" onclick="salvarMinhaSenha()">Atualizar Senha</button>
                         </form>
                     </div>
-
                 </div>
             </section>
             
@@ -543,8 +523,7 @@
                                     <th>Ação</th>
                                 </tr>
                             </thead>
-                            <tbody id="admin-plantoes-lista">
-                            </tbody>
+                            <tbody id="admin-plantoes-lista"></tbody>
                         </table>
                     </div>
                 </div>
@@ -580,7 +559,6 @@
             <h3>Alterar Dados do Usuário</h3>
             <form id="form-editar-usuario">
                 <input type="hidden" id="edit_id">
-                
                 <input type="text" id="edit_nome" placeholder="Nome Completo" required>
                 <select id="edit_turno" required>
                     <option value="Seg a Sex">Diarista</option>
@@ -590,7 +568,6 @@
                 <input type="text" id="edit_celular" placeholder="Celular (WhatsApp)" maxlength="15" oninput="mascaraTelefone(this)">
                 <input type="text" id="edit_cpf" placeholder="CPF" maxlength="14" oninput="mascaraCPF(this)">
                 <input type="email" id="edit_email" placeholder="E-mail Corporativo" required>
-                
                 <button type="button" class="btn-success mt-20" onclick="salvarEdicaoUsuario()">Salvar Alterações</button>
             </form>
         </div>
@@ -610,8 +587,7 @@
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="tabela-usuarios-admin">
-                    </tbody>
+                    <tbody id="tabela-usuarios-admin"></tbody>
                 </table>
             </div>
         </div>
@@ -741,13 +717,58 @@
             <span class="close-modal" onclick="fecharModal('modal-ver-plantao')">&times;</span>
             <h3 style="margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📋 Detalhes da Passagem de Plantão</h3>
             
-            <div id="detalhes-plantao-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;">
-            </div>
+            <div id="detalhes-plantao-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;"></div>
 
             <div style="margin-top: 25px; text-align: center; border-top: 2px solid #e2e8f0; padding-top: 15px;">
                 <input type="hidden" id="visto_plantao_id">
                 <button class="btn-success" onclick="confirmarVistoPlantao()" style="width: 100%; font-size: 16px;">Assinar Visto da Supervisão ✔️</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-finalizar-treinamento" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-finalizar-treinamento')">&times;</span>
+            <h3>Finalizar Treinamento</h3>
+            <form id="form-finalizar-treinamento">
+                <input type="hidden" id="ft_treinamento_id">
+                
+                <label>Técnico Responsável por Ministrar:</label>
+                <select id="ft_tecnico" required>
+                    <option value="">Carregando...</option>
+                </select>
+                
+                <div class="signature-section mt-10">
+                    <label>Assinatura do Técnico:</label>
+                    <canvas id="canvas-finalizar-treinamento" class="sig-canvas" width="400" height="200"></canvas>
+                    <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-finalizar-treinamento')">Limpar Assinatura</button>
+                </div>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarTreinamentoConcluido()">Concluir Treinamento</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-finalizar-treinamento" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-finalizar-treinamento')">&times;</span>
+            <h3>Finalizar Treinamento</h3>
+            <form id="form-finalizar-treinamento">
+                <input type="hidden" id="ft_treinamento_id">
+                
+                <label>Técnico Responsável por Ministrar:</label>
+                <select id="ft_tecnico" required>
+                    <option value="">Carregando...</option>
+                </select>
+                
+                <div class="signature-section mt-10">
+                    <label>Assinatura do Técnico:</label>
+                    <canvas id="canvas-finalizar-treinamento" class="sig-canvas" width="400" height="200"></canvas>
+                    <button type="button" class="btn-danger btn-sm mt-10" onclick="limparCanvas('canvas-finalizar-treinamento')">Limpar Assinatura</button>
+                </div>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarTreinamentoConcluido()">Concluir Treinamento</button>
+            </form>
         </div>
     </div>
 
