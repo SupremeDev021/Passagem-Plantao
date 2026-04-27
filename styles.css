@@ -3,7 +3,6 @@
    ========================================================= */
 * { 
     box-sizing: border-box; 
-    /* Tipografia mais limpa e moderna de sistemas tech */
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; 
     -webkit-font-smoothing: antialiased;
 }
@@ -15,12 +14,12 @@ body.login-bg {
     background: url("fundo.png") no-repeat center center fixed;
     background-size: cover;
     display: flex;
-    justify-content: flex-end; /* Mantém na direita */
+    justify-content: flex-end; 
     align-items: center;
     height: 100vh;
     margin: 0;
-    padding-right: 24%; /* Empurra um pouco mais para a esquerda */
-    z-index: 1; /* Camada base */
+    padding-right: 24%; 
+    z-index: 1; 
 }
 
 @media (max-width: 768px) {
@@ -31,13 +30,13 @@ body.login-bg {
 }
 
 #login-container {
-    background: rgba(255, 255, 255, 0.60); /* Mais transparente (vidro mais limpo) */
-    backdrop-filter: blur(10px); /* Mantém o desfoque do fundo */
-    padding: 90px 30px; /* Mais esticado na vertical (70px) e mais apertado nas laterais (30px) */
+    background: rgba(255, 255, 255, 0.60); 
+    backdrop-filter: blur(10px); 
+    padding: 90px 30px; 
     border-radius: 16px; 
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); 
     width: 100%;
-    max-width: 330px; /* Menos largo (era 420px) */
+    max-width: 330px; 
     text-align: center;
     position: relative; 
     z-index: 10; 
@@ -51,12 +50,11 @@ body.login-bg {
    3. BACKGROUND DO APP E INPUTS BÁSICOS
    ========================================================= */
 body.app-bg { 
-    background-color: #f8fafc; /* Fundo tech muito sutil, quase gelo */
+    background-color: #f8fafc; 
     margin: 0; 
     color: #334155;
 }
 
-/* Inputs Premium (Foco com brilho azul, bordas suaves) */
 input[type="email"], input[type="password"], input[type="text"], select, textarea {
     width: 100%; 
     padding: 12px 16px; 
@@ -72,8 +70,8 @@ input[type="email"], input[type="password"], input[type="text"], select, textare
 }
 
 input:focus, select:focus, textarea:focus {
-    border-color: #3b82f6; /* Azul vibrante */
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); /* Halo de foco tech */
+    border-color: #42B9EB; 
+    box-shadow: 0 0 0 4px rgba(66, 185, 235, 0.15); 
     background-color: #fbfdff;
 }
 
@@ -97,14 +95,14 @@ button {
 }
 
 .btn-primary { 
-    background: linear-gradient(135deg, #3b82f6, #2563eb); 
+    background: linear-gradient(135deg, #42B9EB, #2a8db5); 
     color: white; 
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 4px 10px rgba(66, 185, 235, 0.25);
 }
 .btn-primary:hover { 
-    background: linear-gradient(135deg, #60a5fa, #3b82f6); 
+    background: linear-gradient(135deg, #5fcbf5, #42B9EB); 
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 6px 15px rgba(66, 185, 235, 0.35);
 }
 
 .btn-success { 
@@ -144,23 +142,20 @@ button {
    ========================================================= */
 #app-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-/* Sidebar agora com o Azul Protagonista */
 .sidebar {
     width: 280px;
-    /* Gradiente que usa o seu azul como base principal */
     background: linear-gradient(180deg, #42B9EB 0%, #2a8db5 100%);
     border-right: 2px solid rgba(255, 255, 255, 0.1);
     box-shadow: 10px 0 30px rgba(0,0,0,0.15);
     color: white;
     display: flex;
     flex-direction: column;
-    padding: 35px 0;
+    padding: 35px 0 0 0; /* Removido padding inferior para a tag de versão colar na base */
     z-index: 20;
     position: relative;
     overflow: hidden;
 }
 
-/* Ajuste da Grade para aparecer sobre o fundo azul */
 .sidebar::before {
     content: '';
     position: absolute;
@@ -173,7 +168,6 @@ button {
     z-index: 0;
 }
 
-/* Título MENU sobre o fundo azul */
 .sidebar h2 { 
     position: relative;
     z-index: 1;
@@ -184,7 +178,6 @@ button {
     letter-spacing: 4px;
     color: #ffffff;
     text-transform: uppercase;
-    /* Sombra escura para o texto saltar do azul */
     text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     border-bottom: none; 
     padding-bottom: 0;
@@ -201,7 +194,6 @@ button {
     box-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 
-/* Botões do Menu adaptados para fundo azul */
 .tabs {
     display: flex;
     flex-direction: column;
@@ -212,7 +204,6 @@ button {
 }
 
 .tab-btn {
-    /* Fundo branco semi-transparente para dar o efeito de vidro sobre o azul */
     background: rgba(255, 255, 255, 0.15); 
     color: #ffffff; 
     text-align: left; 
@@ -228,7 +219,6 @@ button {
     overflow: hidden;
 }
 
-/* Hover: o botão clareia e "salta" */
 .tab-btn:hover { 
     background: rgba(255, 255, 255, 0.3); 
     transform: translateX(8px);
@@ -236,18 +226,31 @@ button {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-/* Botão Ativo: Fica branco com texto no seu azul */
 .tab-btn.active { 
     background: #ffffff; 
-    color: #42B9EB; /* Texto com a cor da marca */
+    color: #42B9EB; 
     border-color: #ffffff;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-/* Removemos a barra lateral antiga pois o botão inteiro agora se destaca */
 .tab-btn.active::before { display: none; }
 
-/* Área de Conteúdo */
+/* Tag de Versão na Sidebar */
+.version-tag {
+    margin-top: auto; 
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7); 
+    letter-spacing: 1.5px;
+    padding: 20px 0;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(255, 255, 255, 0.2); 
+    position: relative;
+    z-index: 1;
+    background: rgba(0,0,0,0.05); /* Fundo levemente escurecido no rodapé */
+}
+
 .main-content {
     flex: 1; padding: 30px; overflow-y: auto;
 }
@@ -265,21 +268,6 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 
 .hidden { display: none !important; }
 
-/* Estilo da Tag de Versão no rodapé da Sidebar */
-.version-tag {
-    margin-top: auto; /* Mágica que joga o texto para o final da sidebar */
-    text-align: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.5); /* Branco bem sutil para não distrair */
-    letter-spacing: 1.5px;
-    padding: 20px 0;
-    text-transform: uppercase;
-    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Linha divisória fina */
-    position: relative;
-    z-index: 1;
-}
-
 /* =========================================================
    6. CARDS DO DASHBOARD E PAINÉIS
    ========================================================= */
@@ -290,7 +278,7 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 
 .dash-card { 
     background: white; padding: 20px; border-radius: 8px; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #3498db;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #42B9EB;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -302,7 +290,7 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 .dash-card h4 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;}
 .dash-card .number { 
     font-size: 38px; font-weight: 800; color: #2c3e50; 
-    background: linear-gradient(135deg, #0f172a, #3b82f6);
+    background: linear-gradient(135deg, #0f172a, #42B9EB);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -348,7 +336,6 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 }
 .date-group input { margin-bottom: 0; }
 
-/* Estilo focado nos inputs numéricos e de tempo */
 input[type="date"], 
 input[type="datetime-local"] {
     background-color: #f8fafc; 
@@ -376,18 +363,17 @@ input[type="datetime-local"]:hover {
 input[type="date"]:focus, 
 input[type="datetime-local"]:focus {
     background-color: #ffffff;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), inset 0 1px 2px rgba(0,0,0,0.05);
+    border-color: #42B9EB;
+    box-shadow: 0 0 0 4px rgba(66, 185, 235, 0.15), inset 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* Customização do Botão de Calendário */
 ::-webkit-calendar-picker-indicator {
     background-color: #eff6ff; 
     padding: 6px 8px;
     cursor: pointer;
     border-radius: 6px;
     border: 1px solid #bfdbfe;
-    filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(190deg) brightness(101%) contrast(101%);
+    filter: invert(56%) sepia(85%) saturate(388%) hue-rotate(160deg) brightness(97%) contrast(93%);
     transition: all 0.2s ease;
 }
 
@@ -395,7 +381,6 @@ input[type="datetime-local"]:focus {
     background-color: #dbeafe;
     border-color: #93c5fd;
     transform: scale(1.05);
-    filter: invert(30%) sepia(95%) saturate(2200%) hue-rotate(200deg) brightness(95%) contrast(105%);
 }
 
 .form-group label, .date-group label {
@@ -411,8 +396,8 @@ input[type="datetime-local"]:focus {
     padding: 10px 15px; background: #f8fafc; border: 1px solid #cbd5e1;
     border-radius: 8px; transition: all 0.3s ease;
 }
-.checkbox-group:hover { border-color: #3b82f6; background: #fbfdff; }
-.checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #3b82f6; margin: 0; }
+.checkbox-group:hover { border-color: #42B9EB; background: #fbfdff; }
+.checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: #42B9EB; margin: 0; }
 .checkbox-group label { margin: 0; font-weight: 600; color: #334155; cursor: pointer; }
 
 .checkbox-legend {
@@ -422,7 +407,7 @@ input[type="datetime-local"]:focus {
 }
 .legend-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; font-weight: 500; }
 .legend-icon { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-.legend-icon.check { background: #3b82f6; color: white; box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3); }
+.legend-icon.check { background: #42B9EB; color: white; box-shadow: 0 2px 5px rgba(66, 185, 235, 0.3); }
 .legend-icon.uncheck { background: #ffffff; border: 2px solid #cbd5e1; }
 
 /* =========================================================
@@ -503,8 +488,6 @@ th {
     border-bottom: 2px solid #e2e8f0;
 }
 
-/* Remove a borda do último item para não quebrar o layout do container */
 tr:last-child td { border-bottom: none; }
 
-/* Efeito de destaque ao passar o mouse na linha da tabela */
 tr:hover td { background-color: #fbfdff; color: #0f172a; }
