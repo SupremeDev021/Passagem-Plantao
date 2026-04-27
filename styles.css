@@ -529,3 +529,41 @@ th {
 tr:last-child td { border-bottom: none; }
 
 tr:hover td { background-color: #fbfdff; color: #0f172a; }
+
+/* =========================================================
+   11. BADGES DE TÉCNICOS NO PLANTÃO
+   ========================================================= */
+.tecnico-badge {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 600;
+    animation: fadeIn 0.2s ease;
+}
+
+.tecnico-badge button {
+    background: transparent;
+    color: #ef4444;
+    border: none;
+    padding: 0;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: none;
+    width: auto;
+    min-width: auto;
+    margin: 0;
+}
+
+.tecnico-badge button:hover {
+    background: transparent;
+    transform: scale(1.2);
+    box-shadow: none;
+    color: #dc2626;
+}
