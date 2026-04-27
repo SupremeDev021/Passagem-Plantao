@@ -25,7 +25,7 @@ body.app-bg { background-color: #f4f7f6; margin: 0; }
 
 /* Tela de Login Personalizada (Mais transparente, alongada e fina) */
 #login-container {
-    background: rgba(255, 255, 255, 0.80); /* Mais transparente (vidro mais limpo) */
+    background: rgba(255, 255, 255, 0.60); /* Mais transparente (vidro mais limpo) */
     backdrop-filter: blur(10px); /* Mantém o desfoque do fundo */
     padding: 90px 30px; /* Mais esticado na vertical (70px) e mais apertado nas laterais (30px) */
     border-radius: 16px; 
