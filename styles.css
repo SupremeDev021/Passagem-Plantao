@@ -1,6 +1,16 @@
-* { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+/* =========================================================
+   1. GERAL E TIPOGRAFIA (SaaS Moderno)
+   ========================================================= */
+* { 
+    box-sizing: border-box; 
+    /* Tipografia mais limpa e moderna de sistemas tech */
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; 
+    -webkit-font-smoothing: antialiased;
+}
 
-/* Background especial para a tela de login */
+/* =========================================================
+   2. TELA DE LOGIN (INTOCADA - Exatamente como você pediu)
+   ========================================================= */
 body.login-bg {
     background: url("fundo.png") no-repeat center center fixed;
     background-size: cover;
@@ -13,7 +23,6 @@ body.login-bg {
     z-index: 1; /* Camada base */
 }
 
-/* Garante que no celular o bloco volte para o centro para não cortar na tela pequena */
 @media (max-width: 768px) {
     body.login-bg {
         justify-content: center;
@@ -21,9 +30,6 @@ body.login-bg {
     }
 }
 
-body.app-bg { background-color: #f4f7f6; margin: 0; }
-
-/* Tela de Login Personalizada (Mais transparente, alongada e fina) */
 #login-container {
     background: rgba(255, 255, 255, 0.60); /* Mais transparente (vidro mais limpo) */
     backdrop-filter: blur(10px); /* Mantém o desfoque do fundo */
@@ -33,130 +39,359 @@ body.app-bg { background-color: #f4f7f6; margin: 0; }
     width: 100%;
     max-width: 330px; /* Menos largo (era 420px) */
     text-align: center;
-    
-    /* CAMADAS: Isso garante que a caixa fique na frente de tudo */
     position: relative; 
     z-index: 10; 
     border: 1px solid rgba(255, 255, 255, 0.4); 
 }
 
-/* Ajuste fino nos títulos do login */
 .logo-area h2 { color: #2c3e50; font-size: 26px; font-weight: 700; margin-bottom: 8px; }
 .logo-area p { color: #7f8c8d; margin-bottom: 35px; font-size: 15px; }
 
+/* =========================================================
+   3. BACKGROUND DO APP E INPUTS
+   ========================================================= */
+body.app-bg { 
+    background-color: #f8fafc; /* Fundo tech muito sutil, quase gelo */
+    margin: 0; 
+    color: #334155;
+}
+
+/* Inputs Premium (Foco com brilho azul, bordas suaves) */
 input[type="email"], input[type="password"], input[type="text"], input[type="date"], input[type="datetime-local"], select, textarea {
-    width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+    width: 100%; 
+    padding: 12px 16px; 
+    margin-bottom: 16px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 10px; 
+    font-size: 14px;
+    background-color: #ffffff;
+    color: #1e293b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    outline: none;
 }
 
-button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-.btn-primary { background: #3498db; color: white; }
-.btn-primary:hover { background: #2980b9; }
-.btn-success { background: #2ecc71; color: white; }
-.btn-danger { background: #e74c3c; color: white; width: auto; }
-
-/* ESTRUTURA DO APLICATIVO COM MENU LATERAL */
-#app-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-
-/* Sidebar Lateral */
-.sidebar {
-    width: 260px;
-    background: #2c3e50;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 0;
-}
-
-.sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 20px; border-bottom: 1px solid #34495e; padding-bottom: 15px; }
-
-.tab-btn {
-    background: transparent; color: #bdc3c7; text-align: left; padding: 15px 20px;
-    border-radius: 0; border-left: 4px solid transparent; width: 100%;
-}
-.tab-btn:hover { background: #34495e; color: white; }
-.tab-btn.active { background: #34495e; color: white; border-left-color: #3498db; }
-
-/* Área de Conteúdo */
-.main-content {
-    flex: 1; padding: 30px; overflow-y: auto;
-}
-
-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px; margin-bottom: 20px; }
-header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
-.badge { background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-left: 10px; }
-
-.hidden { display: none !important; }
-
-/* Cards do Dashboard */
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
-.dash-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #3498db;}
-.dash-card h4 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 14px; }
-.dash-card .number { font-size: 32px; font-weight: bold; color: #2c3e50; }
-
-.admin-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-.sig-canvas { border: 2px dashed #bdc3c7; border-radius: 8px; background: #fafafa; cursor: crosshair; touch-action: none; width: 100%; }
-.mt-20 { margin-top: 20px; }
-
-/* ORGANIZAÇÃO RESPONSIVA DE BOTÕES (PAINEL ADMIN) */
-.button-group {
-    display: flex;
-    flex-direction: column; /* No celular, um embaixo do outro */
-    gap: 15px; /* Espaço perfeito entre os botões */
-    margin-top: 15px;
-}
-
-/* Quando a tela for maior que um celular (ex: Monitor ou Tablet) */
-@media (min-width: 768px) {
-    .button-group {
-        flex-direction: row; /* Ficam lado a lado */
-    }
-    .button-group button {
-        flex: 1; /* Dividem o espaço igualmente, 50% para cada */
-        margin-bottom: 0;
-    }
-}
-
-/* Ajuste fino para os campos de data ficarem bonitos no relatório */
-.date-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    flex-wrap: wrap; /* Evita que a tela quebre no celular */
-}
-.date-group input {
-    margin-bottom: 0;
+input:focus, select:focus, textarea:focus {
+    border-color: #3b82f6; /* Azul vibrante */
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); /* Halo de foco tech */
+    background-color: #fbfdff;
 }
 
 /* =========================================================
-   JANELAS FLUTUANTES (MODAIS)
+   4. BOTÕES (Efeito 3D, Gradientes e Hover Tecnológico)
+   ========================================================= */
+button { 
+    padding: 12px 20px; 
+    border: none; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 14px;
+    width: 100%; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary { 
+    background: linear-gradient(135deg, #3b82f6, #2563eb); /* Azul Tech */
+    color: white; 
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+.btn-primary:hover { 
+    background: linear-gradient(135deg, #60a5fa, #3b82f6); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
+}
+
+.btn-success { 
+    background: linear-gradient(135deg, #10b981, #059669); 
+    color: white; 
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+.btn-success:hover { 
+    background: linear-gradient(135deg, #34d399, #10b981); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-danger { 
+    background: linear-gradient(135deg, #ef4444, #dc2626); 
+    color: white; 
+    width: auto; 
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+}
+.btn-danger:hover { 
+    background: linear-gradient(135deg, #f87171, #ef4444); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-sm { 
+    padding: 8px 14px; 
+    font-size: 13px; 
+    margin-right: 6px; 
+    margin-bottom: 6px; 
+    width: auto;
+    border-radius: 8px;
+}
+
+/* =========================================================
+   5. LAYOUT PRINCIPAL (App Wrapper, Sidebar, Header)
+   ========================================================= */
+#app-wrapper { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+
+/* Sidebar Premium (Dark Slate com Glass sutil) */
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+    z-index: 20;
+}
+
+.sidebar h2 { 
+    text-align: center; 
+    margin-bottom: 30px; 
+    font-size: 20px; 
+    font-weight: 800;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.08); 
+    padding-bottom: 20px; 
+    color: #f8fafc;
+}
+
+.tab-btn {
+    background: transparent; 
+    color: #94a3b8; 
+    text-align: left; 
+    padding: 16px 28px;
+    border-radius: 0; 
+    border-left: 4px solid transparent; 
+    width: 100%;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.tab-btn:hover { 
+    background: rgba(255,255,255,0.04); 
+    color: #f8fafc; 
+    padding-left: 32px; /* Efeito hover de avanço */
+}
+.tab-btn.active { 
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%); 
+    color: #60a5fa; 
+    border-left-color: #3b82f6; 
+    font-weight: 600; 
+}
+
+/* Área de Conteúdo */
+.main-content {
+    flex: 1; 
+    padding: 40px; 
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Header Glassmorphism Flutuante */
+header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(12px);
+    padding: 20px 25px; 
+    margin-bottom: 35px; 
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    border: 1px solid rgba(255,255,255,0.6);
+}
+header h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
+
+/* Badge de Ouro Moderno */
+.badge { 
+    background: linear-gradient(135deg, #f59e0b, #d97706); 
+    color: #fff; 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 12px; 
+    font-weight: 700; 
+    margin-left: 12px; 
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.hidden { display: none !important; }
+
+/* =========================================================
+   6. CARDS DO DASHBOARD E PAINÉIS
+   ========================================================= */
+.dashboard-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 25px; 
+    margin-bottom: 30px; 
+}
+
+/* Card Elevado com Borda Tech */
+.dash-card { 
+    background: #ffffff; 
+    padding: 25px; 
+    border-radius: 16px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04); 
+    text-align: center; 
+    border-top: 4px solid #3b82f6;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.dash-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
+.dash-card h4 { margin: 0 0 15px 0; color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;}
+
+/* Número com Gradiente de Texto (High-end UI) */
+.dash-card .number { 
+    font-size: 38px; 
+    font-weight: 800; 
+    background: linear-gradient(135deg, #0f172a, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Admin Card */
+.admin-card { 
+    background: #ffffff; 
+    padding: 30px; 
+    border-radius: 16px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+    margin-bottom: 25px; 
+    border: 1px solid #f1f5f9;
+}
+
+/* Canvas de Assinatura Melhorado */
+.sig-canvas { 
+    border: 2px dashed #cbd5e1; 
+    border-radius: 12px; 
+    background: #f8fafc; 
+    cursor: crosshair; 
+    touch-action: none; 
+    width: 100%; 
+    transition: border-color 0.3s;
+}
+.sig-canvas:hover { border-color: #94a3b8; background: #ffffff; }
+
+.mt-20 { margin-top: 20px; }
+
+/* =========================================================
+   7. AGRUPAMENTOS E RESPONSIVIDADE (Formulários)
+   ========================================================= */
+.button-group {
+    display: flex;
+    flex-direction: column; 
+    gap: 15px; 
+    margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+    .button-group { flex-direction: row; }
+    .button-group button { flex: 1; margin-bottom: 0; }
+}
+
+.date-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap; 
+}
+.date-group input { margin-bottom: 0; flex: 1; min-width: 150px;}
+
+/* =========================================================
+   8. MODAIS (Janelas Flutuantes com Animação e Glass)
    ========================================================= */
 .modal { 
-    display: none; /* Escondido por padrão */
+    display: none; 
     position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh; 
-    background-color: rgba(0,0,0,0.6); 
+    background-color: rgba(15, 23, 42, 0.65); /* Fundo noturno elegante */
+    backdrop-filter: blur(5px); /* Vidro no fundo */
     align-items: center; justify-content: center; 
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
-.modal.flex { display: flex !important; } /* Classe para forçar a abertura */
+.modal.flex { 
+    display: flex !important; 
+    opacity: 1; 
+    animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .modal-content { 
-    background-color: #fff; padding: 25px; border-radius: 8px; 
+    background-color: #ffffff; 
+    padding: 35px; 
+    border-radius: 20px; 
     width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; 
-    position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative; 
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+    transform: scale(0.95);
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Modal mais largo para a tabela de permissões */
-.modal-content.large { max-width: 800px; }
+@keyframes scaleUp { from { transform: scale(0.95); } to { transform: scale(1); } }
 
+.modal-content.large { max-width: 850px; }
+
+/* Botão de Fechar Modal Estilo Botão de UI */
 .close-modal { 
-    position: absolute; right: 15px; top: 15px; font-size: 28px; 
-    font-weight: bold; cursor: pointer; color: #7f8c8d; line-height: 1;
+    position: absolute; right: 20px; top: 20px; font-size: 24px; 
+    font-weight: bold; cursor: pointer; color: #94a3b8; line-height: 1;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: #f1f5f9; border-radius: 50%; transition: all 0.2s;
 }
-.close-modal:hover { color: #e74c3c; }
+.close-modal:hover { color: #ef4444; background: #fee2e2; transform: rotate(90deg); }
 
-/* Tabelas para o Gerenciamento de Usuários */
-.table-responsive { overflow-x: auto; margin-top: 15px; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-th { background-color: #f4f7f6; color: #2c3e50; }
-.btn-sm { padding: 5px 10px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; width: auto;}
+/* =========================================================
+   9. TABELAS (Aparência de DataGrid Avançado)
+   ========================================================= */
+.table-responsive { 
+    overflow-x: auto; 
+    margin-top: 20px; 
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px #e2e8f0; /* Borda externa inteligente */
+}
+
+table { 
+    width: 100%; 
+    border-collapse: separate; /* Muda de collapse para separate para bordas arredondadas */
+    border-spacing: 0;
+    font-size: 14px; 
+    background: #ffffff;
+}
+
+th, td { 
+    border-bottom: 1px solid #f1f5f9; 
+    padding: 16px; 
+    text-align: left; 
+    color: #475569;
+}
+
+th { 
+    background-color: #f8fafc; 
+    color: #0f172a; 
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* Remove a borda do último item para não quebrar o layout do container */
+tr:last-child td { border-bottom: none; }
+
+/* Efeito de destaque ao passar o mouse na linha da tabela */
+tr:hover td { background-color: #fbfdff; color: #0f172a; }
