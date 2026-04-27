@@ -33,23 +33,24 @@ function abrirAba(idAba) {
         botaoClicado.classList.add('active');
     }
 
-    // AJUSTE CORRIGIDO: Este bloco deve ficar DENTRO da função
+    // AJUSTES ESPECÍFICOS POR ABA
+    if (idAba === 'aba-plantao') {
+        carregarTecnicosSelect();
+    }
+
     if (idAba === 'aba-toner') {
         carregarListaToners();
         carregarListaChamados();
     }
     
-    // GATILHO DA ABA DE OCORRÊNCIAS
     if (idAba === 'aba-ocorrencias') {
         carregarListaOcorrencias();
     }
 
-    // GATILHO DA ABA DE CHAVES
     if (idAba === 'aba-chaves') {
         carregarSelectChaves();
     }
 
-    // GATILHO DA ABA ADMIN (NOVO)
     if (idAba === 'aba-admin') {
         carregarPlantoesAdmin();
     }
@@ -108,6 +109,63 @@ function toggleCondicionalCheckbox(checkboxElement, divId, mostrarQuandoMarcado)
 }
 
 // ==========================================
+// LÓGICA DE MÚLTIPLOS TÉCNICOS NO PLANTÃO
+// ==========================================
+let tecnicosNoPlantao = []; // Array que guarda os selecionados
+
+async function carregarTecnicosSelect() {
+    try {
+        const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
+        if (error) throw error;
+        
+        const select = document.getElementById('select-tecnicos-plantao');
+        if (select) {
+            select.innerHTML = '<option value="">Selecione um colega...</option>' + 
+                               data.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar técnicos:", err); }
+}
+
+function adicionarTecnico() {
+    const select = document.getElementById('select-tecnicos-plantao');
+    const id = select.value;
+    const nome = select.options[select.selectedIndex]?.text;
+
+    if (!id) return alert("Selecione um técnico na lista.");
+    
+    // Impede adicionar o mesmo técnico duas vezes
+    if (tecnicosNoPlantao.find(t => t.id === id)) {
+        return alert("Este colega já foi adicionado ao plantão!");
+    }
+
+    tecnicosNoPlantao.push({ id, nome });
+    atualizarInterfaceTecnicos();
+    select.value = ''; // Reseta o dropdown
+}
+
+function removerTecnico(id) {
+    tecnicosNoPlantao = tecnicosNoPlantao.filter(t => t.id !== id);
+    atualizarInterfaceTecnicos();
+}
+
+function atualizarInterfaceTecnicos() {
+    const container = document.getElementById('lista-tecnicos-plantao');
+    
+    if (tecnicosNoPlantao.length === 0) {
+        container.innerHTML = '<span style="font-size: 12px; color: #94a3b8; text-align: center;">Você está sozinho no plantão?</span>';
+        return;
+    }
+
+    container.innerHTML = tecnicosNoPlantao.map(t => `
+        <div class="tecnico-badge">
+            <span>${t.nome}</span>
+            <button type="button" onclick="removerTecnico('${t.id}')" title="Remover">✕</button>
+        </div>
+    `).join('');
+}
+
+
+// ==========================================
 // ABA 1: SALVAR PLANTÃO
 // ==========================================
 async function salvarPlantao() {
@@ -115,9 +173,10 @@ async function salvarPlantao() {
         // 1. Faz upload da assinatura
         const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
-        // 2. Coleta os dados (Agora usando .checked para os novos checkboxes)
+        // 2. Coleta os dados 
         const dados = {
             usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
+            tecnicos_plantao: tecnicosNoPlantao.map(t => t.nome).join(', '), // Nomes da equipe adicionados
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
             hora_largou: document.getElementById('p_hora_largou').value,
             emails_resp: document.getElementById('p_emails').checked,
@@ -143,8 +202,12 @@ async function salvarPlantao() {
         if (error) throw error;
 
         alert('Plantão registrado com sucesso!');
+        
+        // 4. Limpa tudo para o próximo plantão
         document.getElementById('form-plantao').reset();
         limparCanvas('canvas-plantao');
+        tecnicosNoPlantao = []; // Esvazia o array de colegas
+        atualizarInterfaceTecnicos(); // Limpa a lista visual da tela
 
     } catch (err) {
         console.error(err);
@@ -827,10 +890,13 @@ async function visualizarPlantao(idPlantao) {
         if (error) throw error;
 
         const conteudo = document.getElementById('detalhes-plantao-conteudo');
+        
+        // Incluí a visualização dos Técnicos da Equipe caso existam
         conteudo.innerHTML = `
             <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
                 <strong>Data de Registro:</strong> ${new Date(p.created_at).toLocaleDateString('pt-BR')} às ${new Date(p.created_at).toLocaleTimeString('pt-BR')}<br>
-                <strong>Turno do Técnico:</strong> ${p.hora_assumiu} às ${p.hora_largou}
+                <strong>Turno do Técnico:</strong> ${p.hora_assumiu} às ${p.hora_largou}<br>
+                <strong>Técnicos na Equipe:</strong> ${p.tecnicos_plantao || 'Nenhum / Plantão Sozinho'}
             </div>
             
             <p>📧 <strong>E-mails todos respondidos?</strong> <span style="color: ${p.emails_resp ? 'green' : 'red'}; font-weight: bold;">${p.emails_resp ? 'Sim' : 'Não'}</span> <br> 
