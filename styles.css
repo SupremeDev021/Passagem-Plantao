@@ -275,9 +275,23 @@ header {
 }
 header h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0; letter-spacing: -0.5px;}
 
+/* Alinhamento perfeito do Nome e Badge (Selo) no Header */
+header > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 15px; 
+    flex-wrap: wrap; 
+}
+
 .badge { 
     background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; 
     font-size: 11px; font-weight: 700; margin-left: 10px; 
+}
+
+/* Remove a margem antiga para deixar o 'gap' fazer o alinhamento 100% perfeito */
+header .badge {
+    margin-left: 0;
+    margin-top: 2px;
 }
 
 .hidden { display: none !important; }
