@@ -5,11 +5,11 @@ body.login-bg {
     background: url("fundo.png") no-repeat center center fixed;
     background-size: cover;
     display: flex;
-    justify-content: flex-end; /* Joga o bloco para a DIREITA */
+    justify-content: flex-end; /* Mantém na direita */
     align-items: center;
     height: 100vh;
     margin: 0;
-    padding-right: 8%; /* Espaço de respiro para não grudar na borda da tela */
+    padding-right: 12%; /* Empurra um pouco mais para a esquerda */
     z-index: 1; /* Camada base */
 }
 
@@ -23,21 +23,21 @@ body.login-bg {
 
 body.app-bg { background-color: #f4f7f6; margin: 0; }
 
-/* Tela de Login Maior, à Direita e Personalizada (Glassmorphism) */
+/* Tela de Login Personalizada (Mais transparente, alongada e fina) */
 #login-container {
-    background: rgba(255, 255, 255, 0.95); /* Branco com leve transparência */
-    backdrop-filter: blur(10px); /* Efeito de vidro embaçado atrás do bloco */
-    padding: 50px 40px; /* Aumentamos o espaço interno */
-    border-radius: 16px; /* Bordas mais arredondadas */
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); /* Sombra mais imponente */
+    background: rgba(255, 255, 255, 0.80); /* Mais transparente (vidro mais limpo) */
+    backdrop-filter: blur(10px); /* Mantém o desfoque do fundo */
+    padding: 70px 30px; /* Mais esticado na vertical (70px) e mais apertado nas laterais (30px) */
+    border-radius: 16px; 
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); 
     width: 100%;
-    max-width: 420px; /* Bloco de login maior (era 350px) */
+    max-width: 360px; /* Menos largo (era 420px) */
     text-align: center;
     
     /* CAMADAS: Isso garante que a caixa fique na frente de tudo */
     position: relative; 
     z-index: 10; 
-    border: 1px solid rgba(255, 255, 255, 0.3); /* Borda sutil de vidro */
+    border: 1px solid rgba(255, 255, 255, 0.4); 
 }
 
 /* Ajuste fino nos títulos do login */
