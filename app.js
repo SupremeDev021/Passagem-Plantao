@@ -201,6 +201,11 @@ async function salvarPlantao() {
             motivo_chamados: document.getElementById('p_motivo_chamados').value,
             forms_zerado: document.getElementById('p_forms').checked,
             motivo_forms: document.getElementById('p_motivo_forms').value,
+            
+            // NOVO: FORMS DE TREINAMENTO
+            forms_treinamento: document.getElementById('p_forms_treinamento').checked,
+            motivo_treinamento: document.getElementById('p_motivo_treinamento').value,
+            
             maquinas_func: document.getElementById('p_maquinas').checked,
             motivo_maquinas: document.getElementById('p_motivo_maquinas').value,
             cadeiras_lugar: document.getElementById('p_cadeiras').checked,
@@ -631,7 +636,7 @@ async function carregarListaTreinamentos() {
     } catch (err) { console.error("Erro ao carregar treinamentos:", err); }
 }
 
-// NOVA FUNÇÃO: Abre o Modal para finalizar e assinar
+// Abre o Modal para finalizar e assinar
 async function abrirModalFinalizarTreinamento(id) {
     document.getElementById('ft_treinamento_id').value = id;
     limparCanvas('canvas-finalizar-treinamento');
@@ -649,7 +654,7 @@ async function abrirModalFinalizarTreinamento(id) {
     abrirModal('modal-finalizar-treinamento');
 }
 
-// NOVA FUNÇÃO: Salva a conclusão do Treinamento no BD
+// Salva a conclusão do Treinamento no BD
 async function salvarTreinamentoConcluido() {
     const id = document.getElementById('ft_treinamento_id').value;
     const tecnico = document.getElementById('ft_tecnico').value;
@@ -1136,6 +1141,9 @@ async function visualizarPlantao(idPlantao) {
 
             <p>📝 <strong>MS Forms zerado?</strong> <span style="color: ${p.forms_zerado ? 'green' : 'red'}; font-weight: bold;">${p.forms_zerado ? 'Sim' : 'Não'}</span> <br> 
             <span style="color: #555;">${p.motivo_forms ? `↳ Obs: ${p.motivo_forms}` : ''}</span></p>
+
+            <p>📚 <strong>Forms de Treinamentos zerado?</strong> <span style="color: ${p.forms_treinamento ? 'green' : 'red'}; font-weight: bold;">${p.forms_treinamento ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_treinamento ? `↳ Obs: ${p.motivo_treinamento}` : ''}</span></p>
 
             <p>💻 <strong>Todas as máquinas funcionando?</strong> <span style="color: ${p.maquinas_func ? 'green' : 'red'}; font-weight: bold;">${p.maquinas_func ? 'Sim' : 'Não'}</span> <br> 
             <span style="color: #555;">${p.motivo_maquinas ? `↳ Obs: ${p.motivo_maquinas}` : ''}</span></p>
