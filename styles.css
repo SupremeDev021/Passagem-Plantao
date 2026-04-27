@@ -423,6 +423,53 @@ th {
     cursor: pointer;
 }
 
+/* =========================================================
+   LEGENDA DOS CHECKBOXES (Banner Moderno)
+   ========================================================= */
+.checkbox-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    background: #f8fafc;
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.legend-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* Desenhando os ícones da legenda */
+.legend-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.legend-icon.check {
+    background: #3b82f6; /* Azul Tech */
+    color: white;
+    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+}
+
+.legend-icon.uncheck {
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+}
 /* Remove a borda do último item para não quebrar o layout do container */
 tr:last-child td { border-bottom: none; }
 
