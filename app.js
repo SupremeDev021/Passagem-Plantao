@@ -567,6 +567,7 @@ function carregarMeusDados() {
         document.getElementById('meu_nome').value = usuarioAtual.nome || '';
         document.getElementById('meu_celular').value = usuarioAtual.celular || '';
         document.getElementById('meu_cpf').value = usuarioAtual.cpf || '';
+        document.getElementById('meu_email').value = usuarioAtual.email || '';
     }
 }
 
@@ -574,6 +575,7 @@ async function salvarMeusDados() {
     const nome = document.getElementById('meu_nome').value;
     const celular = document.getElementById('meu_celular').value;
     const cpf = document.getElementById('meu_cpf').value;
+    const email = document.getElementById('meu_email').value
 
     if (!nome) return alert("O nome completo não pode ficar em branco.");
 
@@ -581,7 +583,8 @@ async function salvarMeusDados() {
         const { error } = await supabase.from('profiles').update({
             nome: nome,
             celular: celular,
-            cpf: cpf
+            cpf: cpf,
+            email: email
         }).eq('id', usuarioAtual.id);
 
         if (error) throw error;
@@ -592,6 +595,7 @@ async function salvarMeusDados() {
         usuarioAtual.nome = nome;
         usuarioAtual.celular = celular;
         usuarioAtual.cpf = cpf;
+        usuarioAtual.email = email;
         
         // Atualiza o nome exibido no Header ali no topo da tela
         const userNameHeader = document.getElementById('user-name');
