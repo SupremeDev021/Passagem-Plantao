@@ -622,7 +622,7 @@ async function carregarListaTreinamentos() {
                         <td>${t.tema}</td>
                         <td>${t.predio} - ${t.setor} (${t.andar})</td>
                         <td>
-                            <button class="btn-success btn-sm" onclick="concluirTreinamento('${t.id}')">✔️ Concluído</button>
+                            <button class="btn-success btn-sm" onclick="abrirModalFinalizarTreinamento('${t.id}')">✔️ Concluir</button>
                         </td>
                     </tr>
                 `;
@@ -631,14 +631,50 @@ async function carregarListaTreinamentos() {
     } catch (err) { console.error("Erro ao carregar treinamentos:", err); }
 }
 
-async function concluirTreinamento(id) {
-    if(!confirm("Deseja marcar este treinamento como concluído?")) return;
+// NOVA FUNÇÃO: Abre o Modal para finalizar e assinar
+async function abrirModalFinalizarTreinamento(id) {
+    document.getElementById('ft_treinamento_id').value = id;
+    limparCanvas('canvas-finalizar-treinamento');
+    
+    // Puxa os nomes dos técnicos para o select do modal
     try {
-        const { error } = await supabase.from('treinamentos').update({ status: 'Concluído' }).eq('id', id);
+        const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
+        if (!error) {
+            const sel = document.getElementById('ft_tecnico');
+            sel.innerHTML = '<option value="">Selecione o Técnico...</option>' + 
+                            data.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
+        }
+    } catch (e) { console.error(e); }
+
+    abrirModal('modal-finalizar-treinamento');
+}
+
+// NOVA FUNÇÃO: Salva a conclusão do Treinamento no BD
+async function salvarTreinamentoConcluido() {
+    const id = document.getElementById('ft_treinamento_id').value;
+    const tecnico = document.getElementById('ft_tecnico').value;
+
+    if (!tecnico) return alert("Selecione o técnico responsável.");
+
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-finalizar-treinamento'), 'conclusao_treinamento');
+
+        const { error } = await supabase.from('treinamentos').update({
+            status: 'Concluído',
+            responsavel_conclusao: tecnico,
+            assinatura_url: sigUrl
+        }).eq('id', id);
+
         if (error) throw error;
+
+        alert("Treinamento finalizado com sucesso!");
+        fecharModal('modal-finalizar-treinamento');
         carregarListaTreinamentos();
         carregarResumoDashboard();
-    } catch (err) { alert("Erro ao concluir: " + err.message); }
+
+    } catch (err) {
+        alert("Erro ao finalizar treinamento: " + err.message);
+    }
 }
 
 // ==========================================
