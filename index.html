@@ -112,9 +112,21 @@
                     </div>
 
                     <div class="admin-card">
+                        
+                        <div class="checkbox-legend">
+                            <div class="legend-badge">
+                                <span class="legend-icon check">✓</span>
+                                <span>Caixa Selecionada = <strong>Sim</strong></span>
+                            </div>
+                            <div class="legend-badge">
+                                <span class="legend-icon uncheck"></span>
+                                <span>Caixa Vazia = <strong>Não</strong></span>
+                            </div>
+                        </div>
                         <div class="checkbox-group">
                             <input type="checkbox" id="p_emails" checked onchange="toggleCondicionalCheckbox(this, 'div_m_emails', false)">
                             <label for="p_emails">Todos os e-mails foram respondidos?</label>
+                        </div>
                         </div>
                         <div id="div_m_emails" class="condicional hidden">
                             <label>Quais e quantos são? Motivo de não ter respondido:</label>
