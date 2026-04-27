@@ -76,13 +76,28 @@ window.onclick = function(event) {
     }
 }
 
-// Lógica de Campos Condicionais (Sim/Não)
+// Lógica de Campos Condicionais (Para selects antigos - mantido por segurança)
 function toggleCondicional(selectId, divId, condicaoShow) {
     const valor = document.getElementById(selectId).value;
     const div = document.getElementById(divId);
     const textarea = div.querySelector('textarea');
     
     if (valor === condicaoShow) {
+        div.classList.remove('hidden');
+        textarea.required = true;
+    } else {
+        div.classList.add('hidden');
+        textarea.required = false;
+        textarea.value = ''; // Limpa se o usuário mudar de ideia
+    }
+}
+
+// NOVA FUNÇÃO: Lógica de Campos Condicionais para Checkboxes
+function toggleCondicionalCheckbox(checkboxElement, divId, mostrarQuandoMarcado) {
+    const div = document.getElementById(divId);
+    const textarea = div.querySelector('textarea');
+    
+    if ((mostrarQuandoMarcado && checkboxElement.checked) || (!mostrarQuandoMarcado && !checkboxElement.checked)) {
         div.classList.remove('hidden');
         textarea.required = true;
     } else {
@@ -100,24 +115,24 @@ async function salvarPlantao() {
         // 1. Faz upload da assinatura
         const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
-        // 2. Coleta os dados
+        // 2. Coleta os dados (Agora usando .checked para os novos checkboxes)
         const dados = {
             usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
             hora_assumiu: document.getElementById('p_hora_assumiu').value,
             hora_largou: document.getElementById('p_hora_largou').value,
-            emails_resp: document.getElementById('p_emails').value === 'sim',
+            emails_resp: document.getElementById('p_emails').checked,
             motivo_emails: document.getElementById('p_motivo_emails').value,
-            chamados_pend: document.getElementById('p_chamados').value === 'sim',
+            chamados_pend: document.getElementById('p_chamados').checked,
             motivo_chamados: document.getElementById('p_motivo_chamados').value,
-            forms_zerado: document.getElementById('p_forms').value === 'sim',
+            forms_zerado: document.getElementById('p_forms').checked,
             motivo_forms: document.getElementById('p_motivo_forms').value,
-            maquinas_func: document.getElementById('p_maquinas').value === 'sim',
+            maquinas_func: document.getElementById('p_maquinas').checked,
             motivo_maquinas: document.getElementById('p_motivo_maquinas').value,
-            cadeiras_lugar: document.getElementById('p_cadeiras').value === 'sim',
+            cadeiras_lugar: document.getElementById('p_cadeiras').checked,
             motivo_cadeiras: document.getElementById('p_motivo_cadeiras').value,
-            painel_tv: document.getElementById('p_tv').value === 'sim',
+            painel_tv: document.getElementById('p_tv').checked,
             motivo_tv: document.getElementById('p_motivo_tv').value,
-            ocorrencias: document.getElementById('p_ocorrencias').value === 'sim',
+            ocorrencias: document.getElementById('p_ocorrencias').checked,
             motivo_ocorrencias: document.getElementById('p_motivo_ocorrencias').value,
             assinatura_url: urlAssinatura
         };
@@ -414,8 +429,9 @@ async function salvarTrocaToner() {
 async function salvarAtendimentoChamado() {
     const chamadoId = document.getElementById('ac_chamado_id').value;
     const solucao = document.getElementById('ac_solucao').value;
-    const temObs = document.getElementById('ac_tem_obs').value;
-    const obs = temObs === 'sim' ? document.getElementById('ac_obs_texto').value : '';
+    // Puxando do Checkbox atualizado no HTML
+    const temObs = document.getElementById('ac_tem_obs').checked;
+    const obs = temObs ? document.getElementById('ac_obs_texto').value : '';
     const tecnico = document.getElementById('ac_tecnico').value;
 
     if (!solucao || !tecnico) return alert("Preencha a Solução e o Técnico responsável.");
