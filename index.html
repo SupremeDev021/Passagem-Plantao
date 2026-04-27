@@ -44,7 +44,6 @@
             <header>
                 <div>
                     <h1 id="user-name">Carregando...</h1>
-                    
                     <span id="user-role" class="badge">Operacional</span>
                 </div>
                 <button onclick="fazerLogout()" class="btn-danger">Sair</button>
@@ -101,24 +100,24 @@
 
             <section id="aba-plantao" class="tab-content hidden">
                 <h3>Registro de Plantão</h3>
-                
-                <div style="display: flex; gap: 25px; align-items: flex-start; flex-wrap: wrap;">
+                <form id="form-plantao">
                     
-                    <div style="flex: 2; min-width: 300px;">
-                        <form id="form-plantao">
-                            
-                            <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                                <div class="form-group" style="flex: 1; min-width: 250px;">
-                                    <label>Qual hora assumiu o plantão?</label>
-                                    <input type="datetime-local" id="p_hora_assumiu" required>
-                                </div>
-                                <div class="form-group" style="flex: 1; min-width: 250px;">
-                                    <label>Qual hora está largando o plantão?</label>
-                                    <input type="datetime-local" id="p_hora_largou" required>
-                                </div>
-                            </div>
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label>Qual hora assumiu o plantão?</label>
+                            <input type="datetime-local" id="p_hora_assumiu" required>
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 250px;">
+                            <label>Qual hora está largando o plantão?</label>
+                            <input type="datetime-local" id="p_hora_largou" required>
+                        </div>
+                    </div>
 
-                            <div class="admin-card">
+                    <div style="display: flex; gap: 25px; align-items: flex-start; flex-wrap: wrap;">
+                        
+                        <div style="flex: 2; min-width: 300px;">
+                            
+                            <div class="admin-card" style="margin-bottom: 0;">
                                 
                                 <div class="checkbox-legend">
                                     <div class="legend-badge">
@@ -204,22 +203,22 @@
                             </div>
 
                             <button type="button" class="btn-success mt-20" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
-                        </form>
-                    </div> <div class="admin-card" style="flex: 1; min-width: 250px; position: sticky; top: 0;">
-                        <h4>👥 Técnicos no Plantão</h4>
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Adicione os colegas que trabalharam com você:</p>
-                        
-                        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                            <select id="select-tecnicos-plantao" style="margin-bottom: 0; flex: 1;">
-                                <option value="">Carregando...</option>
-                            </select>
-                            <button type="button" class="btn-primary" style="width: auto; min-width: 45px; padding: 0; font-size: 18px;" onclick="adicionarTecnico()">+</button>
-                        </div>
-                        
-                        <div id="lista-tecnicos-plantao" style="display: flex; flex-direction: column; gap: 8px;">
-                            <span style="font-size: 12px; color: #94a3b8; text-align: center;">Você está sozinho no plantão?</span>
-                        </div>
-                    </div> </div>
+                        </div> <div class="admin-card" style="flex: 1; min-width: 250px; position: sticky; top: 0; margin-bottom: 0;">
+                            <h4>👥 Técnicos no Plantão</h4>
+                            <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Adicione os colegas que trabalharam com você:</p>
+                            
+                            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                                <select id="select-tecnicos-plantao" style="margin-bottom: 0; flex: 1;">
+                                    <option value="">Carregando...</option>
+                                </select>
+                                <button type="button" class="btn-primary" style="width: auto; min-width: 45px; padding: 0; font-size: 18px;" onclick="adicionarTecnico()">+</button>
+                            </div>
+                            
+                            <div id="lista-tecnicos-plantao" style="display: flex; flex-direction: column; gap: 8px;">
+                                <span style="font-size: 12px; color: #94a3b8; text-align: center;">Você está sozinho no plantão?</span>
+                            </div>
+                        </div> </div>
+                </form>
             </section>
 
             <section id="aba-chaves" class="tab-content hidden">
@@ -264,7 +263,7 @@
                             
                             <label class="mt-10">Responsável pela Devolução:</label>
                             <input type="text" id="responsavel-devolucao" placeholder="Nome de quem está devolvendo" required>
-
+                            
                             <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Foto da Chave / Local:</label>
                             <input type="file" id="foto-devolucao" accept="image/*" required style="padding: 6px; background: #ffffff;">
                             
