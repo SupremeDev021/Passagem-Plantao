@@ -567,3 +567,87 @@ tr:hover td { background-color: #fbfdff; color: #0f172a; }
     box-shadow: none;
     color: #dc2626;
 }
+
+/* =========================================================
+   12. RESPONSIVIDADE (MOBILE FIRST) - AJUSTE CELULAR
+   ========================================================= */
+@media (max-width: 768px) {
+    /* 1. Ajuste do Wrapper e Sidebar */
+    #app-wrapper {
+        flex-direction: column; /* Sidebar vai pra cima */
+        overflow-y: auto; /* Permite rolar a página toda */
+        height: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 15px 0 0 0;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar h2 { font-size: 16px; margin-bottom: 15px; }
+    .sidebar h2::after { width: 20%; margin: 8px auto 0; }
+
+    /* 2. Menu Horizontal e Rolável no Celular */
+    .tabs {
+        flex-direction: row; /* Botões um do lado do outro */
+        overflow-x: auto; /* Scroll horizontal se tiver muitos botões */
+        padding: 0 10px 15px 10px;
+        gap: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+        width: auto; /* Botão não ocupa mais 100% */
+        white-space: nowrap; /* Não quebra o texto do botão */
+        padding: 8px 15px;
+        font-size: 12px;
+        flex-shrink: 0; /* Impede os botões de esmagarem */
+    }
+
+    .version-tag { display: none; } /* Esconde versão no mobile para economizar espaço */
+
+    /* 3. Ajuste do Conteúdo Principal */
+    .main-content {
+        padding: 20px 15px;
+        width: 100%;
+    }
+
+    header { flex-direction: column; gap: 15px; align-items: flex-start; }
+    header button { width: 100%; } /* Botão Sair grande no celular */
+
+    /* 4. Formulários e Inputs */
+    .form-row { flex-direction: column !important; gap: 10px !important; }
+    .form-group, input, select, textarea { 
+        max-width: 100% !important; /* Força ocupar a largura toda do celular */
+        width: 100% !important; 
+    }
+
+    /* 5. Colunas de Plantão (Equipe) */
+    #aba-plantao > form > div[style*="display: flex"] {
+        flex-direction: column !important;
+    }
+
+    /* 6. Assinaturas (Canvas) */
+    .sig-canvas {
+        height: 150px; /* Reduz altura para caber na tela */
+    }
+
+    /* 7. Modais */
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .modal-content.large {
+        width: 95%;
+    }
+
+    /* 8. Tabelas - Scroll mais suave */
+    .table-responsive {
+        border: none;
+        box-shadow: none;
+    }
+}
