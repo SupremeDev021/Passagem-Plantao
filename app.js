@@ -3,12 +3,20 @@
 // ==========================================
 // Espera a página inteira carregar antes de puxar os dados
 document.addEventListener("DOMContentLoaded", () => {
-    // Carrega o dashboard automaticamente após 1 segundo
+    // Carrega o dashboard automaticamente após 1.5 segundos
     setTimeout(() => {
         if(typeof carregarResumoDashboard === 'function') {
             carregarResumoDashboard();
         }
-    }, 1000); 
+        
+        // Verifica se o usuário é Operacional para exibir a aba Configurações
+        if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+            if (usuarioAtual.role !== 'admin') {
+                const btnConfig = document.getElementById('btn-config');
+                if (btnConfig) btnConfig.classList.remove('hidden');
+            }
+        }
+    }, 1500); 
 });
 
 // ==========================================
@@ -49,6 +57,10 @@ function abrirAba(idAba) {
 
     if (idAba === 'aba-chaves') {
         carregarSelectChaves();
+    }
+
+    if (idAba === 'aba-config') {
+        carregarMeusDados();
     }
 
     if (idAba === 'aba-admin') {
@@ -544,6 +556,75 @@ async function salvarAtendimentoChamado() {
         carregarListaChamados(); 
 
     } catch (e) { alert("Erro ao salvar atendimento: " + e.message); }
+}
+
+// ==========================================
+// ABA CONFIGURAÇÕES (SOMENTE OPERACIONAL)
+// ==========================================
+
+function carregarMeusDados() {
+    if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+        document.getElementById('meu_nome').value = usuarioAtual.nome || '';
+        document.getElementById('meu_celular').value = usuarioAtual.celular || '';
+        document.getElementById('meu_cpf').value = usuarioAtual.cpf || '';
+    }
+}
+
+async function salvarMeusDados() {
+    const nome = document.getElementById('meu_nome').value;
+    const celular = document.getElementById('meu_celular').value;
+    const cpf = document.getElementById('meu_cpf').value;
+
+    if (!nome) return alert("O nome completo não pode ficar em branco.");
+
+    try {
+        const { error } = await supabase.from('profiles').update({
+            nome: nome,
+            celular: celular,
+            cpf: cpf
+        }).eq('id', usuarioAtual.id);
+
+        if (error) throw error;
+
+        alert("Seus dados foram atualizados com sucesso!");
+        
+        // Atualiza a memória local
+        usuarioAtual.nome = nome;
+        usuarioAtual.celular = celular;
+        usuarioAtual.cpf = cpf;
+        
+        // Atualiza o nome exibido no Header ali no topo da tela
+        const userNameHeader = document.getElementById('user-name');
+        if (userNameHeader) {
+            // Pega só o primeiro nome para ficar elegante no cabeçalho
+            userNameHeader.innerText = `Olá, ${nome.split(' ')[0]}`; 
+        }
+        
+    } catch (err) {
+        alert("Erro ao salvar seus dados: " + err.message);
+    }
+}
+
+async function salvarMinhaSenha() {
+    const senha1 = document.getElementById('minha_nova_senha').value;
+    const senha2 = document.getElementById('minha_nova_senha_conf').value;
+
+    if (!senha1 || !senha2) return alert("Por favor, preencha os dois campos de senha.");
+    if (senha1 !== senha2) return alert("Atenção: As senhas digitadas não são iguais!");
+    if (senha1.length < 6) return alert("A nova senha deve ter pelo menos 6 caracteres.");
+
+    try {
+        // A função de mudar a própria senha usa o modulo auth do supabase
+        const { error } = await supabase.auth.updateUser({ password: senha1 });
+        
+        if (error) throw error;
+
+        alert("Senha alterada com segurança! Na próxima vez, use a nova senha.");
+        document.getElementById('form-minha-senha').reset();
+        
+    } catch (err) {
+        alert("Erro ao alterar a senha: " + err.message);
+    }
 }
 
 // ==========================================
