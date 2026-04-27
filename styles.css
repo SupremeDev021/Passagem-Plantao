@@ -265,6 +265,21 @@ header h1 { font-size: 24px; color: #2c3e50; margin: 0; }
 
 .hidden { display: none !important; }
 
+/* Estilo da Tag de Versão no rodapé da Sidebar */
+.version-tag {
+    margin-top: auto; /* Mágica que joga o texto para o final da sidebar */
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5); /* Branco bem sutil para não distrair */
+    letter-spacing: 1.5px;
+    padding: 20px 0;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Linha divisória fina */
+    position: relative;
+    z-index: 1;
+}
+
 /* =========================================================
    6. CARDS DO DASHBOARD E PAINÉIS
    ========================================================= */
