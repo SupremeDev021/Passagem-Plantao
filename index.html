@@ -101,105 +101,125 @@
 
             <section id="aba-plantao" class="tab-content hidden">
                 <h3>Registro de Plantão</h3>
-                <form id="form-plantao">
+                
+                <div style="display: flex; gap: 25px; align-items: flex-start; flex-wrap: wrap;">
                     
-                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                        <div class="form-group" style="flex: 1; min-width: 250px;">
-                            <label>Qual hora assumiu o plantão?</label>
-                            <input type="datetime-local" id="p_hora_assumiu" required>
-                        </div>
-                        <div class="form-group" style="flex: 1; min-width: 250px;">
-                            <label>Qual hora está largando o plantão?</label>
-                            <input type="datetime-local" id="p_hora_largou" required>
-                        </div>
-                    </div>
-
-                    <div class="admin-card">
-                        
-                        <div class="checkbox-legend">
-                            <div class="legend-badge">
-                                <span class="legend-icon check">✓</span>
-                                <span>Caixa Selecionada = <strong>Sim</strong></span>
+                    <div style="flex: 2; min-width: 300px;">
+                        <form id="form-plantao">
+                            
+                            <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <div class="form-group" style="flex: 1; min-width: 250px;">
+                                    <label>Qual hora assumiu o plantão?</label>
+                                    <input type="datetime-local" id="p_hora_assumiu" required>
+                                </div>
+                                <div class="form-group" style="flex: 1; min-width: 250px;">
+                                    <label>Qual hora está largando o plantão?</label>
+                                    <input type="datetime-local" id="p_hora_largou" required>
+                                </div>
                             </div>
-                            <div class="legend-badge">
-                                <span class="legend-icon uncheck"></span>
-                                <span>Caixa Vazia = <strong>Não</strong></span>
+
+                            <div class="admin-card">
+                                
+                                <div class="checkbox-legend">
+                                    <div class="legend-badge">
+                                        <span class="legend-icon check">✓</span>
+                                        <span>Caixa Selecionada = <strong>Sim</strong></span>
+                                    </div>
+                                    <div class="legend-badge">
+                                        <span class="legend-icon uncheck"></span>
+                                        <span>Caixa Vazia = <strong>Não</strong></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="p_emails" checked onchange="toggleCondicionalCheckbox(this, 'div_m_emails', false)">
+                                    <label for="p_emails">Todos os e-mails foram respondidos?</label>
+                                </div>
+                                <div id="div_m_emails" class="condicional hidden">
+                                    <label>Quais e quantos são? Motivo de não ter respondido:</label>
+                                    <textarea id="p_motivo_emails"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_chamados" onchange="toggleCondicionalCheckbox(this, 'div_m_chamados', true)">
+                                    <label for="p_chamados">Ficou algum chamado pendente?</label>
+                                </div>
+                                <div id="div_m_chamados" class="condicional hidden">
+                                    <label>Quais e quantos são? Motivo da pendência:</label>
+                                    <textarea id="p_motivo_chamados"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_forms" checked onchange="toggleCondicionalCheckbox(this, 'div_m_forms', false)">
+                                    <label for="p_forms">Forms de cadastro está zerado?</label>
+                                </div>
+                                <div id="div_m_forms" class="condicional hidden">
+                                    <label>Quais e quantos são? Motivo de não ter zerado:</label>
+                                    <textarea id="p_motivo_forms"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_maquinas" checked onchange="toggleCondicionalCheckbox(this, 'div_m_maquinas', false)">
+                                    <label for="p_maquinas">Todas as máquinas do setor T.I funcionando?</label>
+                                </div>
+                                <div id="div_m_maquinas" class="condicional hidden">
+                                    <label>Motivo de não estarem funcionando:</label>
+                                    <textarea id="p_motivo_maquinas"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_cadeiras" checked onchange="toggleCondicionalCheckbox(this, 'div_m_cadeiras', false)">
+                                    <label for="p_cadeiras">Todas as cadeiras do setor no lugar?</label>
+                                </div>
+                                <div id="div_m_cadeiras" class="condicional hidden">
+                                    <label>Motivo de não estarem no lugar:</label>
+                                    <textarea id="p_motivo_cadeiras"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_tv" checked onchange="toggleCondicionalCheckbox(this, 'div_m_tv', false)">
+                                    <label for="p_tv">Painel de chamados aberto na TV?</label>
+                                </div>
+                                <div id="div_m_tv" class="condicional hidden">
+                                    <label>Motivo de não estar aberto na TV:</label>
+                                    <textarea id="p_motivo_tv"></textarea>
+                                </div>
+
+                                <div class="checkbox-group mt-10">
+                                    <input type="checkbox" id="p_ocorrencias" onchange="toggleCondicionalCheckbox(this, 'div_m_ocorrencias', true)">
+                                    <label for="p_ocorrencias">Alguma ocorrência extra durante o plantão?</label>
+                                </div>
+                                <div id="div_m_ocorrencias" class="condicional hidden">
+                                    <label>Quais foram as ocorrências?</label>
+                                    <textarea id="p_motivo_ocorrencias"></textarea>
+                                </div>
+                            </div> 
+
+                            <div class="signature-section admin-card mt-20">
+                                <label>Assinatura Digital (Obrigatória):</label>
+                                <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
+                                <div class="sig-buttons mt-10">
+                                    <button type="button" class="btn-danger btn-sm" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
+                                </div>
                             </div>
+
+                            <button type="button" class="btn-success mt-20" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
+                        </form>
+                    </div> <div class="admin-card" style="flex: 1; min-width: 250px; position: sticky; top: 0;">
+                        <h4>👥 Técnicos no Plantão</h4>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Adicione os colegas que trabalharam com você:</p>
+                        
+                        <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                            <select id="select-tecnicos-plantao" style="margin-bottom: 0; flex: 1;">
+                                <option value="">Carregando...</option>
+                            </select>
+                            <button type="button" class="btn-primary" style="width: auto; min-width: 45px; padding: 0; font-size: 18px;" onclick="adicionarTecnico()">+</button>
                         </div>
                         
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="p_emails" checked onchange="toggleCondicionalCheckbox(this, 'div_m_emails', false)">
-                            <label for="p_emails">Todos os e-mails foram respondidos?</label>
+                        <div id="lista-tecnicos-plantao" style="display: flex; flex-direction: column; gap: 8px;">
+                            <span style="font-size: 12px; color: #94a3b8; text-align: center;">Você está sozinho no plantão?</span>
                         </div>
-                        <div id="div_m_emails" class="condicional hidden">
-                            <label>Quais e quantos são? Motivo de não ter respondido:</label>
-                            <textarea id="p_motivo_emails"></textarea>
-                        </div>
-
-                        <div class="checkbox-group mt-10">
-                            <input type="checkbox" id="p_chamados" onchange="toggleCondicionalCheckbox(this, 'div_m_chamados', true)">
-                            <label for="p_chamados">Ficou algum chamado pendente?</label>
-                        </div>
-                        <div id="div_m_chamados" class="condicional hidden">
-                            <label>Quais e quantos são? Motivo da pendência:</label>
-                            <textarea id="p_motivo_chamados"></textarea>
-                        </div>
-
-                        <div class="checkbox-group mt-10">
-                            <input type="checkbox" id="p_forms" checked onchange="toggleCondicionalCheckbox(this, 'div_m_forms', false)">
-                            <label for="p_forms">Forms de cadastro está zerado?</label>
-                        </div>
-                        <div id="div_m_forms" class="condicional hidden">
-                            <label>Quais e quantos são? Motivo de não ter zerado:</label>
-                            <textarea id="p_motivo_forms"></textarea>
-                        </div>
-
-                        <div class="checkbox-group mt-10">
-                            <input type="checkbox" id="p_maquinas" checked onchange="toggleCondicionalCheckbox(this, 'div_m_maquinas', false)">
-                            <label for="p_maquinas">Todas as máquinas do setor T.I funcionando?</label>
-                        </div>
-                        <div id="div_m_maquinas" class="condicional hidden">
-                            <label>Motivo de não estarem funcionando:</label>
-                            <textarea id="p_motivo_maquinas"></textarea>
-                        </div>
-
-                        <div class="checkbox-group mt-10">
-                            <input type="checkbox" id="p_cadeiras" checked onchange="toggleCondicionalCheckbox(this, 'div_m_cadeiras', false)">
-                            <label for="p_cadeiras">Todas as cadeiras do setor no lugar?</label>
-                        </div>
-                        <div id="div_m_cadeiras" class="condicional hidden">
-                            <label>Motivo de não estarem no lugar:</label>
-                            <textarea id="p_motivo_cadeiras"></textarea>
-                        </div>
-
-                        <div class="checkbox-group mt-10">
-                            <input type="checkbox" id="p_tv" checked onchange="toggleCondicionalCheckbox(this, 'div_m_tv', false)">
-                            <label for="p_tv">Painel de chamados aberto na TV?</label>
-                        </div>
-                        <div id="div_m_tv" class="condicional hidden">
-                            <label>Motivo de não estar aberto na TV:</label>
-                            <textarea id="p_motivo_tv"></textarea>
-                        </div>
-
-                        <div class="checkbox-group mt-10">
-                            <input type="checkbox" id="p_ocorrencias" onchange="toggleCondicionalCheckbox(this, 'div_m_ocorrencias', true)">
-                            <label for="p_ocorrencias">Alguma ocorrência extra durante o plantão?</label>
-                        </div>
-                        <div id="div_m_ocorrencias" class="condicional hidden">
-                            <label>Quais foram as ocorrências?</label>
-                            <textarea id="p_motivo_ocorrencias"></textarea>
-                        </div>
-
-                    </div> <div class="signature-section admin-card mt-20">
-                        <label>Assinatura Digital (Obrigatória):</label>
-                        <canvas id="canvas-plantao" class="sig-canvas" width="400" height="200"></canvas>
-                        <div class="sig-buttons mt-10">
-                            <button type="button" class="btn-danger btn-sm" onclick="limparCanvas('canvas-plantao')">Limpar Assinatura</button>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn-success mt-20" onclick="salvarPlantao()">Salvar Plantão e Assinar</button>
-                </form>
+                    </div> </div>
             </section>
 
             <section id="aba-chaves" class="tab-content hidden">
