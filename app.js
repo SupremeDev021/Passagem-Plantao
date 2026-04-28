@@ -390,13 +390,121 @@ async function carregarListaOcorrencias() {
                         <td>${o.responsavel_abertura}</td>
                         <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${o.status}</span></td>
                         <td>
-                            ${o.status !== 'Solucionada' ? `<button class="btn-success btn-sm" onclick="abrirModalFinalizarOcorrencia('${o.id}')">Marcar como Solucionada</button>` : '<em>Finalizada</em>'}
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <button class="btn-primary btn-sm" style="background: #3498db;" onclick="abrirModalVerOcorrencia('${o.id}')">👁️ Ver</button>
+                                ${o.status !== 'Solucionada' ? `
+                                    <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarOcorrencia('${o.id}')">✏️ Editar</button>
+                                    <button class="btn-success btn-sm" onclick="abrirModalFinalizarOcorrencia('${o.id}')">✔️ Solucionar</button>
+                                    <button class="btn-danger btn-sm" onclick="cancelarOcorrencia('${o.id}')">❌ Cancelar</button>
+                                ` : '<em>Finalizada</em>'}
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
     } catch (err) { console.error("Erro ao carregar ocorrências:", err.message); }
+}
+
+async function abrirModalVerOcorrencia(id) {
+    try {
+        const { data: o, error } = await supabase.from('ocorrencias').select('*').eq('id', id).single();
+        if (error) throw error;
+
+        const conteudo = document.getElementById('detalhes-ocorrencia-conteudo');
+        const prazoFormatado = o.prazo ? o.prazo.split('-').reverse().join('/') : '-';
+        const dataAbertura = new Date(o.created_at).toLocaleString('pt-BR');
+
+        conteudo.innerHTML = `
+            <p><strong>🚨 Ocorrência:</strong> ${o.descricao}</p>
+            <p><strong>💡 Solução Proposta:</strong> ${o.solucao_proposta}</p>
+            <p><strong>📅 Prazo Máximo:</strong> ${prazoFormatado}</p>
+            <p><strong>👤 Resp. Abertura:</strong> ${o.responsavel_abertura}</p>
+            <p><strong>🕒 Data Abertura:</strong> ${dataAbertura}</p>
+            <p><strong>📝 Observação:</strong> ${o.observacao || 'Nenhuma observação registrada.'}</p>
+            <p><strong>📌 Status:</strong> ${o.status}</p>
+            
+            ${o.status === 'Solucionada' ? `
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                <p><strong>✅ Solução Aplicada:</strong> ${o.solucao_aplicada}</p>
+                <p><strong>🛠️ Quem Solucionou:</strong> ${o.quem_solucionou}</p>
+                <p><strong>👀 Quem Acompanhou:</strong> ${o.quem_acompanhou}</p>
+                <p><strong>🏁 Data Finalização:</strong> ${new Date(o.data_finalizacao).toLocaleString('pt-BR')}</p>
+                <div style="margin-top: 15px;">
+                    <strong>✍️ Assinatura do Fechamento:</strong><br>
+                    <img src="${o.assinatura_fechamento_url}" style="max-width: 250px; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 5px;">
+                </div>
+            ` : ''}
+        `;
+
+        abrirModal('modal-ver-ocorrencia');
+    } catch (err) {
+        alert("Erro ao buscar detalhes da ocorrência: " + err.message);
+    }
+}
+
+async function abrirModalEditarOcorrencia(id) {
+    try {
+        const { data: o, error } = await supabase.from('ocorrencias').select('*').eq('id', id).single();
+        if (error) throw error;
+
+        document.getElementById('edit_o_id').value = o.id;
+        document.getElementById('edit_o_descricao').value = o.descricao;
+        document.getElementById('edit_o_proposta').value = o.solucao_proposta;
+        document.getElementById('edit_o_prazo').value = o.prazo;
+        document.getElementById('edit_o_responsavel').value = o.responsavel_abertura;
+        document.getElementById('edit_o_observacao').value = o.observacao || '';
+
+        abrirModal('modal-editar-ocorrencia');
+    } catch (err) {
+        alert("Erro ao carregar dados para edição: " + err.message);
+    }
+}
+
+async function salvarEdicaoOcorrencia() {
+    const id = document.getElementById('edit_o_id').value;
+    const descricao = document.getElementById('edit_o_descricao').value;
+    const proposta = document.getElementById('edit_o_proposta').value;
+    const prazo = document.getElementById('edit_o_prazo').value;
+    const responsavel = document.getElementById('edit_o_responsavel').value;
+    const observacao = document.getElementById('edit_o_observacao').value;
+
+    if (!descricao || !proposta || !prazo || !responsavel) {
+        return alert("Preencha todos os campos obrigatórios.");
+    }
+
+    try {
+        const { error } = await supabase.from('ocorrencias').update({
+            descricao: descricao,
+            solucao_proposta: proposta,
+            prazo: prazo,
+            responsavel_abertura: responsavel,
+            observacao: observacao
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        alert("Ocorrência atualizada com sucesso!");
+        fecharModal('modal-editar-ocorrencia');
+        carregarListaOcorrencias();
+    } catch (err) {
+        alert("Erro ao salvar edição: " + err.message);
+    }
+}
+
+async function cancelarOcorrencia(id) {
+    if (!confirm("Tem certeza que deseja excluir esta ocorrência permanentemente da base?")) return;
+
+    try {
+        const { error } = await supabase.from('ocorrencias').delete().eq('id', id);
+        if (error) throw error;
+
+        alert("Ocorrência removida com sucesso!");
+        carregarListaOcorrencias();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+    } catch (err) {
+        alert("Erro ao remover ocorrência: " + err.message);
+    }
 }
 
 function abrirModalFinalizarOcorrencia(id) {
