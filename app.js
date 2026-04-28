@@ -600,7 +600,7 @@ async function salvarTreinamento() {
         alert("Treinamento agendado com sucesso!");
         document.getElementById('form-novo-treinamento').reset();
         carregarListaTreinamentos();
-        carregarResumoDashboard(); 
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard(); 
 
     } catch (err) {
         alert("Erro ao agendar treinamento: " + err.message);
@@ -675,7 +675,7 @@ async function salvarTreinamentoConcluido() {
         alert("Treinamento finalizado com sucesso!");
         fecharModal('modal-finalizar-treinamento');
         carregarListaTreinamentos();
-        carregarResumoDashboard();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
 
     } catch (err) {
         alert("Erro ao finalizar treinamento: " + err.message);
@@ -1151,7 +1151,7 @@ async function visualizarPlantao(idPlantao) {
             <p>🪑 <strong>Cadeiras nos lugares?</strong> <span style="color: ${p.cadeiras_lugar ? 'green' : 'red'}; font-weight: bold;">${p.cadeiras_lugar ? 'Sim' : 'Não'}</span> <br> 
             <span style="color: #555;">${p.motivo_cadeiras ? `↳ Obs: ${p.motivo_cadeiras}` : ''}</span></p>
 
-            <p>📺 <strong>Painel de TV em operação?</strong> <span style="color: ${p.painel_tv ? 'green' : 'red'}; font-weight: bold;">${p.painel_tv ? 'Sim' : 'Não'}</span> <br> 
+            <p>📺 <strong>Painel de TV em operation?</strong> <span style="color: ${p.painel_tv ? 'green' : 'red'}; font-weight: bold;">${p.painel_tv ? 'Sim' : 'Não'}</span> <br> 
             <span style="color: #555;">${p.motivo_tv ? `↳ Obs: ${p.motivo_tv}` : ''}</span></p>
 
             <p>⚠️ <strong>Houve ocorrências no plantão?</strong> <span style="color: ${p.ocorrencias ? 'red' : 'green'}; font-weight: bold;">${p.ocorrencias ? 'Sim' : 'Não'}</span> <br> 
