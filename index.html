@@ -759,6 +759,42 @@
         </div>
     </div>
 
+    <div id="modal-ver-ocorrencia" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-ver-ocorrencia')">&times;</span>
+            <h3 style="margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">🔍 Detalhes da Ocorrência</h3>
+            <div id="detalhes-ocorrencia-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;"></div>
+        </div>
+    </div>
+
+    <div id="modal-editar-ocorrencia" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-editar-ocorrencia')">&times;</span>
+            <h3>Editar Ocorrência</h3>
+            <form id="form-editar-ocorrencia">
+                <input type="hidden" id="edit_o_id">
+                
+                <input type="text" id="edit_o_descricao" placeholder="Qual a ocorrência?" required>
+                <input type="text" id="edit_o_proposta" placeholder="Solução proposta?" required>
+                
+                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 250px;">
+                        <label>Prazo para solução:</label>
+                        <input type="date" id="edit_o_prazo" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 250px;">
+                        <label>Responsável por acompanhar:</label>
+                        <input type="text" id="edit_o_responsavel" placeholder="Nome do Técnico" required>
+                    </div>
+                </div>
+
+                <textarea id="edit_o_observacao" placeholder="Alguma observação? (Opcional)"></textarea>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarEdicaoOcorrencia()">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+    
     <script src="auth.js"></script>
     <script src="signature.js"></script>
     <script src="app.js"></script>
