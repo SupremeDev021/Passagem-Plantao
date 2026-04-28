@@ -382,6 +382,7 @@ async function carregarListaOcorrencias() {
                 let corStatus = '#e74c3c'; 
                 if (o.status === 'Solucionada') corStatus = '#2ecc71'; 
                 else if (o.status === 'Em andamento') corStatus = '#f39c12'; 
+                else if (o.status === 'Cancelada') corStatus = '#7f8c8d';
 
                 return `
                     <tr>
@@ -392,11 +393,11 @@ async function carregarListaOcorrencias() {
                         <td>
                             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                                 <button class="btn-primary btn-sm" style="background: #3498db;" onclick="abrirModalVerOcorrencia('${o.id}')">👁️ Ver</button>
-                                ${o.status !== 'Solucionada' ? `
+                                ${o.status !== 'Solucionada' && o.status !== 'Cancelada' ? `
                                     <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarOcorrencia('${o.id}')">✏️ Editar</button>
                                     <button class="btn-success btn-sm" onclick="abrirModalFinalizarOcorrencia('${o.id}')">✔️ Solucionar</button>
                                     <button class="btn-danger btn-sm" onclick="cancelarOcorrencia('${o.id}')">❌ Cancelar</button>
-                                ` : '<em>Finalizada</em>'}
+                                ` : ''}
                             </div>
                         </td>
                     </tr>
@@ -424,6 +425,11 @@ async function abrirModalVerOcorrencia(id) {
             <p><strong>📝 Observação:</strong> ${o.observacao || 'Nenhuma observação registrada.'}</p>
             <p><strong>📌 Status:</strong> ${o.status}</p>
             
+            ${o.status === 'Cancelada' && o.motivo_cancelamento ? `
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                <p style="color: #c0392b;"><strong>❌ Motivo do Cancelamento:</strong> ${o.motivo_cancelamento}</p>
+            ` : ''}
+
             ${o.status === 'Solucionada' ? `
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
                 <p><strong>✅ Solução Aplicada:</strong> ${o.solucao_aplicada}</p>
@@ -492,18 +498,31 @@ async function salvarEdicaoOcorrencia() {
     }
 }
 
+// 🟢 ATUALIZADO: Agora pede o motivo e muda o status
 async function cancelarOcorrencia(id) {
-    if (!confirm("Tem certeza que deseja excluir esta ocorrência permanentemente da base?")) return;
+    const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento desta ocorrência:");
+    
+    // Se o usuário clicar em "Cancelar" no prompt, a variável vem nula e abortamos a operação
+    if (motivo === null) return; 
+    
+    // Se o usuário der OK mas deixar em branco, barramos
+    if (motivo.trim() === "") {
+        return alert("O motivo é obrigatório para cancelar uma ocorrência!");
+    }
 
     try {
-        const { error } = await supabase.from('ocorrencias').delete().eq('id', id);
+        const { error } = await supabase.from('ocorrencias').update({
+            status: 'Cancelada',
+            motivo_cancelamento: motivo
+        }).eq('id', id);
+        
         if (error) throw error;
 
-        alert("Ocorrência removida com sucesso!");
+        alert("Ocorrência cancelada com sucesso!");
         carregarListaOcorrencias();
         if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
     } catch (err) {
-        alert("Erro ao remover ocorrência: " + err.message);
+        alert("Erro ao cancelar ocorrência: " + err.message);
     }
 }
 
@@ -715,12 +734,12 @@ async function salvarTreinamento() {
     }
 }
 
+// 🟢 ATUALIZADO: Mostra as ações e o status Cancelado/Concluído
 async function carregarListaTreinamentos() {
     try {
         const { data, error } = await supabase.from('treinamentos')
             .select('*')
-            .eq('status', 'Agendado')
-            .order('data_hora', { ascending: true }); 
+            .order('data_hora', { ascending: false }); // Lista do mais novo para o mais velho
 
         if (error) throw error;
 
@@ -728,6 +747,7 @@ async function carregarListaTreinamentos() {
         if (tbody) {
             tbody.innerHTML = data.length > 0 ? data.map(t => {
                 const dataFormatada = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
+                
                 return `
                     <tr>
                         <td><strong>${dataFormatada}</strong></td>
@@ -735,13 +755,102 @@ async function carregarListaTreinamentos() {
                         <td>${t.tema}</td>
                         <td>${t.predio} - ${t.setor} (${t.andar})</td>
                         <td>
-                            <button class="btn-success btn-sm" onclick="abrirModalFinalizarTreinamento('${t.id}')">✔️ Concluir</button>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                ${t.status === 'Agendado' ? `
+                                    <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarTreinamento('${t.id}')">✏️ Editar</button>
+                                    <button class="btn-success btn-sm" onclick="abrirModalFinalizarTreinamento('${t.id}')">✔️ Concluir</button>
+                                    <button class="btn-danger btn-sm" onclick="cancelarTreinamento('${t.id}')">❌ Cancelar</button>
+                                ` : `<em style="font-size:12px; color:${t.status === 'Concluído' ? '#2ecc71' : '#e74c3c'}; font-weight: bold;">${t.status}</em>
+                                     ${t.status === 'Cancelado' && t.motivo_cancelamento ? `<br><small style="color:#7f8c8d;">Motivo: ${t.motivo_cancelamento}</small>` : ''}
+                                `}
+                            </div>
                         </td>
                     </tr>
                 `;
-            }).join('') : '<tr><td colspan="5" style="text-align: center;">Nenhum treinamento agendado.</td></tr>';
+            }).join('') : '<tr><td colspan="5" style="text-align: center;">Nenhum treinamento registrado.</td></tr>';
         }
     } catch (err) { console.error("Erro ao carregar treinamentos:", err); }
+}
+
+// 🟢 NOVO: Abre modal para Editar Treinamento
+async function abrirModalEditarTreinamento(id) {
+    try {
+        const { data: t, error } = await supabase.from('treinamentos').select('*').eq('id', id).single();
+        if (error) throw error;
+
+        document.getElementById('edit_tr_id').value = t.id;
+        document.getElementById('edit_tr_colaborador').value = t.colaborador;
+        document.getElementById('edit_tr_telefone').value = t.telefone;
+        document.getElementById('edit_tr_tema').value = t.tema;
+        document.getElementById('edit_tr_predio').value = t.predio;
+        document.getElementById('edit_tr_setor').value = t.setor;
+        document.getElementById('edit_tr_andar').value = t.andar;
+        document.getElementById('edit_tr_data_hora').value = t.data_hora;
+
+        abrirModal('modal-editar-treinamento');
+    } catch (err) {
+        alert("Erro ao carregar dados do treinamento: " + err.message);
+    }
+}
+
+// 🟢 NOVO: Salva a Edição do Treinamento
+async function salvarEdicaoTreinamento() {
+    const id = document.getElementById('edit_tr_id').value;
+    const colaborador = document.getElementById('edit_tr_colaborador').value;
+    const telefone = document.getElementById('edit_tr_telefone').value;
+    const tema = document.getElementById('edit_tr_tema').value;
+    const predio = document.getElementById('edit_tr_predio').value;
+    const setor = document.getElementById('edit_tr_setor').value;
+    const andar = document.getElementById('edit_tr_andar').value;
+    const dataHora = document.getElementById('edit_tr_data_hora').value;
+
+    if (!colaborador || !tema || !dataHora || !setor) {
+        return alert("Preencha os campos obrigatórios.");
+    }
+
+    try {
+        const { error } = await supabase.from('treinamentos').update({
+            colaborador: colaborador,
+            telefone: telefone,
+            tema: tema,
+            predio: predio,
+            setor: setor,
+            andar: andar,
+            data_hora: dataHora
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        alert("Treinamento atualizado com sucesso!");
+        fecharModal('modal-editar-treinamento');
+        carregarListaTreinamentos();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+    } catch (err) {
+        alert("Erro ao salvar edição do treinamento: " + err.message);
+    }
+}
+
+// 🟢 NOVO: Cancelar Treinamento pedindo Motivo
+async function cancelarTreinamento(id) {
+    const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento deste treinamento:");
+    
+    if (motivo === null) return; // Se o usuário apertar cancelar no aviso
+    if (motivo.trim() === "") return alert("O motivo é obrigatório para cancelar!");
+
+    try {
+        const { error } = await supabase.from('treinamentos').update({
+            status: 'Cancelado',
+            motivo_cancelamento: motivo
+        }).eq('id', id);
+        
+        if (error) throw error;
+
+        alert("Treinamento cancelado com sucesso!");
+        carregarListaTreinamentos();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+    } catch (err) {
+        alert("Erro ao cancelar treinamento: " + err.message);
+    }
 }
 
 // Abre o Modal para finalizar e assinar
