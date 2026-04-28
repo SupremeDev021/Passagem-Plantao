@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" href="logo-aba.png" type="image/png">
     
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="data:,">
@@ -697,6 +696,42 @@
             </form>
         </div>
     </div>
+
+    <div id="modal-ver-ocorrencia" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-ver-ocorrencia')">&times;</span>
+            <h3 style="margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">🔍 Detalhes da Ocorrência</h3>
+            <div id="detalhes-ocorrencia-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;"></div>
+        </div>
+    </div>
+
+    <div id="modal-editar-ocorrencia" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-editar-ocorrencia')">&times;</span>
+            <h3>Editar Ocorrência</h3>
+            <form id="form-editar-ocorrencia">
+                <input type="hidden" id="edit_o_id">
+                
+                <input type="text" id="edit_o_descricao" placeholder="Qual a ocorrência?" required>
+                <input type="text" id="edit_o_proposta" placeholder="Solução proposta?" required>
+                
+                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 250px;">
+                        <label>Prazo para solução:</label>
+                        <input type="date" id="edit_o_prazo" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 250px;">
+                        <label>Responsável por acompanhar:</label>
+                        <input type="text" id="edit_o_responsavel" placeholder="Nome do Técnico" required>
+                    </div>
+                </div>
+
+                <textarea id="edit_o_observacao" placeholder="Alguma observação? (Opcional)"></textarea>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarEdicaoOcorrencia()">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
    
     <div id="modal-finalizar-ocorrencia" class="modal">
         <div class="modal-content">
@@ -736,6 +771,50 @@
         </div>
     </div>
 
+    <div id="modal-editar-treinamento" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-editar-treinamento')">&times;</span>
+            <h3>Editar Treinamento</h3>
+            <form id="form-editar-treinamento">
+                <input type="hidden" id="edit_tr_id">
+                
+                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label>Colaborador:</label>
+                        <input type="text" id="edit_tr_colaborador" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label>Telefone p/ Contato:</label>
+                        <input type="text" id="edit_tr_telefone" maxlength="15" oninput="mascaraTelefone(this)" required>
+                    </div>
+                </div>
+                
+                <label>Tema do Treinamento:</label>
+                <input type="text" id="edit_tr_tema" required>
+
+                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Prédio:</label>
+                        <input type="text" id="edit_tr_predio" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Setor:</label>
+                        <input type="text" id="edit_tr_setor" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 100px;">
+                        <label>Andar:</label>
+                        <input type="text" id="edit_tr_andar" required>
+                    </div>
+                </div>
+
+                <label>Data e Horário Marcado:</label>
+                <input type="datetime-local" id="edit_tr_data_hora" required>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarEdicaoTreinamento()">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
     <div id="modal-finalizar-treinamento" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModal('modal-finalizar-treinamento')">&times;</span>
@@ -759,42 +838,6 @@
         </div>
     </div>
 
-    <div id="modal-ver-ocorrencia" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="fecharModal('modal-ver-ocorrencia')">&times;</span>
-            <h3 style="margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">🔍 Detalhes da Ocorrência</h3>
-            <div id="detalhes-ocorrencia-conteudo" style="line-height: 1.8; margin-top: 15px; font-size: 14px;"></div>
-        </div>
-    </div>
-
-    <div id="modal-editar-ocorrencia" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="fecharModal('modal-editar-ocorrencia')">&times;</span>
-            <h3>Editar Ocorrência</h3>
-            <form id="form-editar-ocorrencia">
-                <input type="hidden" id="edit_o_id">
-                
-                <input type="text" id="edit_o_descricao" placeholder="Qual a ocorrência?" required>
-                <input type="text" id="edit_o_proposta" placeholder="Solução proposta?" required>
-                
-                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <div class="form-group" style="flex: 1; min-width: 250px;">
-                        <label>Prazo para solução:</label>
-                        <input type="date" id="edit_o_prazo" required>
-                    </div>
-                    <div class="form-group" style="flex: 1; min-width: 250px;">
-                        <label>Responsável por acompanhar:</label>
-                        <input type="text" id="edit_o_responsavel" placeholder="Nome do Técnico" required>
-                    </div>
-                </div>
-
-                <textarea id="edit_o_observacao" placeholder="Alguma observação? (Opcional)"></textarea>
-
-                <button type="button" class="btn-success mt-20" onclick="salvarEdicaoOcorrencia()">Salvar Alterações</button>
-            </form>
-        </div>
-    </div>
-    
     <script src="auth.js"></script>
     <script src="signature.js"></script>
     <script src="app.js"></script>
