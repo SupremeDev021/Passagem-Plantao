@@ -25,42 +25,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     const loginContainer = document.getElementById('login-container');
     const appWrapper = document.getElementById('app-wrapper');
 
-    // 🟢 ROTA DE EMERGÊNCIA: Se algo der errado, força o Login a aparecer
-    const forcarTelaLogin = () => {
+    // 🔴 FUNÇÃO: Volta para a tela de Login
+    const irParaLogin = () => {
         if (loginContainer) {
             loginContainer.classList.remove('hidden');
-            loginContainer.style.display = 'block';
+            loginContainer.style.display = 'block'; 
         }
         if (appWrapper) {
             appWrapper.classList.add('hidden');
-            appWrapper.style.display = 'none';
+            appWrapper.style.display = 'none'; 
         }
     };
 
-    try {
-        // 1. Pergunta ao Banco de Dados "Na Lata" quem está logado
-        const { data: authData, error: authErr } = await supabase.auth.getSession();
-        
-        if (authErr) throw authErr; // Cai pro Catch se der erro de rede
+    // 🟢 FUNÇÃO: Mostra o Sistema e o Dashboard
+    const irParaApp = async (session) => {
+        if (loginContainer) {
+            loginContainer.classList.add('hidden');
+            loginContainer.style.display = 'none'; 
+        }
+        if (appWrapper) {
+            appWrapper.classList.remove('hidden');
+            appWrapper.style.display = 'block'; // Derruba a tela branca!
+        }
 
-        if (authData && authData.session) {
-            // 🟢 USUÁRIO LOGADO: Esconde o login na força e mostra o app
-            if (loginContainer) {
-                loginContainer.classList.add('hidden');
-                loginContainer.style.display = 'none';
-            }
-            if (appWrapper) {
-                appWrapper.classList.remove('hidden');
-                appWrapper.style.display = 'block';
-            }
-
-            // 2. Busca o nível de acesso (Admin vs Operacional)
-            const { data: perfil } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', authData.session.user.id)
-                .single();
-
+        try {
+            const { data: perfil } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
             if (perfil) {
                 window.usuarioAtual = perfil;
 
@@ -78,23 +67,35 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (btnAdmin) btnAdmin.classList.remove('hidden');
                 }
 
-                // 3. Carrega o Dashboard instantaneamente!
+                // Carrega os dados instantaneamente
                 if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
                 if(typeof carregarMeusDados === 'function') carregarMeusDados();
             }
+        } catch (err) {
+            console.error("Erro ao carregar perfil:", err);
+        }
+    };
+
+    // 1. CHECAGEM INICIAL (Quando dá F5 ou entra no site)
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (session) {
+            irParaApp(session); // Já tá logado, vai direto pro App
         } else {
-            // 🔴 NINGUÉM LOGADO: Mostra o login
-            forcarTelaLogin();
+            irParaLogin(); // Não tá logado, mostra o Login
         }
     } catch (err) {
-        console.error("Erro crítico ao carregar tela inicial:", err);
-        forcarTelaLogin(); // Se o Supabase falhar, não deixa tela branca!
+        irParaLogin(); // Se der erro de internet, garante o Login
     }
 
-    // Mantém o espião apenas para caso você clique no botão "Sair" depois
+    // 2. O ESPIÃO (Observa o momento exato em que você clica em "Entrar" ou "Sair")
     supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT') {
-            forcarTelaLogin();
+        if (event === 'SIGNED_IN' && session) {
+            irParaApp(session); // Assim que logar, esmaga a tela branca e mostra o sistema!
+        } else if (event === 'SIGNED_OUT') {
+            irParaLogin();
         }
     });
 });
