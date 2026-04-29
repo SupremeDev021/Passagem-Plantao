@@ -1,26 +1,42 @@
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
-// Espera a página inteira carregar antes de puxar os dados
-document.addEventListener("DOMContentLoaded", () => {
-    // Carrega o dashboard automaticamente após 1.5 segundos
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Carrega o dashboard após um breve delay visual
     setTimeout(() => {
         if(typeof carregarResumoDashboard === 'function') {
             carregarResumoDashboard();
         }
+    }, 1500); 
+
+    // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
+    try {
+        const { data: authData } = await supabase.auth.getUser();
         
-       if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
-            const btnConfig = document.getElementById('btn-config');
-            if (btnConfig) {
-                // Só remove o 'hidden' se a role for cirurgicamente 'operacional'
-                if (usuarioAtual.role === 'operacional') {
-                    btnConfig.classList.remove('hidden');
-                } else {
-                    btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
+        if (authData && authData.user) {
+            const { data: perfil } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', authData.user.id)
+                .single();
+
+            if (perfil) {
+                const btnConfig = document.getElementById('btn-config');
+                const btnAdmin = document.getElementById('btn-admin');
+
+                // Mostra/Esconde com base na verdade absoluta do banco
+                if (perfil.role === 'operacional') {
+                    if (btnConfig) btnConfig.classList.remove('hidden');
+                    if (btnAdmin) btnAdmin.classList.add('hidden');
+                } else if (perfil.role === 'admin') {
+                    if (btnConfig) btnConfig.classList.add('hidden');
+                    if (btnAdmin) btnAdmin.classList.remove('hidden');
                 }
             }
         }
-    }, 1500); 
+    } catch (err) {
+        console.error("Erro ao verificar nível de acesso do menu:", err);
+    }
 });
 
 // ==========================================
@@ -914,16 +930,7 @@ async function salvarTreinamentoConcluido() {
 
 async function carregarMeusDados() {
     try {
-        // PLANO A: Usa a memória instantânea se ela existir e tiver o nome
-        if (typeof usuarioAtual !== 'undefined' && usuarioAtual && usuarioAtual.nome) {
-            document.getElementById('meu_email').value = usuarioAtual.email || '';
-            document.getElementById('meu_nome').value = usuarioAtual.nome || '';
-            document.getElementById('meu_celular').value = usuarioAtual.celular || '';
-            document.getElementById('meu_cpf').value = usuarioAtual.cpf || '';
-            return; // Preencheu, não precisa do banco
-        }
-
-        // PLANO B: Se a memória do navegador limpou, busca direto da sessão forte do Supabase
+        // Vai direto na fonte sem depender de variável global
         const { data: authData, error: authErr } = await supabase.auth.getUser();
         if (authErr || !authData.user) return;
 
@@ -935,19 +942,14 @@ async function carregarMeusDados() {
 
         if (perfilErr) throw perfilErr;
 
-        // Preenche os campos
+        // Preenche os campos na marra
         document.getElementById('meu_email').value = perfil.email || '';
         document.getElementById('meu_nome').value = perfil.nome || '';
         document.getElementById('meu_celular').value = perfil.celular || '';
         document.getElementById('meu_cpf').value = perfil.cpf || '';
 
-        // Salva na memória global para a próxima vez ser instantâneo
-        if (typeof usuarioAtual !== 'undefined') {
-            Object.assign(usuarioAtual, perfil);
-        }
-
     } catch (err) {
-        console.error("Erro na aba configurações:", err);
+        console.error("Erro ao carregar aba de configurações:", err);
     }
 }
 
@@ -1595,6 +1597,7 @@ async function carregarInventario() {
         }
     } catch (err) { console.error("Erro ao carregar inventário filtrado:", err); }
 }
+
 async function alterarStatusInventario(id) {
     const novoStatus = prompt("Digite o novo status exato (Em uso, Em estoque, Danificado):");
     if(!novoStatus) return;
