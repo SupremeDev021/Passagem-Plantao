@@ -930,33 +930,39 @@ async function salvarTreinamentoConcluido() {
 
 async function carregarMeusDados() {
     try {
-        // 1. Verifica se a sessão está viva
+        // 1. Pega a sessão e os dados (já sabemos que isso está funcionando!)
         const { data: authData, error: authErr } = await supabase.auth.getUser();
-        if (authErr) throw new Error("Falha na sessão: " + authErr.message);
-        if (!authData.user) throw new Error("Nenhum usuário logado encontrado.");
+        if (authErr || !authData.user) return;
 
-        // 2. Tenta puxar do banco
         const { data: perfil, error: perfilErr } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', authData.user.id)
             .single();
 
-        // Se o banco barrar, ele vai estourar o erro aqui!
-        if (perfilErr) {
-            throw new Error(`Erro do Banco (${perfilErr.code}): ${perfilErr.message}`);
-        }
+        if (perfilErr) throw perfilErr;
 
-        // 3. Preenche a tela
-        document.getElementById('meu_email').value = perfil.email || '';
-        document.getElementById('meu_nome').value = perfil.nome || '';
-        document.getElementById('meu_celular').value = perfil.celular || '';
-        document.getElementById('meu_cpf').value = perfil.cpf || '';
+        // 2. Procura os campos na tela
+        const campoEmail = document.getElementById('meu_email');
+        const campoNome = document.getElementById('meu_nome');
+        const campoCelular = document.getElementById('meu_celular');
+        const campoCpf = document.getElementById('meu_cpf');
+
+        // 3. Só preenche SE o campo existir (evita o erro null)
+        if (campoEmail) campoEmail.value = perfil.email || '';
+        else console.warn("Aviso: A caixinha com id 'meu_email' não foi encontrada no HTML.");
+
+        if (campoNome) campoNome.value = perfil.nome || '';
+        else console.warn("Aviso: A caixinha com id 'meu_nome' não foi encontrada no HTML.");
+
+        if (campoCelular) campoCelular.value = perfil.celular || '';
+        else console.warn("Aviso: A caixinha com id 'meu_celular' não foi encontrada no HTML.");
+
+        if (campoCpf) campoCpf.value = perfil.cpf || '';
+        else console.warn("Aviso: A caixinha com id 'meu_cpf' não foi encontrada no HTML.");
 
     } catch (err) {
-        // Agora o erro não é mais silencioso, ele vai gritar na sua tela!
-        alert("Oculto: " + err.message);
-        console.error("Detalhe do erro:", err);
+        console.error("Detalhe do erro nas Configurações:", err.message);
     }
 }
 
