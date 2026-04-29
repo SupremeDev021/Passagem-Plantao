@@ -914,11 +914,19 @@ async function salvarTreinamentoConcluido() {
 
 async function carregarMeusDados() {
     try {
-        // 1. Pega a sessão atual de forma segura no Supabase
+        // PLANO A: Usa a memória instantânea se ela existir e tiver o nome
+        if (typeof usuarioAtual !== 'undefined' && usuarioAtual && usuarioAtual.nome) {
+            document.getElementById('meu_email').value = usuarioAtual.email || '';
+            document.getElementById('meu_nome').value = usuarioAtual.nome || '';
+            document.getElementById('meu_celular').value = usuarioAtual.celular || '';
+            document.getElementById('meu_cpf').value = usuarioAtual.cpf || '';
+            return; // Preencheu, não precisa do banco
+        }
+
+        // PLANO B: Se a memória do navegador limpou, busca direto da sessão forte do Supabase
         const { data: authData, error: authErr } = await supabase.auth.getUser();
         if (authErr || !authData.user) return;
 
-        // 2. Busca os dados reais e atualizados do banco
         const { data: perfil, error: perfilErr } = await supabase
             .from('profiles')
             .select('*')
@@ -927,18 +935,19 @@ async function carregarMeusDados() {
 
         if (perfilErr) throw perfilErr;
 
-        // 3. Preenche a tela
+        // Preenche os campos
         document.getElementById('meu_email').value = perfil.email || '';
         document.getElementById('meu_nome').value = perfil.nome || '';
         document.getElementById('meu_celular').value = perfil.celular || '';
         document.getElementById('meu_cpf').value = perfil.cpf || '';
 
-        // Atualiza a variável global por segurança
+        // Salva na memória global para a próxima vez ser instantâneo
         if (typeof usuarioAtual !== 'undefined') {
-            usuarioAtual = { ...usuarioAtual, ...perfil };
+            Object.assign(usuarioAtual, perfil);
         }
+
     } catch (err) {
-        console.error("Erro ao carregar meus dados:", err);
+        console.error("Erro na aba configurações:", err);
     }
 }
 
