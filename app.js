@@ -1,10 +1,3 @@
-Com certeza, João! Entendi perfeitamente. Às vezes, copiar e colar pedaços isolados acaba gerando confusão no código. 
-
-Fiz a "cirurgia" aplicando as duas correções definitivas (a blindagem do menu que evita o sumiço da aba e a busca direta no banco para as configurações não ficarem em branco) diretamente no código completo que você me mandou, sem alterar nenhuma vírgula das outras funcionalidades.
-
-Pode simplesmente **apagar tudo** que está no seu `app.js` e colar este código completo abaixo:
-
-```javascript
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
