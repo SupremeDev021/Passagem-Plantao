@@ -1,28 +1,22 @@
+Com certeza, João! Entendi perfeitamente. Às vezes, copiar e colar pedaços isolados acaba gerando confusão no código. 
+
+Fiz a "cirurgia" aplicando as duas correções definitivas (a blindagem do menu que evita o sumiço da aba e a busca direta no banco para as configurações não ficarem em branco) diretamente no código completo que você me mandou, sem alterar nenhuma vírgula das outras funcionalidades.
+
+Pode simplesmente **apagar tudo** que está no seu `app.js` e colar este código completo abaixo:
+
+```javascript
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
-// Espera a página inteira carregar antes de puxar os dados
 document.addEventListener("DOMContentLoaded", async () => {
     // 1. Carrega o dashboard após um breve delay visual
     setTimeout(() => {
         if(typeof carregarResumoDashboard === 'function') {
             carregarResumoDashboard();
         }
-        
-        // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
-        if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
-            const btnConfig = document.getElementById('btn-config');
-            if (btnConfig) {
-                // Só remove o 'hidden' se a role for cirurgicamente 'operacional'
-                if (usuarioAtual.role === 'operacional') {
-                    btnConfig.classList.remove('hidden');
-                } else {
-                    btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
-                }
-            }
-        }
     }, 1500); 
 
+    // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
     try {
         const { data: authData } = await supabase.auth.getUser();
         
