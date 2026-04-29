@@ -454,6 +454,37 @@
                 </div>
             </section>
 
+            <section id="aba-inventario" class="tab-content hidden">
+                <h3>Gestão de Inventário Geral</h3>
+                
+                <div class="admin-card">
+                    <h4>Ações Rápidas</h4>
+                    <div class="button-group">
+                        <button class="btn-success" onclick="abrirModalNovoEquipamento()">➕ Cadastrar Equipamento</button>
+                        <button class="btn-primary" style="background: #8e44ad;" onclick="abrirModal('modal-novo-tipo')">➕ Novo Tipo de Equipamento</button>
+                    </div>
+                </div>
+
+                <div class="admin-card mt-20">
+                    <h4>📋 Equipamentos na Base</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Marca / Modelo</th>
+                                    <th>Nº Série</th>
+                                    <th>Localização</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-inventario-aba"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <section id="aba-config" class="tab-content hidden">
                 <h3>Minhas Configurações</h3>
                 
@@ -836,6 +867,66 @@
                 </div>
 
                 <button type="button" class="btn-success mt-20" onclick="salvarTreinamentoConcluido()">Concluir Treinamento</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-novo-tipo" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-novo-tipo')">&times;</span>
+            <h3>Cadastrar Novo Tipo</h3>
+            <input type="text" id="cad_tipo_nome" placeholder="Ex: NOBREAK, ROTEADOR, SWITCH" required>
+            <button type="button" class="btn-success mt-20" onclick="salvarNovoTipoEquipamento()">Salvar Tipo</button>
+        </div>
+    </div>
+
+    <div id="modal-novo-equipamento" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-novo-equipamento')">&times;</span>
+            <h3>Cadastrar Equipamento</h3>
+            <form id="form-novo-equipamento">
+                <label>Tipo de Equipamento:</label>
+                <select id="inv_tipo" required>
+                    <option value="">Carregando...</option>
+                </select>
+
+                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Marca:</label>
+                        <input type="text" id="inv_marca" placeholder="Ex: Dell, Samsung" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Modelo:</label>
+                        <input type="text" id="inv_modelo" placeholder="Ex: Optiplex 3020" required>
+                    </div>
+                </div>
+
+                <label>Número de Série (S/N):</label>
+                <input type="text" id="inv_serie" required>
+
+                <label>Status Atual:</label>
+                <select id="inv_status" required>
+                    <option value="Em uso">🟢 Em uso</option>
+                    <option value="Em estoque">📦 Em estoque</option>
+                    <option value="Danificado">🔴 Danificado</option>
+                </select>
+
+                <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; margin-top: 15px;">
+                    <div class="form-group" style="flex: 1; min-width: 100px;">
+                        <label>Prédio:</label>
+                        <input type="text" id="inv_predio" placeholder="Ex: Principal">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 100px;">
+                        <label>Andar:</label>
+                        <input type="text" id="inv_andar" placeholder="Ex: 3º Andar">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Setor:</label>
+                        <input type="text" id="inv_setor" placeholder="Ex: CTI">
+                    </div>
+                </div>
+
+                <button type="button" class="btn-success mt-20" onclick="salvarEquipamento()">Salvar Equipamento</button>
             </form>
         </div>
     </div>
