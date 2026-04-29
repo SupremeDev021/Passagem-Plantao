@@ -1,7 +1,3 @@
-const telaLoginRapida = document.getElementById('login-container');
-if (telaLoginRapida) {
-    telaLoginRapida.style.display = 'none';
-}
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
