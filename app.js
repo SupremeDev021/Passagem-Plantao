@@ -1,19 +1,50 @@
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
+// Espera a página inteira carregar antes de puxar os dados
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Carrega o dashboard após um breve delay visual
+    // 1. 🟢 CORREÇÃO DO PISCAR: Esconde o login imediatamente enquanto o Supabase "pensa"
+    const loginContainer = document.getElementById('login-container');
+    const appWrapper = document.getElementById('app-wrapper');
+    
+    if (loginContainer) {
+        loginContainer.style.opacity = '0'; // Deixa transparente rápido para não piscar
+        loginContainer.style.transition = 'opacity 0.3s ease'; // Dá uma transição suave
+    }
+
+    // 2. Carrega o dashboard automaticamente após 1.5 segundos
     setTimeout(() => {
         if(typeof carregarResumoDashboard === 'function') {
             carregarResumoDashboard();
         }
+        
+        if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+            const btnConfig = document.getElementById('btn-config');
+            if (btnConfig) {
+                // Só remove o 'hidden' se a role for cirurgicamente 'operacional'
+                if (usuarioAtual.role === 'operacional') {
+                    btnConfig.classList.remove('hidden');
+                } else {
+                    btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
+                }
+            }
+        }
     }, 1500); 
 
-    // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
+    // 3. BLINDAGEM DOS MENUS E SESSÃO
     try {
         const { data: authData } = await supabase.auth.getUser();
         
         if (authData && authData.user) {
+            // 🟢 SE O USUÁRIO ESTIVER LOGADO: Remove o login de vez e mostra o App
+            if (loginContainer) {
+                loginContainer.classList.add('hidden');
+                loginContainer.style.opacity = '1'; // Restaura para caso ele faça logout depois
+            }
+            if (appWrapper) {
+                appWrapper.classList.remove('hidden');
+            }
+
             const { data: perfil } = await supabase
                 .from('profiles')
                 .select('role')
@@ -33,9 +64,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (btnAdmin) btnAdmin.classList.remove('hidden');
                 }
             }
+        } else {
+            // 🔴 SE NÃO ESTIVER LOGADO: Devolve a tela de login suavemente
+            if (loginContainer) {
+                loginContainer.classList.remove('hidden');
+                loginContainer.style.opacity = '1';
+            }
+            if (appWrapper) {
+                appWrapper.classList.add('hidden');
+            }
         }
     } catch (err) {
         console.error("Erro ao verificar nível de acesso do menu:", err);
+        // Em caso de erro de conexão, devolve a tela de login por segurança
+        if (loginContainer) loginContainer.style.opacity = '1';
     }
 });
 
