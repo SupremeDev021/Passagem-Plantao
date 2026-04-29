@@ -1,30 +1,57 @@
 // ==========================================
+// CONFIGURAÇÕES DE SEGURANÇA E SESSÃO (TIMER)
+// ==========================================
+let timerInatividade;
+
+function resetarTimerInatividade() {
+    clearTimeout(timerInatividade);
+    // 20 minutos = 20 * 60 * 1000 milissegundos
+    timerInatividade = setTimeout(() => {
+        alert("Sua sessão expirou por inatividade (20 minutos).");
+        if (typeof fazerLogout === 'function') fazerLogout();
+    }, 1200000); 
+}
+
+// Ouve movimentos para manter o usuário logado
+window.onload = resetarTimerInatividade;
+document.onmousemove = resetarTimerInatividade;
+document.onkeydown = resetarTimerInatividade;
+document.onclick = resetarTimerInatividade;
+
+// ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
 document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Carrega o dashboard após um breve delay visual
-    setTimeout(() => {
-        if(typeof carregarResumoDashboard === 'function') {
-            carregarResumoDashboard();
-        }
-    }, 1500); 
-
-    // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
     try {
-        const { data: authData } = await supabase.auth.getUser();
-        
-        if (authData && authData.user) {
+        // 1. Verifica de forma super rápida se existe uma sessão ativa
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (session) {
+            // 2. Busca os dados completos para montar a tela
             const { data: perfil } = await supabase
                 .from('profiles')
-                .select('role')
-                .eq('id', authData.user.id)
+                .select('*')
+                .eq('id', session.user.id)
                 .single();
 
             if (perfil) {
+                // Guarda globalmente
+                window.usuarioAtual = perfil;
+
+                // Esconde o Login e mostra o App IMEDIATAMENTE
+                const loginContainer = document.getElementById('login-container');
+                const appWrapper = document.getElementById('app-wrapper');
+                if (loginContainer) loginContainer.classList.add('hidden');
+                if (appWrapper) appWrapper.classList.remove('hidden');
+
+                // Atualiza Header
+                const userNameHeader = document.getElementById('user-name');
+                if (userNameHeader) userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
+
+                // Configura Menus (Admin vs Operacional)
                 const btnConfig = document.getElementById('btn-config');
                 const btnAdmin = document.getElementById('btn-admin');
 
-                // Mostra/Esconde com base na verdade absoluta do banco
                 if (perfil.role === 'operacional') {
                     if (btnConfig) btnConfig.classList.remove('hidden');
                     if (btnAdmin) btnAdmin.classList.add('hidden');
@@ -32,10 +59,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (btnConfig) btnConfig.classList.add('hidden');
                     if (btnAdmin) btnAdmin.classList.remove('hidden');
                 }
+
+                // 3. 🚀 CARREGA TUDO DE PRIMEIRA SEM PRECISAR DE F5
+                if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+                carregarMeusDados();
             }
+        } else {
+            // Ninguém logado, garante que fique na tela de login
+            const loginContainer = document.getElementById('login-container');
+            const appWrapper = document.getElementById('app-wrapper');
+            if (loginContainer) loginContainer.classList.remove('hidden');
+            if (appWrapper) appWrapper.classList.add('hidden');
         }
     } catch (err) {
-        console.error("Erro ao verificar nível de acesso do menu:", err);
+        console.error("Erro na inicialização rápida:", err);
     }
 });
 
