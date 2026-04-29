@@ -466,6 +466,35 @@
                 </div>
 
                 <div class="admin-card mt-20">
+                    <h4>🔍 Filtrar Equipamentos</h4>
+                    <div class="form-row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                        <div class="form-group" style="flex: 1; min-width: 150px;">
+                            <label>Categoria / Tipo:</label>
+                            <select id="filtro_inv_tipo" style="margin-bottom: 0;">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 150px;">
+                            <label>Status:</label>
+                            <select id="filtro_inv_status" style="margin-bottom: 0;">
+                                <option value="">Todos</option>
+                                <option value="Em uso">🟢 Em uso</option>
+                                <option value="Em estoque">📦 Em estoque</option>
+                                <option value="Danificado">🔴 Danificado</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2; min-width: 200px;">
+                            <label>Número de Série:</label>
+                            <input type="text" id="filtro_inv_serie" placeholder="Digite S/N para buscar..." style="margin-bottom: 0;" onkeyup="verificarEnterFiltro(event)">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="carregarInventario()">Buscar</button>
+                            <button class="btn-danger" onclick="limparFiltrosInventario()">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card mt-20">
                     <h4>📋 Equipamentos na Base</h4>
                     <div class="table-responsive">
                         <table>
@@ -481,44 +510,6 @@
                             </thead>
                             <tbody id="lista-inventario-aba"></tbody>
                         </table>
-                    </div>
-                </div>
-            </section>
-
-            <section id="aba-config" class="tab-content hidden">
-                <h3>Minhas Configurações</h3>
-                
-                <div class="dashboard-grid">
-                    <div class="admin-card">
-                        <h4>👤 Alterar Meus Dados</h4>
-                        <form id="form-meus-dados">
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">E-mail Corporativo:</label>
-                            <input type="email" id="meu_email" required>
-
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Nome Completo:</label>
-                            <input type="text" id="meu_nome" required>
-                            
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Celular (WhatsApp):</label>
-                            <input type="text" id="meu_celular" maxlength="15" oninput="mascaraTelefone(this)">
-                            
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">CPF:</label>
-                            <input type="text" id="meu_cpf" maxlength="14" oninput="mascaraCPF(this)">
-                            
-                            <button type="button" class="btn-primary mt-20" onclick="salvarMeusDados()">Salvar Alterações</button>
-                        </form>
-                    </div>
-
-                    <div class="admin-card">
-                        <h4>🔒 Alterar Minha Senha</h4>
-                        <form id="form-minha-senha">
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Nova Senha:</label>
-                            <input type="password" id="minha_nova_senha" required>
-                            
-                            <label class="mt-10" style="display: block; font-weight: 600; color: #475569; margin-bottom: 4px;">Confirmar Nova Senha:</label>
-                            <input type="password" id="minha_nova_senha_conf" required>
-                            
-                            <button type="button" class="btn-danger mt-20" onclick="salvarMinhaSenha()">Atualizar Senha</button>
-                        </form>
                     </div>
                 </div>
             </section>
