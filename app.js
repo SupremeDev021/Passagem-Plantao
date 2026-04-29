@@ -1,59 +1,43 @@
 // ==========================================
-// CONFIGURAÇÕES DE SEGURANÇA E SESSÃO (TIMER)
+// INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
-let timerInatividade;
-
-function resetarTimerInatividade() {
-    clearTimeout(timerInatividade);
-    // 20 minutos = 20 * 60 * 1000 milissegundos
-    timerInatividade = setTimeout(() => {
-        alert("Sua sessão expirou por inatividade (20 minutos sem mexer no sistema).");
-        if (typeof fazerLogout === 'function') fazerLogout();
-    }, 1200000); 
-}
-
-// Ouve movimentos do usuário para manter logado
-window.onload = resetarTimerInatividade;
-document.onmousemove = resetarTimerInatividade;
-document.onkeydown = resetarTimerInatividade;
-document.onclick = resetarTimerInatividade;
-
-// ==========================================
-// INICIALIZAÇÃO DA TELA (DASHBOARD E MENUS)
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    // Usa o "espião" oficial do Supabase. Ele roda automático no F5 e no Login!
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        const loginEl = document.getElementById('login-container');
-        const appEl = document.getElementById('app-wrapper');
-
-        if (session) {
-            // 1. FORÇA a separação das telas (Mata o bug de misturar as telas)
-            if (loginEl) {
-                loginEl.classList.add('hidden');
-                loginEl.style.display = 'none'; // Overwrite de CSS bruto para não ter erro
+// Espera a página inteira carregar antes de puxar os dados
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Carrega o dashboard após um breve delay visual
+    setTimeout(() => {
+        if(typeof carregarResumoDashboard === 'function') {
+            carregarResumoDashboard();
+        }
+        
+        // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
+        if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+            const btnConfig = document.getElementById('btn-config');
+            if (btnConfig) {
+                // Só remove o 'hidden' se a role for cirurgicamente 'operacional'
+                if (usuarioAtual.role === 'operacional') {
+                    btnConfig.classList.remove('hidden');
+                } else {
+                    btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
+                }
             }
-            if (appEl) {
-                appEl.classList.remove('hidden');
-                appEl.style.display = ''; // Deixa o CSS original do site agir
-            }
+        }
+    }, 1500); 
 
-            // 2. Busca o nível do usuário
+    try {
+        const { data: authData } = await supabase.auth.getUser();
+        
+        if (authData && authData.user) {
             const { data: perfil } = await supabase
                 .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
+                .select('role')
+                .eq('id', authData.user.id)
                 .single();
 
             if (perfil) {
-                window.usuarioAtual = perfil;
-
-                const userNameHeader = document.getElementById('user-name');
-                if (userNameHeader) userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
-
                 const btnConfig = document.getElementById('btn-config');
                 const btnAdmin = document.getElementById('btn-admin');
 
+                // Mostra/Esconde com base na verdade absoluta do banco
                 if (perfil.role === 'operacional') {
                     if (btnConfig) btnConfig.classList.remove('hidden');
                     if (btnAdmin) btnAdmin.classList.add('hidden');
@@ -61,23 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (btnConfig) btnConfig.classList.add('hidden');
                     if (btnAdmin) btnAdmin.classList.remove('hidden');
                 }
-
-                // 3. CARREGA TUDO DE PRIMEIRA (Resolve a tela vazia)
-                if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
-                carregarMeusDados();
-            }
-        } else {
-            // Se deslogou ou não tem sessão, esconde o app na marra
-            if (loginEl) {
-                loginEl.classList.remove('hidden');
-                loginEl.style.display = ''; 
-            }
-            if (appEl) {
-                appEl.classList.add('hidden');
-                appEl.style.display = 'none';
             }
         }
-    });
+    } catch (err) {
+        console.error("Erro ao verificar nível de acesso do menu:", err);
+    }
 });
 
 // ==========================================
@@ -564,6 +536,7 @@ async function salvarEdicaoOcorrencia() {
     }
 }
 
+// 🟢 ATUALIZADO: Agora pede o motivo e muda o status
 async function cancelarOcorrencia(id) {
     const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento desta ocorrência:");
     
@@ -799,11 +772,12 @@ async function salvarTreinamento() {
     }
 }
 
+// 🟢 ATUALIZADO: Mostra as ações e o status Cancelado/Concluído
 async function carregarListaTreinamentos() {
     try {
         const { data, error } = await supabase.from('treinamentos')
             .select('*')
-            .order('data_hora', { ascending: false }); 
+            .order('data_hora', { ascending: false }); // Lista do mais novo para o mais velho
 
         if (error) throw error;
 
@@ -836,6 +810,7 @@ async function carregarListaTreinamentos() {
     } catch (err) { console.error("Erro ao carregar treinamentos:", err); }
 }
 
+// 🟢 NOVO: Abre modal para Editar Treinamento
 async function abrirModalEditarTreinamento(id) {
     try {
         const { data: t, error } = await supabase.from('treinamentos').select('*').eq('id', id).single();
@@ -856,6 +831,7 @@ async function abrirModalEditarTreinamento(id) {
     }
 }
 
+// 🟢 NOVO: Salva a Edição do Treinamento
 async function salvarEdicaoTreinamento() {
     const id = document.getElementById('edit_tr_id').value;
     const colaborador = document.getElementById('edit_tr_colaborador').value;
@@ -892,10 +868,11 @@ async function salvarEdicaoTreinamento() {
     }
 }
 
+// 🟢 NOVO: Cancelar Treinamento pedindo Motivo
 async function cancelarTreinamento(id) {
     const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento deste treinamento:");
     
-    if (motivo === null) return; 
+    if (motivo === null) return; // Se o usuário apertar cancelar no aviso
     if (motivo.trim() === "") return alert("O motivo é obrigatório para cancelar!");
 
     try {
@@ -914,10 +891,12 @@ async function cancelarTreinamento(id) {
     }
 }
 
+// Abre o Modal para finalizar e assinar
 async function abrirModalFinalizarTreinamento(id) {
     document.getElementById('ft_treinamento_id').value = id;
     limparCanvas('canvas-finalizar-treinamento');
     
+    // Puxa os nomes dos técnicos para o select do modal
     try {
         const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
         if (!error) {
@@ -930,6 +909,7 @@ async function abrirModalFinalizarTreinamento(id) {
     abrirModal('modal-finalizar-treinamento');
 }
 
+// Salva a conclusão do Treinamento no BD
 async function salvarTreinamentoConcluido() {
     const id = document.getElementById('ft_treinamento_id').value;
     const tecnico = document.getElementById('ft_tecnico').value;
@@ -963,6 +943,7 @@ async function salvarTreinamentoConcluido() {
 
 async function carregarMeusDados() {
     try {
+        // 1. Pega a sessão e os dados (já sabemos que isso está funcionando!)
         const { data: authData, error: authErr } = await supabase.auth.getUser();
         if (authErr || !authData.user) return;
 
@@ -974,15 +955,24 @@ async function carregarMeusDados() {
 
         if (perfilErr) throw perfilErr;
 
+        // 2. Procura os campos na tela
         const campoEmail = document.getElementById('meu_email');
         const campoNome = document.getElementById('meu_nome');
         const campoCelular = document.getElementById('meu_celular');
         const campoCpf = document.getElementById('meu_cpf');
 
+        // 3. Só preenche SE o campo existir (evita o erro null)
         if (campoEmail) campoEmail.value = perfil.email || '';
+        else console.warn("Aviso: A caixinha com id 'meu_email' não foi encontrada no HTML.");
+
         if (campoNome) campoNome.value = perfil.nome || '';
+        else console.warn("Aviso: A caixinha com id 'meu_nome' não foi encontrada no HTML.");
+
         if (campoCelular) campoCelular.value = perfil.celular || '';
+        else console.warn("Aviso: A caixinha com id 'meu_celular' não foi encontrada no HTML.");
+
         if (campoCpf) campoCpf.value = perfil.cpf || '';
+        else console.warn("Aviso: A caixinha com id 'meu_cpf' não foi encontrada no HTML.");
 
     } catch (err) {
         console.error("Detalhe do erro nas Configurações:", err.message);
@@ -998,6 +988,7 @@ async function salvarMeusDados() {
     if (!nome || !email) return alert("Nome e E-mail são obrigatórios.");
 
     try {
+        // Confirma a sessão antes de salvar
         const { data: authData } = await supabase.auth.getUser();
         if (!authData.user) return alert("Sessão expirada. Faça login novamente.");
 
@@ -1012,6 +1003,7 @@ async function salvarMeusDados() {
 
         alert("Seus dados foram atualizados com sucesso!");
         
+        // Atualiza a variável global
         if (typeof usuarioAtual !== 'undefined') {
             usuarioAtual.email = email;
             usuarioAtual.nome = nome;
@@ -1019,6 +1011,7 @@ async function salvarMeusDados() {
             usuarioAtual.cpf = cpf;
         }
         
+        // Atualiza o nome exibido no Header
         const userNameHeader = document.getElementById('user-name');
         if (userNameHeader) {
             userNameHeader.innerText = `Olá, ${nome.split(' ')[0]}`; 
@@ -1038,6 +1031,7 @@ async function salvarMinhaSenha() {
     if (senha1.length < 6) return alert("A nova senha deve ter pelo menos 6 caracteres.");
 
     try {
+        // A função de mudar a própria senha usa o modulo auth do supabase
         const { error } = await supabase.auth.updateUser({ password: senha1 });
         
         if (error) throw error;
