@@ -1,56 +1,81 @@
 // ==========================================
-// INICIALIZAÇÃO DA TELA (DASHBOARD)
+// CONFIGURAÇÕES DE SEGURANÇA E TIMER
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    // 🟢 O "espião" do Supabase: roda automático assim que a página abre
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        const loginContainer = document.getElementById('login-container');
-        const appWrapper = document.getElementById('app-wrapper');
+let timerInatividade;
 
-        if (session) {
-            // USUÁRIO LOGADO: Mostra o sistema e esconde o login
-            if (loginContainer) loginContainer.classList.add('hidden');
-            if (appWrapper) appWrapper.classList.remove('hidden');
+function resetarTimerInatividade() {
+    clearTimeout(timerInatividade);
+    // 20 minutos = 20 * 60 * 1000 milissegundos
+    timerInatividade = setTimeout(() => {
+        alert("Sua sessão expirou por inatividade (20 minutos sem uso).");
+        if (typeof fazerLogout === 'function') fazerLogout();
+        else window.location.reload();
+    }, 1200000); 
+}
 
-            try {
-                // Busca o nível de acesso
-                const { data: perfil } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
+window.addEventListener('load', resetarTimerInatividade);
+document.addEventListener('mousemove', resetarTimerInatividade);
+document.addEventListener('keydown', resetarTimerInatividade);
+document.addEventListener('click', resetarTimerInatividade);
 
-                if (perfil) {
-                    window.usuarioAtual = perfil; // Salva para o sistema usar
+// ==========================================
+// INICIALIZAÇÃO DA TELA (DASHBOARD E MENUS)
+// ==========================================
+document.addEventListener("DOMContentLoaded", async () => {
+    const loginContainer = document.getElementById('login-container');
+    const appWrapper = document.getElementById('app-wrapper');
 
-                    // Atualiza o nome no topo
-                    const userNameHeader = document.getElementById('user-name');
-                    if (userNameHeader) userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
+    // 🟢 FUNÇÃO 1: Monta a tela se estiver logado
+    const mostrarApp = async (session) => {
+        if (loginContainer) loginContainer.classList.add('hidden');
+        if (appWrapper) appWrapper.classList.remove('hidden');
 
-                    // Ajusta os menus
-                    const btnConfig = document.getElementById('btn-config');
-                    const btnAdmin = document.getElementById('btn-admin');
+        try {
+            const { data: perfil } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+            if (perfil) {
+                window.usuarioAtual = perfil;
+                
+                const userNameHeader = document.getElementById('user-name');
+                if (userNameHeader) userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
 
-                    if (perfil.role === 'operacional') {
-                        if (btnConfig) btnConfig.classList.remove('hidden');
-                        if (btnAdmin) btnAdmin.classList.add('hidden');
-                    } else if (perfil.role === 'admin') {
-                        if (btnConfig) btnConfig.classList.add('hidden');
-                        if (btnAdmin) btnAdmin.classList.remove('hidden');
-                    }
-
-                    // Carrega o dashboard e configurações NA HORA
-                    if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
-                    if(typeof carregarMeusDados === 'function') carregarMeusDados();
+                const btnConfig = document.getElementById('btn-config');
+                const btnAdmin = document.getElementById('btn-admin');
+                
+                if (perfil.role === 'operacional') {
+                    if (btnConfig) btnConfig.classList.remove('hidden');
+                    if (btnAdmin) btnAdmin.classList.add('hidden');
+                } else if (perfil.role === 'admin') {
+                    if (btnConfig) btnConfig.classList.add('hidden');
+                    if (btnAdmin) btnAdmin.classList.remove('hidden');
                 }
-            } catch (err) {
-                console.error("Erro ao carregar perfil:", err);
-            }
 
-        } else {
-            // 🔴 NINGUÉM LOGADO (ou fez Logout): Mostra só o Login
-            if (loginContainer) loginContainer.classList.remove('hidden');
-            if (appWrapper) appWrapper.classList.add('hidden');
+                if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+                if(typeof carregarMeusDados === 'function') carregarMeusDados();
+            }
+        } catch (err) { console.error("Erro ao montar o app:", err); }
+    };
+
+    // 🔴 FUNÇÃO 2: Força a exibição do Login se estiver deslogado
+    const mostrarLogin = () => {
+        if (loginContainer) loginContainer.classList.remove('hidden');
+        if (appWrapper) appWrapper.classList.add('hidden');
+    };
+
+    // 🚀 CHECAGEM IMEDIATA: Executa na hora que a página abre
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+        mostrarApp(session); // Puxa o sistema
+    } else {
+        mostrarLogin(); // Tira a invisibilidade e mostra o login!
+    }
+
+    // 🕵️ VIGIA: Fica observando caso o usuário faça login ou clique em "Sair" depois
+    supabase.auth.onAuthStateChange((event, sessionAtual) => {
+        if (event === 'SIGNED_IN' && sessionAtual) {
+            mostrarApp(sessionAtual);
+        } else if (event === 'SIGNED_OUT') {
+            mostrarLogin();
         }
     });
 });
