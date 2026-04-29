@@ -64,6 +64,7 @@ function abrirAba(idAba) {
     }
 
     if (idAba === 'aba-inventario') {
+        carregarTiposFiltro();
         carregarInventario();
     }
 
@@ -1476,14 +1477,64 @@ async function salvarEquipamento() {
     }
 }
 
-async function carregarInventario() {
+// 🟢 NOVAS FUNÇÕES PARA OS FILTROS DO INVENTÁRIO
+async function carregarTiposFiltro() {
     try {
-        const { data, error } = await supabase.from('inventario').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('tipos_equipamento').select('nome').order('nome');
+        if (!error) {
+            const sel = document.getElementById('filtro_inv_tipo');
+            sel.innerHTML = '<option value="">Todos</option>' + 
+                            data.map(t => `<option value="${t.nome}">${t.nome}</option>`).join('');
+        }
+    } catch (e) { console.error("Erro ao carregar tipos para o filtro:", e); }
+}
+
+function limparFiltrosInventario() {
+    document.getElementById('filtro_inv_tipo').value = '';
+    document.getElementById('filtro_inv_status').value = '';
+    document.getElementById('filtro_inv_serie').value = '';
+    carregarInventario(); // Recarrega a tabela mostrando todos
+}
+
+function verificarEnterFiltro(event) {
+    // Permite que o técnico aperte Enter no teclado para buscar, sem precisar clicar no botão
+    if (event.key === 'Enter') {
+        carregarInventario();
+    }
+}
+
+
+async function carregarInventario() {
+    const filtroTipo = document.getElementById('filtro_inv_tipo').value;
+    const filtroStatus = document.getElementById('filtro_inv_status').value;
+    const filtroSerie = document.getElementById('filtro_inv_serie').value.trim();
+
+    try {
+        // Inicia a query pegando todos os itens
+        let query = supabase.from('inventario').select('*').order('created_at', { ascending: false });
+
+        // Se o usuário selecionou Tipo, filtra por Tipo
+        if (filtroTipo) {
+            query = query.eq('tipo', filtroTipo);
+        }
+        
+        // Se selecionou Status, filtra por Status
+        if (filtroStatus) {
+            query = query.eq('status', filtroStatus);
+        }
+        
+        // Se digitou Número de Série, usa "ilike" para achar mesmo que seja um pedaço do número
+        if (filtroSerie) {
+            query = query.ilike('numero_serie', `%${filtroSerie}%`);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
 
         const tbody = document.getElementById('lista-inventario-aba');
         if(tbody) {
-            tbody.innerHTML = data.map(e => {
+            // Operador ternário elegante para mostrar mensagem caso os filtros não achem nada
+            tbody.innerHTML = data.length > 0 ? data.map(e => {
                 let corStatus = '#3498db'; // Azul para estoque
                 if (e.status === 'Em uso') corStatus = '#2ecc71'; // Verde
                 if (e.status === 'Danificado') corStatus = '#e74c3c'; // Vermelho
@@ -1501,11 +1552,10 @@ async function carregarInventario() {
                         </td>
                     </tr>
                 `;
-            }).join('');
+            }).join('') : '<tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Nenhum equipamento encontrado com estes filtros.</td></tr>';
         }
-    } catch (err) { console.error("Erro ao carregar inventário:", err); }
+    } catch (err) { console.error("Erro ao carregar inventário filtrado:", err); }
 }
-
 async function alterarStatusInventario(id) {
     const novoStatus = prompt("Digite o novo status exato (Em uso, Em estoque, Danificado):");
     if(!novoStatus) return;
