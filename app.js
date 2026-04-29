@@ -9,11 +9,15 @@ document.addEventListener("DOMContentLoaded", () => {
             carregarResumoDashboard();
         }
         
-        // Verifica se o usuário é Operacional para exibir a aba Configurações
-        if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
-            if (usuarioAtual.role !== 'admin') {
-                const btnConfig = document.getElementById('btn-config');
-                if (btnConfig) btnConfig.classList.remove('hidden');
+       if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
+            const btnConfig = document.getElementById('btn-config');
+            if (btnConfig) {
+                // Só remove o 'hidden' se a role for cirurgicamente 'operacional'
+                if (usuarioAtual.role === 'operacional') {
+                    btnConfig.classList.remove('hidden');
+                } else {
+                    btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
+                }
             }
         }
     }, 1500); 
