@@ -908,12 +908,33 @@ async function salvarTreinamentoConcluido() {
 // ABA CONFIGURAÇÕES (SOMENTE OPERACIONAL)
 // ==========================================
 
-function carregarMeusDados() {
-    if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
-        document.getElementById('meu_email').value = usuarioAtual.email || '';
-        document.getElementById('meu_nome').value = usuarioAtual.nome || '';
-        document.getElementById('meu_celular').value = usuarioAtual.celular || '';
-        document.getElementById('meu_cpf').value = usuarioAtual.cpf || '';
+async function carregarMeusDados() {
+    try {
+        // 1. Pega a sessão atual de forma segura no Supabase
+        const { data: authData, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !authData.user) return;
+
+        // 2. Busca os dados reais e atualizados do banco
+        const { data: perfil, error: perfilErr } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+        if (perfilErr) throw perfilErr;
+
+        // 3. Preenche a tela
+        document.getElementById('meu_email').value = perfil.email || '';
+        document.getElementById('meu_nome').value = perfil.nome || '';
+        document.getElementById('meu_celular').value = perfil.celular || '';
+        document.getElementById('meu_cpf').value = perfil.cpf || '';
+
+        // Atualiza a variável global por segurança
+        if (typeof usuarioAtual !== 'undefined') {
+            usuarioAtual = { ...usuarioAtual, ...perfil };
+        }
+    } catch (err) {
+        console.error("Erro ao carregar meus dados:", err);
     }
 }
 
@@ -926,22 +947,28 @@ async function salvarMeusDados() {
     if (!nome || !email) return alert("Nome e E-mail são obrigatórios.");
 
     try {
+        // Confirma a sessão antes de salvar
+        const { data: authData } = await supabase.auth.getUser();
+        if (!authData.user) return alert("Sessão expirada. Faça login novamente.");
+
         const { error } = await supabase.from('profiles').update({
             email: email,
             nome: nome,
             celular: celular,
             cpf: cpf
-        }).eq('id', usuarioAtual.id);
+        }).eq('id', authData.user.id);
 
         if (error) throw error;
 
         alert("Seus dados foram atualizados com sucesso!");
         
-        // Atualiza a memória local
-        usuarioAtual.email = email;
-        usuarioAtual.nome = nome;
-        usuarioAtual.celular = celular;
-        usuarioAtual.cpf = cpf;
+        // Atualiza a variável global
+        if (typeof usuarioAtual !== 'undefined') {
+            usuarioAtual.email = email;
+            usuarioAtual.nome = nome;
+            usuarioAtual.celular = celular;
+            usuarioAtual.cpf = cpf;
+        }
         
         // Atualiza o nome exibido no Header
         const userNameHeader = document.getElementById('user-name');
@@ -975,7 +1002,6 @@ async function salvarMinhaSenha() {
         alert("Erro ao alterar a senha: " + err.message);
     }
 }
-
 
 // ==========================================
 // ADMIN: FUNÇÕES DE CADASTRO E USUÁRIOS
