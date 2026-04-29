@@ -930,26 +930,33 @@ async function salvarTreinamentoConcluido() {
 
 async function carregarMeusDados() {
     try {
-        // Vai direto na fonte sem depender de variável global
+        // 1. Verifica se a sessão está viva
         const { data: authData, error: authErr } = await supabase.auth.getUser();
-        if (authErr || !authData.user) return;
+        if (authErr) throw new Error("Falha na sessão: " + authErr.message);
+        if (!authData.user) throw new Error("Nenhum usuário logado encontrado.");
 
+        // 2. Tenta puxar do banco
         const { data: perfil, error: perfilErr } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', authData.user.id)
             .single();
 
-        if (perfilErr) throw perfilErr;
+        // Se o banco barrar, ele vai estourar o erro aqui!
+        if (perfilErr) {
+            throw new Error(`Erro do Banco (${perfilErr.code}): ${perfilErr.message}`);
+        }
 
-        // Preenche os campos na marra
+        // 3. Preenche a tela
         document.getElementById('meu_email').value = perfil.email || '';
         document.getElementById('meu_nome').value = perfil.nome || '';
         document.getElementById('meu_celular').value = perfil.celular || '';
         document.getElementById('meu_cpf').value = perfil.cpf || '';
 
     } catch (err) {
-        console.error("Erro ao carregar aba de configurações:", err);
+        // Agora o erro não é mais silencioso, ele vai gritar na sua tela!
+        alert("Oculto: " + err.message);
+        console.error("Detalhe do erro:", err);
     }
 }
 
