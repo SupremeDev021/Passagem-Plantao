@@ -1,86 +1,59 @@
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
-// Espera a página inteira carregar antes de puxar os dados
-document.addEventListener("DOMContentLoaded", async () => {
-    // 1. 🟢 CORREÇÃO DO PISCAR: Esconde o login imediatamente enquanto o Supabase "pensa"
-    const loginContainer = document.getElementById('login-container');
-    const appWrapper = document.getElementById('app-wrapper');
-    
-    if (loginContainer) {
-        loginContainer.style.opacity = '0'; // Deixa transparente rápido para não piscar
-        loginContainer.style.transition = 'opacity 0.3s ease'; // Dá uma transição suave
-    }
+document.addEventListener("DOMContentLoaded", () => {
+    // 🟢 O "espião" do Supabase: roda automático assim que a página abre
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        const loginContainer = document.getElementById('login-container');
+        const appWrapper = document.getElementById('app-wrapper');
 
-    // 2. Carrega o dashboard automaticamente após 1.5 segundos
-    setTimeout(() => {
-        if(typeof carregarResumoDashboard === 'function') {
-            carregarResumoDashboard();
-        }
-        
-        if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
-            const btnConfig = document.getElementById('btn-config');
-            if (btnConfig) {
-                // Só remove o 'hidden' se a role for cirurgicamente 'operacional'
-                if (usuarioAtual.role === 'operacional') {
-                    btnConfig.classList.remove('hidden');
-                } else {
-                    btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
+        if (session) {
+            // USUÁRIO LOGADO: Mostra o sistema e esconde o login
+            if (loginContainer) loginContainer.classList.add('hidden');
+            if (appWrapper) appWrapper.classList.remove('hidden');
+
+            try {
+                // Busca o nível de acesso
+                const { data: perfil } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (perfil) {
+                    window.usuarioAtual = perfil; // Salva para o sistema usar
+
+                    // Atualiza o nome no topo
+                    const userNameHeader = document.getElementById('user-name');
+                    if (userNameHeader) userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
+
+                    // Ajusta os menus
+                    const btnConfig = document.getElementById('btn-config');
+                    const btnAdmin = document.getElementById('btn-admin');
+
+                    if (perfil.role === 'operacional') {
+                        if (btnConfig) btnConfig.classList.remove('hidden');
+                        if (btnAdmin) btnAdmin.classList.add('hidden');
+                    } else if (perfil.role === 'admin') {
+                        if (btnConfig) btnConfig.classList.add('hidden');
+                        if (btnAdmin) btnAdmin.classList.remove('hidden');
+                    }
+
+                    // Carrega o dashboard e configurações NA HORA
+                    if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+                    if(typeof carregarMeusDados === 'function') carregarMeusDados();
                 }
-            }
-        }
-    }, 1500); 
-
-    // 3. BLINDAGEM DOS MENUS E SESSÃO
-    try {
-        const { data: authData } = await supabase.auth.getUser();
-        
-        if (authData && authData.user) {
-            // 🟢 SE O USUÁRIO ESTIVER LOGADO: Remove o login de vez e mostra o App
-            if (loginContainer) {
-                loginContainer.classList.add('hidden');
-                loginContainer.style.opacity = '1'; // Restaura para caso ele faça logout depois
-            }
-            if (appWrapper) {
-                appWrapper.classList.remove('hidden');
+            } catch (err) {
+                console.error("Erro ao carregar perfil:", err);
             }
 
-            const { data: perfil } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', authData.user.id)
-                .single();
-
-            if (perfil) {
-                const btnConfig = document.getElementById('btn-config');
-                const btnAdmin = document.getElementById('btn-admin');
-
-                // Mostra/Esconde com base na verdade absoluta do banco
-                if (perfil.role === 'operacional') {
-                    if (btnConfig) btnConfig.classList.remove('hidden');
-                    if (btnAdmin) btnAdmin.classList.add('hidden');
-                } else if (perfil.role === 'admin') {
-                    if (btnConfig) btnConfig.classList.add('hidden');
-                    if (btnAdmin) btnAdmin.classList.remove('hidden');
-                }
-            }
         } else {
-            // 🔴 SE NÃO ESTIVER LOGADO: Devolve a tela de login suavemente
-            if (loginContainer) {
-                loginContainer.classList.remove('hidden');
-                loginContainer.style.opacity = '1';
-            }
-            if (appWrapper) {
-                appWrapper.classList.add('hidden');
-            }
+            // 🔴 NINGUÉM LOGADO (ou fez Logout): Mostra só o Login
+            if (loginContainer) loginContainer.classList.remove('hidden');
+            if (appWrapper) appWrapper.classList.add('hidden');
         }
-    } catch (err) {
-        console.error("Erro ao verificar nível de acesso do menu:", err);
-        // Em caso de erro de conexão, devolve a tela de login por segurança
-        if (loginContainer) loginContainer.style.opacity = '1';
-    }
+    });
 });
-
 // ==========================================
 // TROCA DE ABAS E MODAIS
 // ==========================================
