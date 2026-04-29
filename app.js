@@ -63,6 +63,10 @@ function abrirAba(idAba) {
         carregarListaTreinamentos();
     }
 
+    if (idAba === 'aba-inventario') {
+        carregarInventario();
+    }
+
     if (idAba === 'aba-config') {
         carregarMeusDados();
     }
@@ -1406,6 +1410,126 @@ async function confirmarVistoPlantao() {
     } catch (err) {
         alert("Erro ao dar visto: " + err.message);
     }
+}
+
+// ==========================================
+// ABA: INVENTÁRIO
+// ==========================================
+async function abrirModalNovoEquipamento() {
+    try {
+        // Puxa as categorias que criamos no Supabase
+        const { data, error } = await supabase.from('tipos_equipamento').select('nome').order('nome');
+        if (!error) {
+            const sel = document.getElementById('inv_tipo');
+            sel.innerHTML = '<option value="">Selecione o Tipo...</option>' + 
+                            data.map(t => `<option value="${t.nome}">${t.nome}</option>`).join('');
+        }
+    } catch (e) { console.error(e); }
+    
+    document.getElementById('form-novo-equipamento').reset();
+    abrirModal('modal-novo-equipamento');
+}
+
+async function salvarNovoTipoEquipamento() {
+    const nome = document.getElementById('cad_tipo_nome').value.toUpperCase().trim();
+    if(!nome) return alert("Digite o nome do tipo de equipamento.");
+
+    try {
+        const { error } = await supabase.from('tipos_equipamento').insert([{ nome: nome }]);
+        if (error) throw error;
+        
+        alert("Novo tipo adicionado com sucesso!");
+        document.getElementById('cad_tipo_nome').value = '';
+        fecharModal('modal-novo-tipo');
+        abrirModalNovoEquipamento(); // Atualiza a lista na mesma hora
+    } catch (err) {
+        alert("Erro: Este tipo talvez já exista. " + err.message);
+    }
+}
+
+async function salvarEquipamento() {
+    const tipo = document.getElementById('inv_tipo').value;
+    const marca = document.getElementById('inv_marca').value;
+    const modelo = document.getElementById('inv_modelo').value;
+    const serie = document.getElementById('inv_serie').value;
+    const status = document.getElementById('inv_status').value;
+    const predio = document.getElementById('inv_predio').value;
+    const andar = document.getElementById('inv_andar').value;
+    const setor = document.getElementById('inv_setor').value;
+
+    if(!tipo || !marca || !modelo || !serie || !status) {
+        return alert("Preencha os campos obrigatórios (Tipo, Marca, Modelo, Série e Status).");
+    }
+
+    try {
+        const { error } = await supabase.from('inventario').insert([{
+            tipo, marca, modelo, numero_serie: serie, status, predio, andar, setor
+        }]);
+
+        if (error) throw error;
+
+        alert("Equipamento cadastrado com sucesso!");
+        fecharModal('modal-novo-equipamento');
+        carregarInventario();
+    } catch(err) {
+        alert("Erro ao salvar. Verifique se este Número de Série já está cadastrado. " + err.message);
+    }
+}
+
+async function carregarInventario() {
+    try {
+        const { data, error } = await supabase.from('inventario').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+
+        const tbody = document.getElementById('lista-inventario-aba');
+        if(tbody) {
+            tbody.innerHTML = data.map(e => {
+                let corStatus = '#3498db'; // Azul para estoque
+                if (e.status === 'Em uso') corStatus = '#2ecc71'; // Verde
+                if (e.status === 'Danificado') corStatus = '#e74c3c'; // Vermelho
+
+                return `
+                    <tr>
+                        <td><strong>${e.tipo}</strong></td>
+                        <td>${e.marca}<br><small>${e.modelo}</small></td>
+                        <td>${e.numero_serie}</td>
+                        <td>${e.predio || '-'} / ${e.setor || '-'} <br><small>(${e.andar || '-'})</small></td>
+                        <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${e.status}</span></td>
+                        <td>
+                            <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="alterarStatusInventario('${e.id}')">🔄 Status</button>
+                            <button class="btn-danger btn-sm" onclick="deletarEquipamento('${e.id}')">🗑️ Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar inventário:", err); }
+}
+
+async function alterarStatusInventario(id) {
+    const novoStatus = prompt("Digite o novo status exato (Em uso, Em estoque, Danificado):");
+    if(!novoStatus) return;
+    
+    // Validação para evitar que alguém digite errado
+    const statusValido = ['Em uso', 'Em estoque', 'Danificado'].includes(novoStatus);
+    if(!statusValido) return alert("Status inválido. Respeite as letras maiúsculas e minúsculas.");
+
+    try {
+        const { error } = await supabase.from('inventario').update({ status: novoStatus }).eq('id', id);
+        if (error) throw error;
+        alert("Status do equipamento atualizado!");
+        carregarInventario();
+    } catch (err) { alert("Erro ao atualizar: " + err.message); }
+}
+
+async function deletarEquipamento(id) {
+    if (!confirm("Tem certeza que deseja excluir este equipamento definitivamente da base?")) return;
+    try {
+        const { error } = await supabase.from('inventario').delete().eq('id', id);
+        if (error) throw error;
+        alert("Equipamento removido!");
+        carregarInventario();
+    } catch (err) { alert("Erro ao remover: " + err.message); }
 }
 
 // ==========================================
