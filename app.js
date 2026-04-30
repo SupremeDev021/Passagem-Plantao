@@ -1,194 +1,152 @@
 // ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD)
 // ==========================================
-// Espera a página inteira carregar antes de puxar os dados
 document.addEventListener("DOMContentLoaded", async () => {
-// 1. 🟢 CORREÇÃO DO PISCAR: Esconde o login imediatamente enquanto o Supabase "pensa"
-const loginContainer = document.getElementById('login-container');
-const appWrapper = document.getElementById('app-wrapper');
+    // 1. Carrega o dashboard após um breve delay visual
+    setTimeout(() => {
+        if(typeof carregarResumoDashboard === 'function') {
+            carregarResumoDashboard();
+        }
+    }, 1500); 
 
-if (loginContainer) {
-loginContainer.style.opacity = '0'; // Deixa transparente rápido para não piscar
-loginContainer.style.transition = 'opacity 0.3s ease'; // Dá uma transição suave
-}
+    // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
+    try {
+        const { data: authData } = await supabase.auth.getUser();
+        
+        if (authData && authData.user) {
+            const { data: perfil } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', authData.user.id)
+                .single();
 
-// 2. Carrega o dashboard automaticamente após 1.5 segundos
-setTimeout(() => {
-if(typeof carregarResumoDashboard === 'function') {
-carregarResumoDashboard();
-}
+            if (perfil) {
+                const btnConfig = document.getElementById('btn-config');
+                const btnAdmin = document.getElementById('btn-admin');
 
-if (typeof usuarioAtual !== 'undefined' && usuarioAtual) {
-const btnConfig = document.getElementById('btn-config');
-if (btnConfig) {
-// Só remove o 'hidden' se a role for cirurgicamente 'operacional'
-if (usuarioAtual.role === 'operacional') {
-btnConfig.classList.remove('hidden');
-} else {
-btnConfig.classList.add('hidden'); // Garante que fique escondido pro Admin
-}
-}
-}
-}, 1500); 
-
-// 3. BLINDAGEM DOS MENUS E SESSÃO
-try {
-const { data: authData } = await supabase.auth.getUser();
-
-if (authData && authData.user) {
-// 🟢 SE O USUÁRIO ESTIVER LOGADO: Remove o login de vez e mostra o App
-if (loginContainer) {
-loginContainer.classList.add('hidden');
-loginContainer.style.opacity = '1'; // Restaura para caso ele faça logout depois
-}
-if (appWrapper) {
-appWrapper.classList.remove('hidden');
-}
-
-const { data: perfil } = await supabase
-.from('profiles')
-.select('role')
-.eq('id', authData.user.id)
-.single();
-
-if (perfil) {
-const btnConfig = document.getElementById('btn-config');
-const btnAdmin = document.getElementById('btn-admin');
-
-// Mostra/Esconde com base na verdade absoluta do banco
-if (perfil.role === 'operacional') {
-if (btnConfig) btnConfig.classList.remove('hidden');
-if (btnAdmin) btnAdmin.classList.add('hidden');
-} else if (perfil.role === 'admin') {
-if (btnConfig) btnConfig.classList.add('hidden');
-if (btnAdmin) btnAdmin.classList.remove('hidden');
-}
-}
-} else {
-// 🔴 SE NÃO ESTIVER LOGADO: Devolve a tela de login suavemente
-if (loginContainer) {
-loginContainer.classList.remove('hidden');
-loginContainer.style.opacity = '1';
-}
-if (appWrapper) {
-appWrapper.classList.add('hidden');
-}
-}
-} catch (err) {
-console.error("Erro ao verificar nível de acesso do menu:", err);
-// Em caso de erro de conexão, devolve a tela de login por segurança
-if (loginContainer) loginContainer.style.opacity = '1';
-}
+                // Mostra/Esconde com base na verdade absoluta do banco
+                if (perfil.role === 'operacional') {
+                    if (btnConfig) btnConfig.classList.remove('hidden');
+                    if (btnAdmin) btnAdmin.classList.add('hidden');
+                } else if (perfil.role === 'admin') {
+                    if (btnConfig) btnConfig.classList.add('hidden');
+                    if (btnAdmin) btnAdmin.classList.remove('hidden');
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Erro ao verificar nível de acesso do menu:", err);
+    }
 });
 
 // ==========================================
 // TROCA DE ABAS E MODAIS
 // ==========================================
 function abrirAba(idAba) {
-// 1. Esconde todas as abas da tela
-document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
+    // 1. Esconde todas as abas da tela
+    document.querySelectorAll('.tab-content').forEach(aba => aba.classList.add('hidden'));
+    
+    // 2. Apaga o brilho (active) de todos os botões do menu
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // 3. Mostra a aba que você escolheu
+    const abaAlvo = document.getElementById(idAba);
+    if (abaAlvo) {
+        abaAlvo.classList.remove('hidden');
+    }
+    
+    // 4. Encontra o botão exato no menu e acende ele (Sem usar o 'event' que estava travando)
+    const botaoClicado = document.querySelector(`button[onclick*="${idAba}"]`);
+    if (botaoClicado) {
+        botaoClicado.classList.add('active');
+    }
 
-// 2. Apaga o brilho (active) de todos os botões do menu
-document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    // AJUSTES ESPECÍFICOS POR ABA
+    if (idAba === 'aba-plantao') {
+        carregarTecnicosSelect();
+    }
 
-// 3. Mostra a aba que você escolheu
-const abaAlvo = document.getElementById(idAba);
-if (abaAlvo) {
-abaAlvo.classList.remove('hidden');
-}
+    if (idAba === 'aba-toner') {
+        carregarListaToners();
+        carregarListaChamados();
+    }
+    
+    if (idAba === 'aba-ocorrencias') {
+        carregarListaOcorrencias();
+    }
 
-// 4. Encontra o botão exato no menu e acende ele (Sem usar o 'event' que estava travando)
-const botaoClicado = document.querySelector(`button[onclick*="${idAba}"]`);
-if (botaoClicado) {
-botaoClicado.classList.add('active');
-}
+    if (idAba === 'aba-chaves') {
+        carregarSelectChaves();
+    }
 
-// AJUSTES ESPECÍFICOS POR ABA
-if (idAba === 'aba-plantao') {
-carregarTecnicosSelect();
-}
+    if (idAba === 'aba-treinamentos') {
+        carregarListaTreinamentos();
+    }
 
-if (idAba === 'aba-toner') {
-carregarListaToners();
-carregarListaChamados();
-}
+    if (idAba === 'aba-inventario') {
+        carregarTiposFiltro();
+        carregarInventario();
+    }
 
-if (idAba === 'aba-ocorrencias') {
-carregarListaOcorrencias();
-}
+    if (idAba === 'aba-config') {
+        carregarMeusDados();
+    }
 
-if (idAba === 'aba-chaves') {
-carregarSelectChaves();
-}
-
-if (idAba === 'aba-treinamentos') {
-carregarListaTreinamentos();
-}
-
-if (idAba === 'aba-inventario') {
-carregarTiposFiltro();
-carregarInventario();
-}
-
-if (idAba === 'aba-config') {
-carregarMeusDados();
-}
-
-if (idAba === 'aba-admin') {
-carregarPlantoesAdmin();
-}
+    if (idAba === 'aba-admin') {
+        carregarPlantoesAdmin();
+    }
 }
 
 // Controle de Modais (Janelas Flutuantes)
 function abrirModal(idModal) {
-document.getElementById(idModal).classList.add('flex');
-
-// Se abrir o modal de permissões, carrega a tabela automaticamente
-if (idModal === 'modal-permissoes') {
-carregarTabelaUsuarios();
-}
+    document.getElementById(idModal).classList.add('flex');
+    
+    // Se abrir o modal de permissões, carrega a tabela automaticamente
+    if (idModal === 'modal-permissoes') {
+        carregarTabelaUsuarios();
+    }
 }
 
 function fecharModal(idModal) {
-document.getElementById(idModal).classList.remove('flex');
+    document.getElementById(idModal).classList.remove('flex');
 }
 
 // Fechar modal ao clicar do lado de fora
 window.onclick = function(event) {
-if (event.target.classList.contains('modal')) {
-event.target.classList.remove('flex');
-}
+    if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('flex');
+    }
 }
 
 // Lógica de Campos Condicionais (Para selects antigos - mantido por segurança)
 function toggleCondicional(selectId, divId, condicaoShow) {
-const valor = document.getElementById(selectId).value;
-const div = document.getElementById(divId);
-const textarea = div.querySelector('textarea');
-
-if (valor === condicaoShow) {
-div.classList.remove('hidden');
-textarea.required = true;
-} else {
-div.classList.add('hidden');
-textarea.required = false;
-textarea.value = ''; // Limpa se o usuário mudar de ideia
-}
+    const valor = document.getElementById(selectId).value;
+    const div = document.getElementById(divId);
+    const textarea = div.querySelector('textarea');
+    
+    if (valor === condicaoShow) {
+        div.classList.remove('hidden');
+        textarea.required = true;
+    } else {
+        div.classList.add('hidden');
+        textarea.required = false;
+        textarea.value = ''; // Limpa se o usuário mudar de ideia
+    }
 }
 
 // NOVA FUNÇÃO: Lógica de Campos Condicionais para Checkboxes
 function toggleCondicionalCheckbox(checkboxElement, divId, mostrarQuandoMarcado) {
-const div = document.getElementById(divId);
-const textarea = div.querySelector('textarea');
-
-if ((mostrarQuandoMarcado && checkboxElement.checked) || (!mostrarQuandoMarcado && !checkboxElement.checked)) {
-div.classList.remove('hidden');
-textarea.required = true;
-} else {
-div.classList.add('hidden');
-textarea.required = false;
-textarea.value = ''; // Limpa se o usuário mudar de ideia
-}
+    const div = document.getElementById(divId);
+    const textarea = div.querySelector('textarea');
+    
+    if ((mostrarQuandoMarcado && checkboxElement.checked) || (!mostrarQuandoMarcado && !checkboxElement.checked)) {
+        div.classList.remove('hidden');
+        textarea.required = true;
+    } else {
+        div.classList.add('hidden');
+        textarea.required = false;
+        textarea.value = ''; // Limpa se o usuário mudar de ideia
+    }
 }
 
 // ==========================================
@@ -197,54 +155,54 @@ textarea.value = ''; // Limpa se o usuário mudar de ideia
 let tecnicosNoPlantao = []; // Array que guarda os selecionados
 
 async function carregarTecnicosSelect() {
-try {
-const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
-if (error) throw error;
-
-const select = document.getElementById('select-tecnicos-plantao');
-if (select) {
-select.innerHTML = '<option value="">Selecione um colega...</option>' + 
-data.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
-}
-} catch (err) { console.error("Erro ao carregar técnicos:", err); }
+    try {
+        const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
+        if (error) throw error;
+        
+        const select = document.getElementById('select-tecnicos-plantao');
+        if (select) {
+            select.innerHTML = '<option value="">Selecione um colega...</option>' + 
+                               data.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar técnicos:", err); }
 }
 
 function adicionarTecnico() {
-const select = document.getElementById('select-tecnicos-plantao');
-const id = select.value;
-const nome = select.options[select.selectedIndex]?.text;
+    const select = document.getElementById('select-tecnicos-plantao');
+    const id = select.value;
+    const nome = select.options[select.selectedIndex]?.text;
 
-if (!id) return alert("Selecione um técnico na lista.");
+    if (!id) return alert("Selecione um técnico na lista.");
+    
+    // Impede adicionar o mesmo técnico duas vezes
+    if (tecnicosNoPlantao.find(t => t.id === id)) {
+        return alert("Este colega já foi adicionado ao plantão!");
+    }
 
-// Impede adicionar o mesmo técnico duas vezes
-if (tecnicosNoPlantao.find(t => t.id === id)) {
-return alert("Este colega já foi adicionado ao plantão!");
-}
-
-tecnicosNoPlantao.push({ id, nome });
-atualizarInterfaceTecnicos();
-select.value = ''; // Reseta o dropdown
+    tecnicosNoPlantao.push({ id, nome });
+    atualizarInterfaceTecnicos();
+    select.value = ''; // Reseta o dropdown
 }
 
 function removerTecnico(id) {
-tecnicosNoPlantao = tecnicosNoPlantao.filter(t => t.id !== id);
-atualizarInterfaceTecnicos();
+    tecnicosNoPlantao = tecnicosNoPlantao.filter(t => t.id !== id);
+    atualizarInterfaceTecnicos();
 }
 
 function atualizarInterfaceTecnicos() {
-const container = document.getElementById('lista-tecnicos-plantao');
+    const container = document.getElementById('lista-tecnicos-plantao');
+    
+    if (tecnicosNoPlantao.length === 0) {
+        container.innerHTML = '<span style="font-size: 12px; color: #94a3b8; text-align: center;">Você está sozinho no plantão?</span>';
+        return;
+    }
 
-if (tecnicosNoPlantao.length === 0) {
-container.innerHTML = '<span style="font-size: 12px; color: #94a3b8; text-align: center;">Você está sozinho no plantão?</span>';
-return;
-}
-
-container.innerHTML = tecnicosNoPlantao.map(t => `
-       <div class="tecnico-badge">
-           <span>${t.nome}</span>
-           <button type="button" onclick="removerTecnico('${t.id}')" title="Remover">✕</button>
-       </div>
-   `).join('');
+    container.innerHTML = tecnicosNoPlantao.map(t => `
+        <div class="tecnico-badge">
+            <span>${t.nome}</span>
+            <button type="button" onclick="removerTecnico('${t.id}')" title="Remover">✕</button>
+        </div>
+    `).join('');
 }
 
 
@@ -252,718 +210,718 @@ container.innerHTML = tecnicosNoPlantao.map(t => `
 // ABA 1: SALVAR PLANTÃO
 // ==========================================
 async function salvarPlantao() {
-try {
-// 1. Faz upload da assinatura
-const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
+    try {
+        // 1. Faz upload da assinatura
+        const urlAssinatura = await uploadAssinatura(document.getElementById('canvas-plantao'), 'plantao');
 
-// 2. Coleta os dados 
-const dados = {
-usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
-tecnicos_plantao: tecnicosNoPlantao.map(t => t.nome).join(', '), // Nomes da equipe adicionados
-hora_assumiu: document.getElementById('p_hora_assumiu').value,
-hora_largou: document.getElementById('p_hora_largou').value,
-emails_resp: document.getElementById('p_emails').checked,
-motivo_emails: document.getElementById('p_motivo_emails').value,
-chamados_pend: document.getElementById('p_chamados').checked,
-motivo_chamados: document.getElementById('p_motivo_chamados').value,
-forms_zerado: document.getElementById('p_forms').checked,
-motivo_forms: document.getElementById('p_motivo_forms').value,
+        // 2. Coleta os dados 
+        const dados = {
+            usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
+            tecnicos_plantao: tecnicosNoPlantao.map(t => t.nome).join(', '), // Nomes da equipe adicionados
+            hora_assumiu: document.getElementById('p_hora_assumiu').value,
+            hora_largou: document.getElementById('p_hora_largou').value,
+            emails_resp: document.getElementById('p_emails').checked,
+            motivo_emails: document.getElementById('p_motivo_emails').value,
+            chamados_pend: document.getElementById('p_chamados').checked,
+            motivo_chamados: document.getElementById('p_motivo_chamados').value,
+            forms_zerado: document.getElementById('p_forms').checked,
+            motivo_forms: document.getElementById('p_motivo_forms').value,
+            
+            // NOVO: FORMS DE TREINAMENTO
+            forms_treinamento: document.getElementById('p_forms_treinamento').checked,
+            motivo_treinamento: document.getElementById('p_motivo_treinamento').value,
+            
+            maquinas_func: document.getElementById('p_maquinas').checked,
+            motivo_maquinas: document.getElementById('p_motivo_maquinas').value,
+            cadeiras_lugar: document.getElementById('p_cadeiras').checked,
+            motivo_cadeiras: document.getElementById('p_motivo_cadeiras').value,
+            painel_tv: document.getElementById('p_tv').checked,
+            motivo_tv: document.getElementById('p_motivo_tv').value,
+            ocorrencias: document.getElementById('p_ocorrencias').checked,
+            motivo_ocorrencias: document.getElementById('p_motivo_ocorrencias').value,
+            assinatura_url: urlAssinatura
+        };
 
-// NOVO: FORMS DE TREINAMENTO
-forms_treinamento: document.getElementById('p_forms_treinamento').checked,
-motivo_treinamento: document.getElementById('p_motivo_treinamento').value,
+        // 3. Salva no Supabase
+        const { error } = await supabase.from('plantoes').insert([dados]);
 
-maquinas_func: document.getElementById('p_maquinas').checked,
-motivo_maquinas: document.getElementById('p_motivo_maquinas').value,
-cadeiras_lugar: document.getElementById('p_cadeiras').checked,
-motivo_cadeiras: document.getElementById('p_motivo_cadeiras').value,
-painel_tv: document.getElementById('p_tv').checked,
-motivo_tv: document.getElementById('p_motivo_tv').value,
-ocorrencias: document.getElementById('p_ocorrencias').checked,
-motivo_ocorrencias: document.getElementById('p_motivo_ocorrencias').value,
-assinatura_url: urlAssinatura
-};
+        if (error) throw error;
 
-// 3. Salva no Supabase
-const { error } = await supabase.from('plantoes').insert([dados]);
+        alert('Plantão registrado com sucesso!');
+        
+        // 4. Limpa tudo para o próximo plantão
+        document.getElementById('form-plantao').reset();
+        limparCanvas('canvas-plantao');
+        tecnicosNoPlantao = []; // Esvazia o array de colegas
+        atualizarInterfaceTecnicos(); // Limpa a lista visual da tela
 
-if (error) throw error;
-
-alert('Plantão registrado com sucesso!');
-
-// 4. Limpa tudo para o próximo plantão
-document.getElementById('form-plantao').reset();
-limparCanvas('canvas-plantao');
-tecnicosNoPlantao = []; // Esvazia o array de colegas
-atualizarInterfaceTecnicos(); // Limpa a lista visual da tela
-
-} catch (err) {
-console.error(err);
-alert('Erro ao salvar: Verifique se preencheu os horários e assinou.');
-}
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao salvar: Verifique se preencheu os horários e assinou.');
+    }
 }
 
 // ==========================================
 // ABA 2: CHAVES
 // ==========================================
 async function carregarSelectChaves() {
-try {
-// Carrega chaves disponíveis
-const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
-const selDisp = document.getElementById('select-chaves-disponiveis');
-if(selDisp) {
-selDisp.innerHTML = '<option value="">Selecione a chave...</option>' + 
-disponiveis.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
-}
+    try {
+        // Carrega chaves disponíveis
+        const { data: disponiveis } = await supabase.from('chaves').select('*').eq('status', 'disponivel');
+        const selDisp = document.getElementById('select-chaves-disponiveis');
+        if(selDisp) {
+            selDisp.innerHTML = '<option value="">Selecione a chave...</option>' + 
+                                disponiveis.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
+        }
 
-// Carrega chaves em uso (retiradas)
-const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
-const selRet = document.getElementById('select-chaves-retiradas');
-if(selRet) {
-selRet.innerHTML = '<option value="">Selecione a chave...</option>' + 
-retiradas.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
-}
-} catch (err) {
-console.log("Erro no DB (Chaves):", err);
-}
+        // Carrega chaves em uso (retiradas)
+        const { data: retiradas } = await supabase.from('chaves').select('*').eq('status', 'retirada');
+        const selRet = document.getElementById('select-chaves-retiradas');
+        if(selRet) {
+            selRet.innerHTML = '<option value="">Selecione a chave...</option>' + 
+                               retiradas.map(c => `<option value="${c.id}">${c.nome} (${c.localizacao})</option>`).join('');
+        }
+    } catch (err) {
+        console.log("Erro no DB (Chaves):", err);
+    }
 }
 
 async function registrarChave(tipo) { 
-const selectId = tipo === 'retirada' ? 'select-chaves-disponiveis' : 'select-chaves-retiradas';
-const canvasId = tipo === 'retirada' ? 'canvas-retirada' : 'canvas-devolucao';
-const horaId = tipo === 'retirada' ? 'hora-retirada' : 'hora-devolucao';
-const responsavelId = tipo === 'retirada' ? 'responsavel-retirada' : 'responsavel-devolucao';
-const formId = tipo === 'retirada' ? 'form-retirada-chave' : 'form-devolucao-chave';
+    const selectId = tipo === 'retirada' ? 'select-chaves-disponiveis' : 'select-chaves-retiradas';
+    const canvasId = tipo === 'retirada' ? 'canvas-retirada' : 'canvas-devolucao';
+    const horaId = tipo === 'retirada' ? 'hora-retirada' : 'hora-devolucao';
+    const responsavelId = tipo === 'retirada' ? 'responsavel-retirada' : 'responsavel-devolucao';
+    const formId = tipo === 'retirada' ? 'form-retirada-chave' : 'form-devolucao-chave';
 
-const chaveId = document.getElementById(selectId).value;
-const dataHora = document.getElementById(horaId).value;
-const responsavel = document.getElementById(responsavelId).value;
+    const chaveId = document.getElementById(selectId).value;
+    const dataHora = document.getElementById(horaId).value;
+    const responsavel = document.getElementById(responsavelId).value;
 
-if (!chaveId || !dataHora || !responsavel) {
-return alert('Preencha todos os campos antes de prosseguir.');
-}
+    if (!chaveId || !dataHora || !responsavel) {
+        return alert('Preencha todos os campos antes de prosseguir.');
+    }
 
-try {
-let urlFoto = null;
+    try {
+        let urlFoto = null;
+        
+        // NOVO: Lógica de upload de foto exclusiva para DEVOLUÇÃO
+        if (tipo === 'devolucao') {
+            const inputFoto = document.getElementById('foto-devolucao');
+            if (inputFoto.files.length === 0) {
+                return alert("Anexe a foto da chave/local para registrar a devolução.");
+            }
+            
+            const fotoFile = inputFoto.files[0];
+            const nomeFoto = `devolucao_chave_${Date.now()}_${fotoFile.name}`;
+            
+            // Usando o mesmo bucket 'assinaturas' que você já tem para armazenar
+            const { error: errFoto } = await supabase.storage.from('assinaturas').upload(nomeFoto, fotoFile);
+            if (errFoto) throw errFoto;
+            
+            urlFoto = supabase.storage.from('assinaturas').getPublicUrl(nomeFoto).data.publicUrl;
+        }
 
-// NOVO: Lógica de upload de foto exclusiva para DEVOLUÇÃO
-if (tipo === 'devolucao') {
-const inputFoto = document.getElementById('foto-devolucao');
-if (inputFoto.files.length === 0) {
-return alert("Anexe a foto da chave/local para registrar a devolução.");
-}
+        const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
 
-const fotoFile = inputFoto.files[0];
-const nomeFoto = `devolucao_chave_${Date.now()}_${fotoFile.name}`;
+        // 1. Registra o movimento na tabela de histórico
+        const payloadMovimento = {
+            chave_id: chaveId,
+            usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
+            tipo_movimento: tipo,
+            data_hora: dataHora,
+            responsavel: responsavel,
+            assinatura_url: urlAssinatura
+        };
+        
+        // Se tiver foto (Devolução), adiciona no payload de salvamento
+        if (urlFoto) {
+            payloadMovimento.foto_url = urlFoto; 
+        }
 
-// Usando o mesmo bucket 'assinaturas' que você já tem para armazenar
-const { error: errFoto } = await supabase.storage.from('assinaturas').upload(nomeFoto, fotoFile);
-if (errFoto) throw errFoto;
+        await supabase.from('movimentacao_chaves').insert([payloadMovimento]);
 
-urlFoto = supabase.storage.from('assinaturas').getPublicUrl(nomeFoto).data.publicUrl;
-}
+        // 2. Atualiza o status físico da chave
+        const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
+        await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
 
-const urlAssinatura = await uploadAssinatura(document.getElementById(canvasId), `chave_${tipo}`);
+        alert(`Sucesso! Chave ${tipo === 'retirada' ? 'retirada' : 'devolvida'}.`);
+        
+        document.getElementById(formId).reset();
+        limparCanvas(canvasId);
+        carregarSelectChaves(); // Recarrega os dropdowns na mesma hora
 
-// 1. Registra o movimento na tabela de histórico
-const payloadMovimento = {
-chave_id: chaveId,
-usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
-tipo_movimento: tipo,
-data_hora: dataHora,
-responsavel: responsavel,
-assinatura_url: urlAssinatura
-};
-
-// Se tiver foto (Devolução), adiciona no payload de salvamento
-if (urlFoto) {
-payloadMovimento.foto_url = urlFoto; 
-}
-
-await supabase.from('movimentacao_chaves').insert([payloadMovimento]);
-
-// 2. Atualiza o status físico da chave
-const novoStatus = tipo === 'retirada' ? 'retirada' : 'disponivel';
-await supabase.from('chaves').update({ status: novoStatus }).eq('id', chaveId);
-
-alert(`Sucesso! Chave ${tipo === 'retirada' ? 'retirada' : 'devolvida'}.`);
-
-document.getElementById(formId).reset();
-limparCanvas(canvasId);
-carregarSelectChaves(); // Recarrega os dropdowns na mesma hora
-
-} catch (err) { 
-alert('Erro ao processar chave: ' + err.message); 
-}
+    } catch (err) { 
+        alert('Erro ao processar chave: ' + err.message); 
+    }
 }
 
 // ==========================================
 // ABA 3: GESTÃO DE OCORRÊNCIAS 
 // ==========================================
 async function salvarOcorrencia() {
-const descricao = document.getElementById('o_descricao').value;
-const proposta = document.getElementById('o_proposta').value;
-const prazo = document.getElementById('o_prazo').value;
-const responsavel = document.getElementById('o_responsavel').value;
-const observacao = document.getElementById('o_observacao').value;
+    const descricao = document.getElementById('o_descricao').value;
+    const proposta = document.getElementById('o_proposta').value;
+    const prazo = document.getElementById('o_prazo').value;
+    const responsavel = document.getElementById('o_responsavel').value;
+    const observacao = document.getElementById('o_observacao').value;
 
-if (!descricao || !proposta || !prazo || !responsavel) {
-return alert("Preencha todos os campos obrigatórios da ocorrência.");
-}
+    if (!descricao || !proposta || !prazo || !responsavel) {
+        return alert("Preencha todos os campos obrigatórios da ocorrência.");
+    }
 
-try {
-const sigUrl = await uploadAssinatura(document.getElementById('canvas-nova-ocorrencia'), 'abertura_ocorrencia');
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-nova-ocorrencia'), 'abertura_ocorrencia');
 
-const { error } = await supabase.from('ocorrencias').insert([{
-descricao: descricao,
-solucao_proposta: proposta,
-prazo: prazo,
-observacao: observacao,
-responsavel_abertura: responsavel,
-assinatura_abertura_url: sigUrl,
-status: 'Pendente' 
-}]);
+        const { error } = await supabase.from('ocorrencias').insert([{
+            descricao: descricao,
+            solucao_proposta: proposta,
+            prazo: prazo,
+            observacao: observacao,
+            responsavel_abertura: responsavel,
+            assinatura_abertura_url: sigUrl,
+            status: 'Pendente' 
+        }]);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Ocorrência registrada com sucesso!");
-document.getElementById('form-nova-ocorrencia').reset();
-limparCanvas('canvas-nova-ocorrencia');
-carregarListaOcorrencias();
+        alert("Ocorrência registrada com sucesso!");
+        document.getElementById('form-nova-ocorrencia').reset();
+        limparCanvas('canvas-nova-ocorrencia');
+        carregarListaOcorrencias();
 
-} catch (err) {
-alert("Erro ao salvar ocorrência: " + err.message);
-}
+    } catch (err) {
+        alert("Erro ao salvar ocorrência: " + err.message);
+    }
 }
 
 async function carregarListaOcorrencias() {
-try {
-const { data, error } = await supabase.from('ocorrencias').select('*').order('created_at', { ascending: false });
-if (error) throw error;
+    try {
+        const { data, error } = await supabase.from('ocorrencias').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
 
-const tbody = document.getElementById('lista-ocorrencias-aba');
-if (tbody) {
-tbody.innerHTML = data.map(o => {
-const prazoFormatado = o.prazo ? o.prazo.split('-').reverse().join('/') : '-';
+        const tbody = document.getElementById('lista-ocorrencias-aba');
+        if (tbody) {
+            tbody.innerHTML = data.map(o => {
+                const prazoFormatado = o.prazo ? o.prazo.split('-').reverse().join('/') : '-';
+                
+                let corStatus = '#e74c3c'; 
+                if (o.status === 'Solucionada') corStatus = '#2ecc71'; 
+                else if (o.status === 'Em andamento') corStatus = '#f39c12'; 
+                else if (o.status === 'Cancelada') corStatus = '#7f8c8d';
 
-let corStatus = '#e74c3c'; 
-if (o.status === 'Solucionada') corStatus = '#2ecc71'; 
-else if (o.status === 'Em andamento') corStatus = '#f39c12'; 
-else if (o.status === 'Cancelada') corStatus = '#7f8c8d';
-
-return `
-                   <tr>
-                       <td>${o.descricao}</td>
-                       <td>${prazoFormatado}</td>
-                       <td>${o.responsavel_abertura}</td>
-                       <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${o.status}</span></td>
-                       <td>
-                           <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                               <button class="btn-primary btn-sm" style="background: #3498db;" onclick="abrirModalVerOcorrencia('${o.id}')">👁️ Ver</button>
-                               ${o.status !== 'Solucionada' && o.status !== 'Cancelada' ? `
-                                   <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarOcorrencia('${o.id}')">✏️ Editar</button>
-                                   <button class="btn-success btn-sm" onclick="abrirModalFinalizarOcorrencia('${o.id}')">✔️ Solucionar</button>
-                                   <button class="btn-danger btn-sm" onclick="cancelarOcorrencia('${o.id}')">❌ Cancelar</button>
-                               ` : ''}
-                           </div>
-                       </td>
-                   </tr>
-               `;
-}).join('');
-}
-} catch (err) { console.error("Erro ao carregar ocorrências:", err.message); }
+                return `
+                    <tr>
+                        <td>${o.descricao}</td>
+                        <td>${prazoFormatado}</td>
+                        <td>${o.responsavel_abertura}</td>
+                        <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${o.status}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <button class="btn-primary btn-sm" style="background: #3498db;" onclick="abrirModalVerOcorrencia('${o.id}')">👁️ Ver</button>
+                                ${o.status !== 'Solucionada' && o.status !== 'Cancelada' ? `
+                                    <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarOcorrencia('${o.id}')">✏️ Editar</button>
+                                    <button class="btn-success btn-sm" onclick="abrirModalFinalizarOcorrencia('${o.id}')">✔️ Solucionar</button>
+                                    <button class="btn-danger btn-sm" onclick="cancelarOcorrencia('${o.id}')">❌ Cancelar</button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar ocorrências:", err.message); }
 }
 
 async function abrirModalVerOcorrencia(id) {
-try {
-const { data: o, error } = await supabase.from('ocorrencias').select('*').eq('id', id).single();
-if (error) throw error;
+    try {
+        const { data: o, error } = await supabase.from('ocorrencias').select('*').eq('id', id).single();
+        if (error) throw error;
 
-const conteudo = document.getElementById('detalhes-ocorrencia-conteudo');
-const prazoFormatado = o.prazo ? o.prazo.split('-').reverse().join('/') : '-';
-const dataAbertura = new Date(o.created_at).toLocaleString('pt-BR');
+        const conteudo = document.getElementById('detalhes-ocorrencia-conteudo');
+        const prazoFormatado = o.prazo ? o.prazo.split('-').reverse().join('/') : '-';
+        const dataAbertura = new Date(o.created_at).toLocaleString('pt-BR');
 
-conteudo.innerHTML = `
-           <p><strong>🚨 Ocorrência:</strong> ${o.descricao}</p>
-           <p><strong>💡 Solução Proposta:</strong> ${o.solucao_proposta}</p>
-           <p><strong>📅 Prazo Máximo:</strong> ${prazoFormatado}</p>
-           <p><strong>👤 Resp. Abertura:</strong> ${o.responsavel_abertura}</p>
-           <p><strong>🕒 Data Abertura:</strong> ${dataAbertura}</p>
-           <p><strong>📝 Observação:</strong> ${o.observacao || 'Nenhuma observação registrada.'}</p>
-           <p><strong>📌 Status:</strong> ${o.status}</p>
-           
-           ${o.status === 'Cancelada' && o.motivo_cancelamento ? `
-               <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
-               <p style="color: #c0392b;"><strong>❌ Motivo do Cancelamento:</strong> ${o.motivo_cancelamento}</p>
-           ` : ''}
+        conteudo.innerHTML = `
+            <p><strong>🚨 Ocorrência:</strong> ${o.descricao}</p>
+            <p><strong>💡 Solução Proposta:</strong> ${o.solucao_proposta}</p>
+            <p><strong>📅 Prazo Máximo:</strong> ${prazoFormatado}</p>
+            <p><strong>👤 Resp. Abertura:</strong> ${o.responsavel_abertura}</p>
+            <p><strong>🕒 Data Abertura:</strong> ${dataAbertura}</p>
+            <p><strong>📝 Observação:</strong> ${o.observacao || 'Nenhuma observação registrada.'}</p>
+            <p><strong>📌 Status:</strong> ${o.status}</p>
+            
+            ${o.status === 'Cancelada' && o.motivo_cancelamento ? `
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                <p style="color: #c0392b;"><strong>❌ Motivo do Cancelamento:</strong> ${o.motivo_cancelamento}</p>
+            ` : ''}
 
-           ${o.status === 'Solucionada' ? `
-               <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
-               <p><strong>✅ Solução Aplicada:</strong> ${o.solucao_aplicada}</p>
-               <p><strong>🛠️ Quem Solucionou:</strong> ${o.quem_solucionou}</p>
-               <p><strong>👀 Quem Acompanhou:</strong> ${o.quem_acompanhou}</p>
-               <p><strong>🏁 Data Finalização:</strong> ${new Date(o.data_finalizacao).toLocaleString('pt-BR')}</p>
-               <div style="margin-top: 15px;">
-                   <strong>✍️ Assinatura do Fechamento:</strong><br>
-                   <img src="${o.assinatura_fechamento_url}" style="max-width: 250px; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 5px;">
-               </div>
-           ` : ''}
-       `;
+            ${o.status === 'Solucionada' ? `
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                <p><strong>✅ Solução Aplicada:</strong> ${o.solucao_aplicada}</p>
+                <p><strong>🛠️ Quem Solucionou:</strong> ${o.quem_solucionou}</p>
+                <p><strong>👀 Quem Acompanhou:</strong> ${o.quem_acompanhou}</p>
+                <p><strong>🏁 Data Finalização:</strong> ${new Date(o.data_finalizacao).toLocaleString('pt-BR')}</p>
+                <div style="margin-top: 15px;">
+                    <strong>✍️ Assinatura do Fechamento:</strong><br>
+                    <img src="${o.assinatura_fechamento_url}" style="max-width: 250px; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 5px;">
+                </div>
+            ` : ''}
+        `;
 
-abrirModal('modal-ver-ocorrencia');
-} catch (err) {
-alert("Erro ao buscar detalhes da ocorrência: " + err.message);
-}
+        abrirModal('modal-ver-ocorrencia');
+    } catch (err) {
+        alert("Erro ao buscar detalhes da ocorrência: " + err.message);
+    }
 }
 
 async function abrirModalEditarOcorrencia(id) {
-try {
-const { data: o, error } = await supabase.from('ocorrencias').select('*').eq('id', id).single();
-if (error) throw error;
+    try {
+        const { data: o, error } = await supabase.from('ocorrencias').select('*').eq('id', id).single();
+        if (error) throw error;
 
-document.getElementById('edit_o_id').value = o.id;
-document.getElementById('edit_o_descricao').value = o.descricao;
-document.getElementById('edit_o_proposta').value = o.solucao_proposta;
-document.getElementById('edit_o_prazo').value = o.prazo;
-document.getElementById('edit_o_responsavel').value = o.responsavel_abertura;
-document.getElementById('edit_o_observacao').value = o.observacao || '';
+        document.getElementById('edit_o_id').value = o.id;
+        document.getElementById('edit_o_descricao').value = o.descricao;
+        document.getElementById('edit_o_proposta').value = o.solucao_proposta;
+        document.getElementById('edit_o_prazo').value = o.prazo;
+        document.getElementById('edit_o_responsavel').value = o.responsavel_abertura;
+        document.getElementById('edit_o_observacao').value = o.observacao || '';
 
-abrirModal('modal-editar-ocorrencia');
-} catch (err) {
-alert("Erro ao carregar dados para edição: " + err.message);
-}
+        abrirModal('modal-editar-ocorrencia');
+    } catch (err) {
+        alert("Erro ao carregar dados para edição: " + err.message);
+    }
 }
 
 async function salvarEdicaoOcorrencia() {
-const id = document.getElementById('edit_o_id').value;
-const descricao = document.getElementById('edit_o_descricao').value;
-const proposta = document.getElementById('edit_o_proposta').value;
-const prazo = document.getElementById('edit_o_prazo').value;
-const responsavel = document.getElementById('edit_o_responsavel').value;
-const observacao = document.getElementById('edit_o_observacao').value;
+    const id = document.getElementById('edit_o_id').value;
+    const descricao = document.getElementById('edit_o_descricao').value;
+    const proposta = document.getElementById('edit_o_proposta').value;
+    const prazo = document.getElementById('edit_o_prazo').value;
+    const responsavel = document.getElementById('edit_o_responsavel').value;
+    const observacao = document.getElementById('edit_o_observacao').value;
 
-if (!descricao || !proposta || !prazo || !responsavel) {
-return alert("Preencha todos os campos obrigatórios.");
-}
+    if (!descricao || !proposta || !prazo || !responsavel) {
+        return alert("Preencha todos os campos obrigatórios.");
+    }
 
-try {
-const { error } = await supabase.from('ocorrencias').update({
-descricao: descricao,
-solucao_proposta: proposta,
-prazo: prazo,
-responsavel_abertura: responsavel,
-observacao: observacao
-}).eq('id', id);
+    try {
+        const { error } = await supabase.from('ocorrencias').update({
+            descricao: descricao,
+            solucao_proposta: proposta,
+            prazo: prazo,
+            responsavel_abertura: responsavel,
+            observacao: observacao
+        }).eq('id', id);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Ocorrência atualizada com sucesso!");
-fecharModal('modal-editar-ocorrencia');
-carregarListaOcorrencias();
-} catch (err) {
-alert("Erro ao salvar edição: " + err.message);
-}
+        alert("Ocorrência atualizada com sucesso!");
+        fecharModal('modal-editar-ocorrencia');
+        carregarListaOcorrencias();
+    } catch (err) {
+        alert("Erro ao salvar edição: " + err.message);
+    }
 }
 
 // 🟢 ATUALIZADO: Agora pede o motivo e muda o status
 async function cancelarOcorrencia(id) {
-const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento desta ocorrência:");
+    const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento desta ocorrência:");
+    
+    // Se o usuário clicar em "Cancelar" no prompt, a variável vem nula e abortamos a operação
+    if (motivo === null) return; 
+    
+    // Se o usuário der OK mas deixar em branco, barramos
+    if (motivo.trim() === "") {
+        return alert("O motivo é obrigatório para cancelar uma ocorrência!");
+    }
 
-// Se o usuário clicar em "Cancelar" no prompt, a variável vem nula e abortamos a operação
-if (motivo === null) return; 
+    try {
+        const { error } = await supabase.from('ocorrencias').update({
+            status: 'Cancelada',
+            motivo_cancelamento: motivo
+        }).eq('id', id);
+        
+        if (error) throw error;
 
-// Se o usuário der OK mas deixar em branco, barramos
-if (motivo.trim() === "") {
-return alert("O motivo é obrigatório para cancelar uma ocorrência!");
-}
-
-try {
-const { error } = await supabase.from('ocorrencias').update({
-status: 'Cancelada',
-motivo_cancelamento: motivo
-}).eq('id', id);
-
-if (error) throw error;
-
-alert("Ocorrência cancelada com sucesso!");
-carregarListaOcorrencias();
-if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
-} catch (err) {
-alert("Erro ao cancelar ocorrência: " + err.message);
-}
+        alert("Ocorrência cancelada com sucesso!");
+        carregarListaOcorrencias();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+    } catch (err) {
+        alert("Erro ao cancelar ocorrência: " + err.message);
+    }
 }
 
 function abrirModalFinalizarOcorrencia(id) {
-document.getElementById('f_ocorrencia_id').value = id;
-limparCanvas('canvas-finalizar-ocorrencia');
-abrirModal('modal-finalizar-ocorrencia');
+    document.getElementById('f_ocorrencia_id').value = id;
+    limparCanvas('canvas-finalizar-ocorrencia');
+    abrirModal('modal-finalizar-ocorrencia');
 }
 
 async function finalizarOcorrencia() {
-const id = document.getElementById('f_ocorrencia_id').value;
-const solucao = document.getElementById('f_solucao').value;
-const solucionador = document.getElementById('f_quem_solucionou').value;
-const acompanhante = document.getElementById('f_quem_acompanhou').value;
+    const id = document.getElementById('f_ocorrencia_id').value;
+    const solucao = document.getElementById('f_solucao').value;
+    const solucionador = document.getElementById('f_quem_solucionou').value;
+    const acompanhante = document.getElementById('f_quem_acompanhou').value;
 
-if (!solucao || !solucionador || !acompanhante) {
-return alert("Preencha todos os campos do formulário.");
-}
+    if (!solucao || !solucionador || !acompanhante) {
+        return alert("Preencha todos os campos do formulário.");
+    }
 
-try {
-const sigUrl = await uploadAssinatura(document.getElementById('canvas-finalizar-ocorrencia'), 'fechamento_ocorrencia');
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-finalizar-ocorrencia'), 'fechamento_ocorrencia');
 
-const { error } = await supabase.from('ocorrencias').update({
-status: 'Solucionada',
-solucao_aplicada: solucao,
-quem_solucionou: solucionador,
-quem_acompanhou: acompanhante,
-assinatura_fechamento_url: sigUrl,
-data_finalizacao: new Date().toISOString() 
-}).eq('id', id);
+        const { error } = await supabase.from('ocorrencias').update({
+            status: 'Solucionada',
+            solucao_aplicada: solucao,
+            quem_solucionou: solucionador,
+            quem_acompanhou: acompanhante,
+            assinatura_fechamento_url: sigUrl,
+            data_finalizacao: new Date().toISOString() 
+        }).eq('id', id);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Ocorrência solucionada com sucesso!");
-document.getElementById('form-finalizar-ocorrencia').reset();
-fecharModal('modal-finalizar-ocorrencia');
-carregarListaOcorrencias(); 
+        alert("Ocorrência solucionada com sucesso!");
+        document.getElementById('form-finalizar-ocorrencia').reset();
+        fecharModal('modal-finalizar-ocorrencia');
+        carregarListaOcorrencias(); 
 
-} catch (err) {
-alert("Erro ao finalizar ocorrência: " + err.message);
-}
+    } catch (err) {
+        alert("Erro ao finalizar ocorrência: " + err.message);
+    }
 }
 
 // ==========================================
 // ABA 4: CONTROLE DE TONERS E IMPRESSORAS
 // ==========================================
 async function carregarListaToners() {
-try {
-const { data, error } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
-if (error) throw error;
-
-const tbody = document.getElementById('lista-toners-aba');
-if(tbody) {
-tbody.innerHTML = data.map(t => `
-               <tr>
-                   <td>${t.modelo_toner}</td>
-                   <td><strong>${t.quantidade_atual}</strong></td>
-                   <td>
-                       <button class="btn-primary btn-sm" onclick="abrirModalTrocaToner('${t.id}')" ${t.quantidade_atual <= 0 ? 'disabled' : ''}>Trocar Toner</button>
-                   </td>
-               </tr>
-           `).join('');
-}
-} catch (err) { console.error("Erro ao carregar toners:", err.message); }
+    try {
+        const { data, error } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
+        if (error) throw error;
+        
+        const tbody = document.getElementById('lista-toners-aba');
+        if(tbody) {
+            tbody.innerHTML = data.map(t => `
+                <tr>
+                    <td>${t.modelo_toner}</td>
+                    <td><strong>${t.quantidade_atual}</strong></td>
+                    <td>
+                        <button class="btn-primary btn-sm" onclick="abrirModalTrocaToner('${t.id}')" ${t.quantidade_atual <= 0 ? 'disabled' : ''}>Trocar Toner</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar toners:", err.message); }
 }
 
 async function carregarListaChamados() {
-try {
-const { data, error } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto');
-if (error) throw error;
+    try {
+        const { data, error } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto');
+        if (error) throw error;
 
-const tbody = document.getElementById('lista-chamados-aba');
-if(tbody) {
-tbody.innerHTML = data.map(c => `
-               <tr>
-                   <td>${c.numero_chamado}</td>
-                   <td>${c.modelo_impressora} <br><small>Série: ${c.numero_serie}</small></td>
-                   <td>${c.setor_localizada}</td>
-                   <td>
-                       <button class="btn-success btn-sm" onclick="abrirModalAtenderChamado('${c.id}')">Atendido</button>
-                   </td>
-               </tr>
-           `).join('');
-}
-} catch (err) { console.error("Erro ao carregar chamados:", err.message); }
+        const tbody = document.getElementById('lista-chamados-aba');
+        if(tbody) {
+            tbody.innerHTML = data.map(c => `
+                <tr>
+                    <td>${c.numero_chamado}</td>
+                    <td>${c.modelo_impressora} <br><small>Série: ${c.numero_serie}</small></td>
+                    <td>${c.setor_localizada}</td>
+                    <td>
+                        <button class="btn-success btn-sm" onclick="abrirModalAtenderChamado('${c.id}')">Atendido</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) { console.error("Erro ao carregar chamados:", err.message); }
 }
 
 function abrirModalTrocaToner(idToner) {
-document.getElementById('tt_toner_id').value = idToner;
-limparCanvas('canvas-troca-toner');
-abrirModal('modal-troca-toner');
+    document.getElementById('tt_toner_id').value = idToner;
+    limparCanvas('canvas-troca-toner');
+    abrirModal('modal-troca-toner');
 }
 
 function abrirModalAtenderChamado(idChamado) {
-document.getElementById('ac_chamado_id').value = idChamado;
-limparCanvas('canvas-atender-chamado');
-abrirModal('modal-atender-chamado');
+    document.getElementById('ac_chamado_id').value = idChamado;
+    limparCanvas('canvas-atender-chamado');
+    abrirModal('modal-atender-chamado');
 }
 
 async function salvarTrocaToner() {
-const tonerId = document.getElementById('tt_toner_id').value;
-const inputFoto = document.getElementById('tt_foto');
-const setor = document.getElementById('tt_setor').value;
-const andar = document.getElementById('tt_andar').value;
-const predio = document.getElementById('tt_predio').value;
+    const tonerId = document.getElementById('tt_toner_id').value;
+    const inputFoto = document.getElementById('tt_foto');
+    const setor = document.getElementById('tt_setor').value;
+    const andar = document.getElementById('tt_andar').value;
+    const predio = document.getElementById('tt_predio').value;
 
-if (!setor || !andar || !predio || inputFoto.files.length === 0) {
-return alert("Preencha todos os campos e anexe a foto da página de teste.");
-}
+    if (!setor || !andar || !predio || inputFoto.files.length === 0) {
+        return alert("Preencha todos os campos e anexe a foto da página de teste.");
+    }
 
-try {
-const fotoFile = inputFoto.files[0];
-const nomeFoto = `teste_${Date.now()}_${fotoFile.name}`;
-const { error: errFoto } = await supabase.storage.from('assinaturas').upload(nomeFoto, fotoFile);
-if (errFoto) throw errFoto;
-const fotoUrl = supabase.storage.from('assinaturas').getPublicUrl(nomeFoto).data.publicUrl;
+    try {
+        const fotoFile = inputFoto.files[0];
+        const nomeFoto = `teste_${Date.now()}_${fotoFile.name}`;
+        const { error: errFoto } = await supabase.storage.from('assinaturas').upload(nomeFoto, fotoFile);
+        if (errFoto) throw errFoto;
+        const fotoUrl = supabase.storage.from('assinaturas').getPublicUrl(nomeFoto).data.publicUrl;
 
-const sigUrl = await uploadAssinatura(document.getElementById('canvas-troca-toner'), 'troca_toner');
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-troca-toner'), 'troca_toner');
 
-await supabase.from('registro_troca_toner').insert([{
-toner_id: tonerId,
-usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
-foto_teste_url: fotoUrl,
-setor: setor,
-andar: andar,
-predio: predio,
-assinatura_tecnico_url: sigUrl
-}]);
+        await supabase.from('registro_troca_toner').insert([{
+            toner_id: tonerId,
+            usuario_id: typeof usuarioAtual !== 'undefined' && usuarioAtual ? usuarioAtual.id : null,
+            foto_teste_url: fotoUrl,
+            setor: setor,
+            andar: andar,
+            predio: predio,
+            assinatura_tecnico_url: sigUrl
+        }]);
 
-const { data: tonerAtual } = await supabase.from('cadastro_toner').select('quantidade_atual').eq('id', tonerId).single();
-await supabase.from('cadastro_toner').update({ quantidade_atual: tonerAtual.quantidade_atual - 1 }).eq('id', tonerId);
+        const { data: tonerAtual } = await supabase.from('cadastro_toner').select('quantidade_atual').eq('id', tonerId).single();
+        await supabase.from('cadastro_toner').update({ quantidade_atual: tonerAtual.quantidade_atual - 1 }).eq('id', tonerId);
 
-alert("Troca registrada com sucesso! Estoque atualizado.");
-document.getElementById('form-troca-toner').reset();
-fecharModal('modal-troca-toner');
-carregarListaToners(); 
+        alert("Troca registrada com sucesso! Estoque atualizado.");
+        document.getElementById('form-troca-toner').reset();
+        fecharModal('modal-troca-toner');
+        carregarListaToners(); 
 
-} catch (e) { alert("Erro ao salvar troca: " + e.message); }
+    } catch (e) { alert("Erro ao salvar troca: " + e.message); }
 }
 
 async function salvarAtendimentoChamado() {
-const chamadoId = document.getElementById('ac_chamado_id').value;
-const solucao = document.getElementById('ac_solucao').value;
-// Puxando do Checkbox atualizado no HTML
-const temObs = document.getElementById('ac_tem_obs').checked;
-const obs = temObs ? document.getElementById('ac_obs_texto').value : '';
-const tecnico = document.getElementById('ac_tecnico').value;
+    const chamadoId = document.getElementById('ac_chamado_id').value;
+    const solucao = document.getElementById('ac_solucao').value;
+    // Puxando do Checkbox atualizado no HTML
+    const temObs = document.getElementById('ac_tem_obs').checked;
+    const obs = temObs ? document.getElementById('ac_obs_texto').value : '';
+    const tecnico = document.getElementById('ac_tecnico').value;
 
-if (!solucao || !tecnico) return alert("Preencha a Solução e o Técnico responsável.");
+    if (!solucao || !tecnico) return alert("Preencha a Solução e o Técnico responsável.");
 
-try {
-const sigUrl = await uploadAssinatura(document.getElementById('canvas-atender-chamado'), 'atend_simpress');
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-atender-chamado'), 'atend_simpress');
 
-const { error } = await supabase.from('chamado_simpress').update({
-status: 'Atendido',
-solucao_aplicada: solucao,
-observacao: obs,
-tecnico_acompanhante: tecnico,
-assinatura_tecnico_url: sigUrl
-}).eq('id', chamadoId);
+        const { error } = await supabase.from('chamado_simpress').update({
+            status: 'Atendido',
+            solucao_aplicada: solucao,
+            observacao: obs,
+            tecnico_acompanhante: tecnico,
+            assinatura_tecnico_url: sigUrl
+        }).eq('id', chamadoId);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Atendimento registrado! O chamado foi movido para os concluídos.");
-document.getElementById('form-atender-chamado').reset();
-fecharModal('modal-atender-chamado');
-carregarListaChamados(); 
+        alert("Atendimento registrado! O chamado foi movido para os concluídos.");
+        document.getElementById('form-atender-chamado').reset();
+        fecharModal('modal-atender-chamado');
+        carregarListaChamados(); 
 
-} catch (e) { alert("Erro ao salvar atendimento: " + e.message); }
+    } catch (e) { alert("Erro ao salvar atendimento: " + e.message); }
 }
 
 // ==========================================
 // ABA: GESTÃO DE TREINAMENTOS
 // ==========================================
 async function salvarTreinamento() {
-const colaborador = document.getElementById('tr_colaborador').value;
-const telefone = document.getElementById('tr_telefone').value;
-const tema = document.getElementById('tr_tema').value;
-const predio = document.getElementById('tr_predio').value;
-const setor = document.getElementById('tr_setor').value;
-const andar = document.getElementById('tr_andar').value;
-const dataHora = document.getElementById('tr_data_hora').value;
+    const colaborador = document.getElementById('tr_colaborador').value;
+    const telefone = document.getElementById('tr_telefone').value;
+    const tema = document.getElementById('tr_tema').value;
+    const predio = document.getElementById('tr_predio').value;
+    const setor = document.getElementById('tr_setor').value;
+    const andar = document.getElementById('tr_andar').value;
+    const dataHora = document.getElementById('tr_data_hora').value;
 
-if (!colaborador || !tema || !dataHora || !setor) {
-return alert("Preencha os campos obrigatórios.");
-}
+    if (!colaborador || !tema || !dataHora || !setor) {
+        return alert("Preencha os campos obrigatórios.");
+    }
 
-try {
-const { error } = await supabase.from('treinamentos').insert([{
-colaborador: colaborador,
-telefone: telefone,
-tema: tema,
-predio: predio,
-setor: setor,
-andar: andar,
-data_hora: dataHora,
-status: 'Agendado'
-}]);
+    try {
+        const { error } = await supabase.from('treinamentos').insert([{
+            colaborador: colaborador,
+            telefone: telefone,
+            tema: tema,
+            predio: predio,
+            setor: setor,
+            andar: andar,
+            data_hora: dataHora,
+            status: 'Agendado'
+        }]);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Treinamento agendado com sucesso!");
-document.getElementById('form-novo-treinamento').reset();
-carregarListaTreinamentos();
-if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard(); 
+        alert("Treinamento agendado com sucesso!");
+        document.getElementById('form-novo-treinamento').reset();
+        carregarListaTreinamentos();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard(); 
 
-} catch (err) {
-alert("Erro ao agendar treinamento: " + err.message);
-}
+    } catch (err) {
+        alert("Erro ao agendar treinamento: " + err.message);
+    }
 }
 
 // 🟢 ATUALIZADO: Mostra as ações e o status Cancelado/Concluído
 async function carregarListaTreinamentos() {
-try {
-const { data, error } = await supabase.from('treinamentos')
-.select('*')
-.order('data_hora', { ascending: false }); // Lista do mais novo para o mais velho
+    try {
+        const { data, error } = await supabase.from('treinamentos')
+            .select('*')
+            .order('data_hora', { ascending: false }); // Lista do mais novo para o mais velho
 
-if (error) throw error;
+        if (error) throw error;
 
-const tbody = document.getElementById('lista-treinamentos-aba');
-if (tbody) {
-tbody.innerHTML = data.length > 0 ? data.map(t => {
-const dataFormatada = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
-
-return `
-                   <tr>
-                       <td><strong>${dataFormatada}</strong></td>
-                       <td>${t.colaborador}<br><small>${t.telefone}</small></td>
-                       <td>${t.tema}</td>
-                       <td>${t.predio} - ${t.setor} (${t.andar})</td>
-                       <td>
-                           <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                               ${t.status === 'Agendado' ? `
-                                   <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarTreinamento('${t.id}')">✏️ Editar</button>
-                                   <button class="btn-success btn-sm" onclick="abrirModalFinalizarTreinamento('${t.id}')">✔️ Concluir</button>
-                                   <button class="btn-danger btn-sm" onclick="cancelarTreinamento('${t.id}')">❌ Cancelar</button>
-                               ` : `<em style="font-size:12px; color:${t.status === 'Concluído' ? '#2ecc71' : '#e74c3c'}; font-weight: bold;">${t.status}</em>
-                                    ${t.status === 'Cancelado' && t.motivo_cancelamento ? `<br><small style="color:#7f8c8d;">Motivo: ${t.motivo_cancelamento}</small>` : ''}
-                               `}
-                           </div>
-                       </td>
-                   </tr>
-               `;
-}).join('') : '<tr><td colspan="5" style="text-align: center;">Nenhum treinamento registrado.</td></tr>';
-}
-} catch (err) { console.error("Erro ao carregar treinamentos:", err); }
+        const tbody = document.getElementById('lista-treinamentos-aba');
+        if (tbody) {
+            tbody.innerHTML = data.length > 0 ? data.map(t => {
+                const dataFormatada = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
+                
+                return `
+                    <tr>
+                        <td><strong>${dataFormatada}</strong></td>
+                        <td>${t.colaborador}<br><small>${t.telefone}</small></td>
+                        <td>${t.tema}</td>
+                        <td>${t.predio} - ${t.setor} (${t.andar})</td>
+                        <td>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                ${t.status === 'Agendado' ? `
+                                    <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="abrirModalEditarTreinamento('${t.id}')">✏️ Editar</button>
+                                    <button class="btn-success btn-sm" onclick="abrirModalFinalizarTreinamento('${t.id}')">✔️ Concluir</button>
+                                    <button class="btn-danger btn-sm" onclick="cancelarTreinamento('${t.id}')">❌ Cancelar</button>
+                                ` : `<em style="font-size:12px; color:${t.status === 'Concluído' ? '#2ecc71' : '#e74c3c'}; font-weight: bold;">${t.status}</em>
+                                     ${t.status === 'Cancelado' && t.motivo_cancelamento ? `<br><small style="color:#7f8c8d;">Motivo: ${t.motivo_cancelamento}</small>` : ''}
+                                `}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="5" style="text-align: center;">Nenhum treinamento registrado.</td></tr>';
+        }
+    } catch (err) { console.error("Erro ao carregar treinamentos:", err); }
 }
 
 // 🟢 NOVO: Abre modal para Editar Treinamento
 async function abrirModalEditarTreinamento(id) {
-try {
-const { data: t, error } = await supabase.from('treinamentos').select('*').eq('id', id).single();
-if (error) throw error;
+    try {
+        const { data: t, error } = await supabase.from('treinamentos').select('*').eq('id', id).single();
+        if (error) throw error;
 
-document.getElementById('edit_tr_id').value = t.id;
-document.getElementById('edit_tr_colaborador').value = t.colaborador;
-document.getElementById('edit_tr_telefone').value = t.telefone;
-document.getElementById('edit_tr_tema').value = t.tema;
-document.getElementById('edit_tr_predio').value = t.predio;
-document.getElementById('edit_tr_setor').value = t.setor;
-document.getElementById('edit_tr_andar').value = t.andar;
-document.getElementById('edit_tr_data_hora').value = t.data_hora;
+        document.getElementById('edit_tr_id').value = t.id;
+        document.getElementById('edit_tr_colaborador').value = t.colaborador;
+        document.getElementById('edit_tr_telefone').value = t.telefone;
+        document.getElementById('edit_tr_tema').value = t.tema;
+        document.getElementById('edit_tr_predio').value = t.predio;
+        document.getElementById('edit_tr_setor').value = t.setor;
+        document.getElementById('edit_tr_andar').value = t.andar;
+        document.getElementById('edit_tr_data_hora').value = t.data_hora;
 
-abrirModal('modal-editar-treinamento');
-} catch (err) {
-alert("Erro ao carregar dados do treinamento: " + err.message);
-}
+        abrirModal('modal-editar-treinamento');
+    } catch (err) {
+        alert("Erro ao carregar dados do treinamento: " + err.message);
+    }
 }
 
 // 🟢 NOVO: Salva a Edição do Treinamento
 async function salvarEdicaoTreinamento() {
-const id = document.getElementById('edit_tr_id').value;
-const colaborador = document.getElementById('edit_tr_colaborador').value;
-const telefone = document.getElementById('edit_tr_telefone').value;
-const tema = document.getElementById('edit_tr_tema').value;
-const predio = document.getElementById('edit_tr_predio').value;
-const setor = document.getElementById('edit_tr_setor').value;
-const andar = document.getElementById('edit_tr_andar').value;
-const dataHora = document.getElementById('edit_tr_data_hora').value;
+    const id = document.getElementById('edit_tr_id').value;
+    const colaborador = document.getElementById('edit_tr_colaborador').value;
+    const telefone = document.getElementById('edit_tr_telefone').value;
+    const tema = document.getElementById('edit_tr_tema').value;
+    const predio = document.getElementById('edit_tr_predio').value;
+    const setor = document.getElementById('edit_tr_setor').value;
+    const andar = document.getElementById('edit_tr_andar').value;
+    const dataHora = document.getElementById('edit_tr_data_hora').value;
 
-if (!colaborador || !tema || !dataHora || !setor) {
-return alert("Preencha os campos obrigatórios.");
-}
+    if (!colaborador || !tema || !dataHora || !setor) {
+        return alert("Preencha os campos obrigatórios.");
+    }
 
-try {
-const { error } = await supabase.from('treinamentos').update({
-colaborador: colaborador,
-telefone: telefone,
-tema: tema,
-predio: predio,
-setor: setor,
-andar: andar,
-data_hora: dataHora
-}).eq('id', id);
+    try {
+        const { error } = await supabase.from('treinamentos').update({
+            colaborador: colaborador,
+            telefone: telefone,
+            tema: tema,
+            predio: predio,
+            setor: setor,
+            andar: andar,
+            data_hora: dataHora
+        }).eq('id', id);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Treinamento atualizado com sucesso!");
-fecharModal('modal-editar-treinamento');
-carregarListaTreinamentos();
-if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
-} catch (err) {
-alert("Erro ao salvar edição do treinamento: " + err.message);
-}
+        alert("Treinamento atualizado com sucesso!");
+        fecharModal('modal-editar-treinamento');
+        carregarListaTreinamentos();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+    } catch (err) {
+        alert("Erro ao salvar edição do treinamento: " + err.message);
+    }
 }
 
 // 🟢 NOVO: Cancelar Treinamento pedindo Motivo
 async function cancelarTreinamento(id) {
-const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento deste treinamento:");
+    const motivo = prompt("⚠️ Atenção: Por favor, digite o motivo do cancelamento deste treinamento:");
+    
+    if (motivo === null) return; // Se o usuário apertar cancelar no aviso
+    if (motivo.trim() === "") return alert("O motivo é obrigatório para cancelar!");
 
-if (motivo === null) return; // Se o usuário apertar cancelar no aviso
-if (motivo.trim() === "") return alert("O motivo é obrigatório para cancelar!");
+    try {
+        const { error } = await supabase.from('treinamentos').update({
+            status: 'Cancelado',
+            motivo_cancelamento: motivo
+        }).eq('id', id);
+        
+        if (error) throw error;
 
-try {
-const { error } = await supabase.from('treinamentos').update({
-status: 'Cancelado',
-motivo_cancelamento: motivo
-}).eq('id', id);
-
-if (error) throw error;
-
-alert("Treinamento cancelado com sucesso!");
-carregarListaTreinamentos();
-if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
-} catch (err) {
-alert("Erro ao cancelar treinamento: " + err.message);
-}
+        alert("Treinamento cancelado com sucesso!");
+        carregarListaTreinamentos();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+    } catch (err) {
+        alert("Erro ao cancelar treinamento: " + err.message);
+    }
 }
 
 // Abre o Modal para finalizar e assinar
 async function abrirModalFinalizarTreinamento(id) {
-document.getElementById('ft_treinamento_id').value = id;
-limparCanvas('canvas-finalizar-treinamento');
+    document.getElementById('ft_treinamento_id').value = id;
+    limparCanvas('canvas-finalizar-treinamento');
+    
+    // Puxa os nomes dos técnicos para o select do modal
+    try {
+        const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
+        if (!error) {
+            const sel = document.getElementById('ft_tecnico');
+            sel.innerHTML = '<option value="">Selecione o Técnico...</option>' + 
+                            data.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
+        }
+    } catch (e) { console.error(e); }
 
-// Puxa os nomes dos técnicos para o select do modal
-try {
-const { data, error } = await supabase.from('profiles').select('id, nome').order('nome');
-if (!error) {
-const sel = document.getElementById('ft_tecnico');
-sel.innerHTML = '<option value="">Selecione o Técnico...</option>' + 
-data.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
-}
-} catch (e) { console.error(e); }
-
-abrirModal('modal-finalizar-treinamento');
+    abrirModal('modal-finalizar-treinamento');
 }
 
 // Salva a conclusão do Treinamento no BD
 async function salvarTreinamentoConcluido() {
-const id = document.getElementById('ft_treinamento_id').value;
-const tecnico = document.getElementById('ft_tecnico').value;
+    const id = document.getElementById('ft_treinamento_id').value;
+    const tecnico = document.getElementById('ft_tecnico').value;
 
-if (!tecnico) return alert("Selecione o técnico responsável.");
+    if (!tecnico) return alert("Selecione o técnico responsável.");
 
-try {
-const sigUrl = await uploadAssinatura(document.getElementById('canvas-finalizar-treinamento'), 'conclusao_treinamento');
+    try {
+        const sigUrl = await uploadAssinatura(document.getElementById('canvas-finalizar-treinamento'), 'conclusao_treinamento');
 
-const { error } = await supabase.from('treinamentos').update({
-status: 'Concluído',
-responsavel_conclusao: tecnico,
-assinatura_url: sigUrl
-}).eq('id', id);
+        const { error } = await supabase.from('treinamentos').update({
+            status: 'Concluído',
+            responsavel_conclusao: tecnico,
+            assinatura_url: sigUrl
+        }).eq('id', id);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Treinamento finalizado com sucesso!");
-fecharModal('modal-finalizar-treinamento');
-carregarListaTreinamentos();
-if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+        alert("Treinamento finalizado com sucesso!");
+        fecharModal('modal-finalizar-treinamento');
+        carregarListaTreinamentos();
+        if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
 
-} catch (err) {
-alert("Erro ao finalizar treinamento: " + err.message);
-}
+    } catch (err) {
+        alert("Erro ao finalizar treinamento: " + err.message);
+    }
 }
 
 // ==========================================
@@ -971,106 +929,93 @@ alert("Erro ao finalizar treinamento: " + err.message);
 // ==========================================
 
 async function carregarMeusDados() {
-try {
-// 1. Pega a sessão e os dados (já sabemos que isso está funcionando!)
-const { data: authData, error: authErr } = await supabase.auth.getUser();
-if (authErr || !authData.user) return;
+    try {
+        // Vai direto na fonte sem depender de variável global
+        const { data: authData, error: authErr } = await supabase.auth.getUser();
+        if (authErr || !authData.user) return;
 
-const { data: perfil, error: perfilErr } = await supabase
-.from('profiles')
-.select('*')
-.eq('id', authData.user.id)
-.single();
+        const { data: perfil, error: perfilErr } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
 
-if (perfilErr) throw perfilErr;
+        if (perfilErr) throw perfilErr;
 
-// 2. Procura os campos na tela
-const campoEmail = document.getElementById('meu_email');
-const campoNome = document.getElementById('meu_nome');
-const campoCelular = document.getElementById('meu_celular');
-const campoCpf = document.getElementById('meu_cpf');
+        // Preenche os campos na marra
+        document.getElementById('meu_email').value = perfil.email || '';
+        document.getElementById('meu_nome').value = perfil.nome || '';
+        document.getElementById('meu_celular').value = perfil.celular || '';
+        document.getElementById('meu_cpf').value = perfil.cpf || '';
 
-// 3. Só preenche SE o campo existir (evita o erro null)
-if (campoEmail) campoEmail.value = perfil.email || '';
-else console.warn("Aviso: A caixinha com id 'meu_email' não foi encontrada no HTML.");
-
-if (campoNome) campoNome.value = perfil.nome || '';
-else console.warn("Aviso: A caixinha com id 'meu_nome' não foi encontrada no HTML.");
-
-if (campoCelular) campoCelular.value = perfil.celular || '';
-else console.warn("Aviso: A caixinha com id 'meu_celular' não foi encontrada no HTML.");
-
-if (campoCpf) campoCpf.value = perfil.cpf || '';
-else console.warn("Aviso: A caixinha com id 'meu_cpf' não foi encontrada no HTML.");
-
-} catch (err) {
-console.error("Detalhe do erro nas Configurações:", err.message);
-}
+    } catch (err) {
+        console.error("Erro ao carregar aba de configurações:", err);
+    }
 }
 
 async function salvarMeusDados() {
-const email = document.getElementById('meu_email').value;
-const nome = document.getElementById('meu_nome').value;
-const celular = document.getElementById('meu_celular').value;
-const cpf = document.getElementById('meu_cpf').value;
+    const email = document.getElementById('meu_email').value;
+    const nome = document.getElementById('meu_nome').value;
+    const celular = document.getElementById('meu_celular').value;
+    const cpf = document.getElementById('meu_cpf').value;
 
-if (!nome || !email) return alert("Nome e E-mail são obrigatórios.");
+    if (!nome || !email) return alert("Nome e E-mail são obrigatórios.");
 
-try {
-// Confirma a sessão antes de salvar
-const { data: authData } = await supabase.auth.getUser();
-if (!authData.user) return alert("Sessão expirada. Faça login novamente.");
+    try {
+        // Confirma a sessão antes de salvar
+        const { data: authData } = await supabase.auth.getUser();
+        if (!authData.user) return alert("Sessão expirada. Faça login novamente.");
 
-const { error } = await supabase.from('profiles').update({
-email: email,
-nome: nome,
-celular: celular,
-cpf: cpf
-}).eq('id', authData.user.id);
+        const { error } = await supabase.from('profiles').update({
+            email: email,
+            nome: nome,
+            celular: celular,
+            cpf: cpf
+        }).eq('id', authData.user.id);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Seus dados foram atualizados com sucesso!");
-
-// Atualiza a variável global
-if (typeof usuarioAtual !== 'undefined') {
-usuarioAtual.email = email;
-usuarioAtual.nome = nome;
-usuarioAtual.celular = celular;
-usuarioAtual.cpf = cpf;
-}
-
-// Atualiza o nome exibido no Header
-const userNameHeader = document.getElementById('user-name');
-if (userNameHeader) {
-userNameHeader.innerText = `Olá, ${nome.split(' ')[0]}`; 
-}
-
-} catch (err) {
-alert("Erro ao salvar seus dados: " + err.message);
-}
+        alert("Seus dados foram atualizados com sucesso!");
+        
+        // Atualiza a variável global
+        if (typeof usuarioAtual !== 'undefined') {
+            usuarioAtual.email = email;
+            usuarioAtual.nome = nome;
+            usuarioAtual.celular = celular;
+            usuarioAtual.cpf = cpf;
+        }
+        
+        // Atualiza o nome exibido no Header
+        const userNameHeader = document.getElementById('user-name');
+        if (userNameHeader) {
+            userNameHeader.innerText = `Olá, ${nome.split(' ')[0]}`; 
+        }
+        
+    } catch (err) {
+        alert("Erro ao salvar seus dados: " + err.message);
+    }
 }
 
 async function salvarMinhaSenha() {
-const senha1 = document.getElementById('minha_nova_senha').value;
-const senha2 = document.getElementById('minha_nova_senha_conf').value;
+    const senha1 = document.getElementById('minha_nova_senha').value;
+    const senha2 = document.getElementById('minha_nova_senha_conf').value;
 
-if (!senha1 || !senha2) return alert("Por favor, preencha os dois campos de senha.");
-if (senha1 !== senha2) return alert("Atenção: As senhas digitadas não são iguais!");
-if (senha1.length < 6) return alert("A nova senha deve ter pelo menos 6 caracteres.");
+    if (!senha1 || !senha2) return alert("Por favor, preencha os dois campos de senha.");
+    if (senha1 !== senha2) return alert("Atenção: As senhas digitadas não são iguais!");
+    if (senha1.length < 6) return alert("A nova senha deve ter pelo menos 6 caracteres.");
 
-try {
-// A função de mudar a própria senha usa o modulo auth do supabase
-const { error } = await supabase.auth.updateUser({ password: senha1 });
+    try {
+        // A função de mudar a própria senha usa o modulo auth do supabase
+        const { error } = await supabase.auth.updateUser({ password: senha1 });
+        
+        if (error) throw error;
 
-if (error) throw error;
-
-alert("Senha alterada com segurança! Na próxima vez, use a nova senha.");
-document.getElementById('form-minha-senha').reset();
-
-} catch (err) {
-alert("Erro ao alterar a senha: " + err.message);
-}
+        alert("Senha alterada com segurança! Na próxima vez, use a nova senha.");
+        document.getElementById('form-minha-senha').reset();
+        
+    } catch (err) {
+        alert("Erro ao alterar a senha: " + err.message);
+    }
 }
 
 // ==========================================
@@ -1078,182 +1023,182 @@ alert("Erro ao alterar a senha: " + err.message);
 // ==========================================
 
 async function adminCriarUsuario() {
-const nome = document.getElementById('cad_nome').value;
-const turno = document.getElementById('cad_turno').value;
-const celular = document.getElementById('cad_celular').value;
-const cpf = document.getElementById('cad_cpf').value;
-const email = document.getElementById('cad_email').value;
-const senha = document.getElementById('cad_senha').value;
+    const nome = document.getElementById('cad_nome').value;
+    const turno = document.getElementById('cad_turno').value;
+    const celular = document.getElementById('cad_celular').value;
+    const cpf = document.getElementById('cad_cpf').value;
+    const email = document.getElementById('cad_email').value;
+    const senha = document.getElementById('cad_senha').value;
 
-if (!nome || !email || !senha || !turno) {
-return alert('Por favor, preencha Nome, E-mail, Senha e Turno.');
-}
+    if (!nome || !email || !senha || !turno) {
+        return alert('Por favor, preencha Nome, E-mail, Senha e Turno.');
+    }
 
-try {
-const { error } = await supabase.rpc('admin_criar_usuario', {
-p_email: email,
-p_senha: senha,
-p_nome: nome,
-p_turno: turno,
-p_celular: celular,
-p_cpf: cpf
-});
+    try {
+        const { error } = await supabase.rpc('admin_criar_usuario', {
+            p_email: email,
+            p_senha: senha,
+            p_nome: nome,
+            p_turno: turno,
+            p_celular: celular,
+            p_cpf: cpf
+        });
 
-if (error) throw error;
+        if (error) throw error;
 
-alert(`Sucesso! O usuário ${nome} foi criado.`);
-document.getElementById('form-novo-usuario').reset();
-fecharModal('modal-usuario');
-
-} catch (err) {
-console.error('Erro completo:', err);
-alert('Erro ao criar usuário: ' + (err.message || 'Verifique se o e-mail já existe.'));
-}
+        alert(`Sucesso! O usuário ${nome} foi criado.`);
+        document.getElementById('form-novo-usuario').reset();
+        fecharModal('modal-usuario');
+        
+    } catch (err) {
+        console.error('Erro completo:', err);
+        alert('Erro ao criar usuário: ' + (err.message || 'Verifique se o e-mail já existe.'));
+    }
 }
 
 async function carregarTabelaUsuarios() {
-try {
-const { data: usuarios, error } = await supabase
-.from('profiles')
-.select('*')
-.order('nome', { ascending: true });
+    try {
+        const { data: usuarios, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('nome', { ascending: true });
 
-if (error) throw error;
+        if (error) throw error;
 
-const tabela = document.getElementById('tabela-usuarios-admin');
-tabela.innerHTML = ''; 
+        const tabela = document.getElementById('tabela-usuarios-admin');
+        tabela.innerHTML = ''; 
 
-usuarios.forEach(user => {
-const tr = document.createElement('tr');
-const cpfUser = user.cpf ? `'${user.cpf}'` : `null`;
-
-tr.innerHTML = `
-               <td>${user.nome}</td>
-               <td>${user.email}</td>
-               <td>
-                   <select id="role-${user.id}" class="btn-sm" style="margin-bottom: 0;">
-                       <option value="operacional" ${user.role === 'operacional' ? 'selected' : ''}>Operacional</option>
-                       <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                   </select>
-               </td>
-               <td>
-                   <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                       <button class="btn-primary btn-sm" onclick="salvarNivelAcesso('${user.id}')">Salvar Edição</button>
-                       <button class="btn-primary btn-sm" style="background: #8e44ad;" onclick="prepararEdicaoCompleta('${user.id}')">Alterar Dados</button>
-                       <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="redefinirSenhaUsuario('${user.id}', ${cpfUser})">Redefinir Senha</button>
-                       <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
-                   </div>
-               </td>
-           `;
-tabela.appendChild(tr);
-});
-} catch (err) {
-console.error("Erro ao carregar tabela:", err.message);
-}
+        usuarios.forEach(user => {
+            const tr = document.createElement('tr');
+            const cpfUser = user.cpf ? `'${user.cpf}'` : `null`;
+            
+            tr.innerHTML = `
+                <td>${user.nome}</td>
+                <td>${user.email}</td>
+                <td>
+                    <select id="role-${user.id}" class="btn-sm" style="margin-bottom: 0;">
+                        <option value="operacional" ${user.role === 'operacional' ? 'selected' : ''}>Operacional</option>
+                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        <button class="btn-primary btn-sm" onclick="salvarNivelAcesso('${user.id}')">Salvar Edição</button>
+                        <button class="btn-primary btn-sm" style="background: #8e44ad;" onclick="prepararEdicaoCompleta('${user.id}')">Alterar Dados</button>
+                        <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="redefinirSenhaUsuario('${user.id}', ${cpfUser})">Redefinir Senha</button>
+                        <button class="btn-danger btn-sm" onclick="deletarUsuario('${user.id}')">Excluir</button>
+                    </div>
+                </td>
+            `;
+            tabela.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Erro ao carregar tabela:", err.message);
+    }
 }
 
 async function salvarNivelAcesso(userId) {
-const novoRole = document.getElementById(`role-${userId}`).value;
+    const novoRole = document.getElementById(`role-${userId}`).value;
 
-try {
-const { error } = await supabase
-.from('profiles')
-.update({ role: novoRole })
-.eq('id', userId);
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: novoRole })
+            .eq('id', userId);
 
-if (error) throw error;
-alert("Nível de acesso atualizado com sucesso!");
-} catch (err) {
-alert("Erro ao atualizar nível: " + err.message);
-}
+        if (error) throw error;
+        alert("Nível de acesso atualizado com sucesso!");
+    } catch (err) {
+        alert("Erro ao atualizar nível: " + err.message);
+    }
 }
 
 async function prepararEdicaoCompleta(userId) {
-try {
-const { data: user, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-if (error) throw error;
+    try {
+        const { data: user, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+        if (error) throw error;
 
-fecharModal('modal-permissoes');
+        fecharModal('modal-permissoes');
 
-document.getElementById('edit_id').value = user.id;
-document.getElementById('edit_nome').value = user.nome || '';
-document.getElementById('edit_turno').value = user.turno || '';
-document.getElementById('edit_celular').value = user.celular || '';
-document.getElementById('edit_cpf').value = user.cpf || '';
-document.getElementById('edit_email').value = user.email || '';
+        document.getElementById('edit_id').value = user.id;
+        document.getElementById('edit_nome').value = user.nome || '';
+        document.getElementById('edit_turno').value = user.turno || '';
+        document.getElementById('edit_celular').value = user.celular || '';
+        document.getElementById('edit_cpf').value = user.cpf || '';
+        document.getElementById('edit_email').value = user.email || '';
 
-abrirModal('modal-editar-usuario');
-} catch (err) {
-alert("Erro ao buscar dados: " + err.message);
-}
+        abrirModal('modal-editar-usuario');
+    } catch (err) {
+        alert("Erro ao buscar dados: " + err.message);
+    }
 }
 
 async function salvarEdicaoUsuario() {
-const userId = document.getElementById('edit_id').value;
-const nome = document.getElementById('edit_nome').value;
-const turno = document.getElementById('edit_turno').value;
-const celular = document.getElementById('edit_celular').value;
-const cpf = document.getElementById('edit_cpf').value;
-const email = document.getElementById('edit_email').value;
+    const userId = document.getElementById('edit_id').value;
+    const nome = document.getElementById('edit_nome').value;
+    const turno = document.getElementById('edit_turno').value;
+    const celular = document.getElementById('edit_celular').value;
+    const cpf = document.getElementById('edit_cpf').value;
+    const email = document.getElementById('edit_email').value;
 
-try {
-const { error } = await supabase.from('profiles').update({
-nome: nome,
-turno: turno,
-celular: celular,
-cpf: cpf,
-email: email
-}).eq('id', userId);
+    try {
+        const { error } = await supabase.from('profiles').update({
+            nome: nome,
+            turno: turno,
+            celular: celular,
+            cpf: cpf,
+            email: email
+        }).eq('id', userId);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Dados alterados com sucesso no Perfil!");
-fecharModal('modal-editar-usuario');
-abrirModal('modal-permissoes'); 
-
-} catch (err) {
-alert("Erro ao salvar: " + err.message);
-}
+        alert("Dados alterados com sucesso no Perfil!");
+        fecharModal('modal-editar-usuario');
+        abrirModal('modal-permissoes'); 
+        
+    } catch (err) {
+        alert("Erro ao salvar: " + err.message);
+    }
 }
 
 async function redefinirSenhaUsuario(userId, cpfUsuario) {
-if (!cpfUsuario || cpfUsuario.length < 4) {
-return alert("Erro: O usuário não possui um CPF cadastrado ou válido para gerar a senha.");
-}
+    if (!cpfUsuario || cpfUsuario.length < 4) {
+        return alert("Erro: O usuário não possui um CPF cadastrado ou válido para gerar a senha.");
+    }
 
-const cpfNumeros = cpfUsuario.replace(/\D/g, ""); 
-const novaSenha = cpfNumeros.substring(0, 4);
+    const cpfNumeros = cpfUsuario.replace(/\D/g, ""); 
+    const novaSenha = cpfNumeros.substring(0, 4);
 
-if (!confirm(`A nova senha deste usuário será os 4 primeiros dígitos do CPF (${novaSenha}). Confirmar operação?`)) {
-return;
-}
+    if (!confirm(`A nova senha deste usuário será os 4 primeiros dígitos do CPF (${novaSenha}). Confirmar operação?`)) {
+        return;
+    }
+    
+    try {
+        const { error } = await supabase.rpc('admin_redefinir_senha', { 
+            p_user_id: userId, 
+            p_nova_senha: novaSenha 
+        });
 
-try {
-const { error } = await supabase.rpc('admin_redefinir_senha', { 
-p_user_id: userId, 
-p_nova_senha: novaSenha 
-});
-
-if (error) throw error;
-
-alert(`Sucesso! A senha foi redefinida para: ${novaSenha}`);
-} catch (err) {
-alert("Erro ao redefinir senha: " + err.message);
-}
+        if (error) throw error;
+        
+        alert(`Sucesso! A senha foi redefinida para: ${novaSenha}`);
+    } catch (err) {
+        alert("Erro ao redefinir senha: " + err.message);
+    }
 }
 
 async function deletarUsuario(userId) {
-if (!confirm("Tem certeza que deseja excluir este usuário permanentemente?")) return;
+    if (!confirm("Tem certeza que deseja excluir este usuário permanentemente?")) return;
 
-try {
-const { error } = await supabase.from('profiles').delete().eq('id', userId);
-if (error) throw error;
-
-alert("Usuário removido!");
-carregarTabelaUsuarios();
-} catch (err) {
-alert("Erro ao excluir: " + err.message);
-}
+    try {
+        const { error } = await supabase.from('profiles').delete().eq('id', userId);
+        if (error) throw error;
+        
+        alert("Usuário removido!");
+        carregarTabelaUsuarios();
+    } catch (err) {
+        alert("Erro ao excluir: " + err.message);
+    }
 }
 
 // ==========================================
@@ -1261,77 +1206,77 @@ alert("Erro ao excluir: " + err.message);
 // ==========================================
 
 async function adminCadastrarChave() {
-const nome = document.getElementById('cad_chave_nome').value;
-const cor = document.getElementById('cad_chave_cor').value;
-const local = document.getElementById('cad_chave_local').value;
+    const nome = document.getElementById('cad_chave_nome').value;
+    const cor = document.getElementById('cad_chave_cor').value;
+    const local = document.getElementById('cad_chave_local').value;
 
-if(!nome || !cor || !local) return alert('Preencha todos os campos!');
+    if(!nome || !cor || !local) return alert('Preencha todos os campos!');
 
-try {
-const { error } = await supabase.from('chaves').insert([
-{ nome: nome, cor: cor, localizacao: local, status: 'disponivel' }
-]);
-
-if (error) throw error;
-alert('Chave cadastrada com sucesso!');
-fecharModal('modal-chave');
-carregarSelectChaves(); 
-} catch (err) { alert('Erro: ' + err.message); }
+    try {
+        const { error } = await supabase.from('chaves').insert([
+            { nome: nome, cor: cor, localizacao: local, status: 'disponivel' }
+        ]);
+        
+        if (error) throw error;
+        alert('Chave cadastrada com sucesso!');
+        fecharModal('modal-chave');
+        carregarSelectChaves(); 
+    } catch (err) { alert('Erro: ' + err.message); }
 }
 
 async function adminCadastrarToner() {
-const modelo = document.getElementById('cad_toner_modelo').value;
-const impressoras = document.getElementById('cad_toner_imp').value;
-const quantidade = document.getElementById('cad_toner_qtd').value;
+    const modelo = document.getElementById('cad_toner_modelo').value;
+    const impressoras = document.getElementById('cad_toner_imp').value;
+    const quantidade = document.getElementById('cad_toner_qtd').value;
 
-if(!modelo || !impressoras || !quantidade) {
-return alert('Preencha todos os campos!');
-}
+    if(!modelo || !impressoras || !quantidade) {
+        return alert('Preencha todos os campos!');
+    }
 
-try {
-const { error } = await supabase.from('cadastro_toner').insert([
-{ modelo_toner: modelo, impressora_compativel: impressoras, quantidade_atual: parseInt(quantidade) }
-]);
-
-if (error) throw error;
-
-alert('Toner cadastrado com sucesso no estoque!');
-fecharModal('modal-toner');
-} catch (err) { alert('Erro: ' + err.message); }
+    try {
+        const { error } = await supabase.from('cadastro_toner').insert([
+            { modelo_toner: modelo, impressora_compativel: impressoras, quantidade_atual: parseInt(quantidade) }
+        ]);
+        
+        if (error) throw error;
+        
+        alert('Toner cadastrado com sucesso no estoque!');
+        fecharModal('modal-toner');
+    } catch (err) { alert('Erro: ' + err.message); }
 }
 
 async function adminCadastrarSimpress() {
-const numero = document.getElementById('cad_sim_numero').value;
-const modelo = document.getElementById('cad_sim_modelo').value;
-const serie = document.getElementById('cad_sim_serie').value;
-const local = document.getElementById('cad_sim_local').value;
+    const numero = document.getElementById('cad_sim_numero').value;
+    const modelo = document.getElementById('cad_sim_modelo').value;
+    const serie = document.getElementById('cad_sim_serie').value;
+    const local = document.getElementById('cad_sim_local').value;
 
-if(!numero || !modelo || !serie || !local) return alert('Preencha todos os campos!');
+    if(!numero || !modelo || !serie || !local) return alert('Preencha todos os campos!');
 
-try {
-const { error } = await supabase.from('chamado_simpress').insert([
-{ 
-numero_chamado: numero, 
-modelo_impressora: modelo, 
-numero_serie: serie, 
-setor_localizada: local,
-status: 'Aberto' 
-}
-]);
+    try {
+        const { error } = await supabase.from('chamado_simpress').insert([
+            { 
+                numero_chamado: numero, 
+                modelo_impressora: modelo, 
+                numero_serie: serie, 
+                setor_localizada: local,
+                status: 'Aberto' 
+            }
+        ]);
+        
+        if (error) throw error;
+        
+        alert('Chamado Simpress registrado com sucesso!');
+        fecharModal('modal-simpress');
+        
+        document.getElementById('cad_sim_numero').value = '';
+        document.getElementById('cad_sim_modelo').value = '';
+        document.getElementById('cad_sim_serie').value = '';
+        document.getElementById('cad_sim_local').value = '';
 
-if (error) throw error;
+        carregarListaChamados();
 
-alert('Chamado Simpress registrado com sucesso!');
-fecharModal('modal-simpress');
-
-document.getElementById('cad_sim_numero').value = '';
-document.getElementById('cad_sim_modelo').value = '';
-document.getElementById('cad_sim_serie').value = '';
-document.getElementById('cad_sim_local').value = '';
-
-carregarListaChamados();
-
-} catch (err) { alert('Erro ao salvar chamado: ' + err.message); }
+    } catch (err) { alert('Erro ao salvar chamado: ' + err.message); }
 }
 
 // ==========================================
@@ -1339,371 +1284,371 @@ carregarListaChamados();
 // ==========================================
 
 async function carregarResumoDashboard() {
-try {
-const { data: toners } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
-const dashToners = document.getElementById('dash-toners');
-if (dashToners) {
-dashToners.innerHTML = toners && toners.length 
-? toners.map(t => `<li>📦 ${t.modelo_toner}: <strong style="color: ${t.quantidade_atual <= 1 ? 'red' : 'green'}">${t.quantidade_atual} un.</strong></li>`).join('') 
-: '<li>Nenhum toner cadastrado.</li>';
-}
+    try {
+        const { data: toners } = await supabase.from('cadastro_toner').select('*').order('modelo_toner');
+        const dashToners = document.getElementById('dash-toners');
+        if (dashToners) {
+            dashToners.innerHTML = toners && toners.length 
+                ? toners.map(t => `<li>📦 ${t.modelo_toner}: <strong style="color: ${t.quantidade_atual <= 1 ? 'red' : 'green'}">${t.quantidade_atual} un.</strong></li>`).join('') 
+                : '<li>Nenhum toner cadastrado.</li>';
+        }
 
-const { data: chaves } = await supabase.from('chaves').select('*').eq('status', 'retirada');
-const dashChaves = document.getElementById('dash-chaves');
-if (dashChaves) {
-dashChaves.innerHTML = chaves && chaves.length 
-? chaves.map(c => `<li>🔑 ${c.nome} - <span style="color: red; font-weight: bold;">Em uso</span></li>`).join('') 
-: '<li>✅ Todas as chaves na base.</li>';
-}
+        const { data: chaves } = await supabase.from('chaves').select('*').eq('status', 'retirada');
+        const dashChaves = document.getElementById('dash-chaves');
+        if (dashChaves) {
+            dashChaves.innerHTML = chaves && chaves.length 
+                ? chaves.map(c => `<li>🔑 ${c.nome} - <span style="color: red; font-weight: bold;">Em uso</span></li>`).join('') 
+                : '<li>✅ Todas as chaves na base.</li>';
+        }
 
-const { data: chamados } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto');
-const dashChamados = document.getElementById('dash-chamados');
-if (dashChamados) {
-dashChamados.innerHTML = chamados && chamados.length 
-? chamados.map(c => `<li>🖨️ N ${c.numero_chamado} (${c.setor_localizada})</li>`).join('') 
-: '<li>✅ Nenhum chamado aberto.</li>';
-}
+        const { data: chamados } = await supabase.from('chamado_simpress').select('*').eq('status', 'Aberto');
+        const dashChamados = document.getElementById('dash-chamados');
+        if (dashChamados) {
+            dashChamados.innerHTML = chamados && chamados.length 
+                ? chamados.map(c => `<li>🖨️ N ${c.numero_chamado} (${c.setor_localizada})</li>`).join('') 
+                : '<li>✅ Nenhum chamado aberto.</li>';
+        }
 
-const { data: ocorrencias } = await supabase.from('ocorrencias').select('*').neq('status', 'Solucionada');
-const dashOcorrencias = document.getElementById('dash-ocorrencias');
-if (dashOcorrencias) {
-dashOcorrencias.innerHTML = ocorrencias && ocorrencias.length 
-? ocorrencias.map(o => `<li>⚠️ ${o.descricao} <br><small style="color: #666;">Prazo: ${o.prazo ? o.prazo.split('-').reverse().join('/') : '-'} | ${o.status}</small></li>`).join('') 
-: '<li>✅ Nenhuma ocorrência pendente.</li>';
-}
+        const { data: ocorrencias } = await supabase.from('ocorrencias').select('*').neq('status', 'Solucionada');
+        const dashOcorrencias = document.getElementById('dash-ocorrencias');
+        if (dashOcorrencias) {
+            dashOcorrencias.innerHTML = ocorrencias && ocorrencias.length 
+                ? ocorrencias.map(o => `<li>⚠️ ${o.descricao} <br><small style="color: #666;">Prazo: ${o.prazo ? o.prazo.split('-').reverse().join('/') : '-'} | ${o.status}</small></li>`).join('') 
+                : '<li>✅ Nenhuma ocorrência pendente.</li>';
+        }
 
-const { data: plantoes } = await supabase.from('plantoes').select('*').eq('visto_supervisao', false).order('created_at', { ascending: false });
-const dashPlantoes = document.getElementById('dash-plantoes');
-if (dashPlantoes) {
-dashPlantoes.innerHTML = plantoes && plantoes.length 
-? plantoes.map(p => `
-                   <tr>
-                       <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
-                       <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
-                       <td style="color: #f39c12; font-weight: bold;">⏳ Pendente</td>
-                   </tr>
-               `).join('') 
-: '<tr><td colspan="3" style="text-align: center;">✅ Todos os plantões estão com visto da supervisão.</td></tr>';
-}
+        const { data: plantoes } = await supabase.from('plantoes').select('*').eq('visto_supervisao', false).order('created_at', { ascending: false });
+        const dashPlantoes = document.getElementById('dash-plantoes');
+        if (dashPlantoes) {
+            dashPlantoes.innerHTML = plantoes && plantoes.length 
+                ? plantoes.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
+                        <td style="color: #f39c12; font-weight: bold;">⏳ Pendente</td>
+                    </tr>
+                `).join('') 
+                : '<tr><td colspan="3" style="text-align: center;">✅ Todos os plantões estão com visto da supervisão.</td></tr>';
+        }
 
-// Puxando Treinamentos para o Dashboard
-const { data: treinamentos } = await supabase.from('treinamentos')
-.select('*')
-.eq('status', 'Agendado')
-.order('data_hora', { ascending: true })
-.limit(5); // Puxa só os 5 próximos para não lotar a tela
+        // Puxando Treinamentos para o Dashboard
+        const { data: treinamentos } = await supabase.from('treinamentos')
+            .select('*')
+            .eq('status', 'Agendado')
+            .order('data_hora', { ascending: true })
+            .limit(5); // Puxa só os 5 próximos para não lotar a tela
 
-const dashTreinamentos = document.getElementById('dash-treinamentos');
-if (dashTreinamentos) {
-dashTreinamentos.innerHTML = treinamentos && treinamentos.length > 0
-? treinamentos.map(t => {
-const dataF = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
-return `
-                       <tr>
-                           <td style="color: #42B9EB; font-weight: bold;">${dataF}</td>
-                           <td>${t.colaborador}</td>
-                           <td>${t.tema}</td>
-                           <td>${t.predio} / ${t.setor}</td>
-                           <td>${t.telefone}</td>
-                       </tr>
-                   `;
-}).join('') 
-: '<tr><td colspan="5" style="text-align: center;">✅ Agenda de treinamentos livre.</td></tr>';
-}
+        const dashTreinamentos = document.getElementById('dash-treinamentos');
+        if (dashTreinamentos) {
+            dashTreinamentos.innerHTML = treinamentos && treinamentos.length > 0
+                ? treinamentos.map(t => {
+                    const dataF = new Date(t.data_hora).toLocaleString('pt-BR').slice(0, 16);
+                    return `
+                        <tr>
+                            <td style="color: #42B9EB; font-weight: bold;">${dataF}</td>
+                            <td>${t.colaborador}</td>
+                            <td>${t.tema}</td>
+                            <td>${t.predio} / ${t.setor}</td>
+                            <td>${t.telefone}</td>
+                        </tr>
+                    `;
+                }).join('') 
+                : '<tr><td colspan="5" style="text-align: center;">✅ Agenda de treinamentos livre.</td></tr>';
+        }
 
-} catch (err) {
-console.error("Erro ao carregar Dashboard:", err.message);
-}
+    } catch (err) {
+        console.error("Erro ao carregar Dashboard:", err.message);
+    }
 }
 
 async function carregarPlantoesAdmin() {
-try {
-const { data: plantoes } = await supabase.from('plantoes').select('*').eq('visto_supervisao', false).order('created_at', { ascending: false });
-const adminPlantoes = document.getElementById('admin-plantoes-lista');
-if (adminPlantoes) {
-adminPlantoes.innerHTML = plantoes && plantoes.length 
-? plantoes.map(p => `
-                   <tr>
-                       <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
-                       <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
-                       <td><button class="btn-primary btn-sm" style="background: #3498db;" onclick="visualizarPlantao('${p.id}')">👁️ Abrir Ficha de Visto</button></td>
-                   </tr>
-               `).join('') 
-: '<tr><td colspan="3" style="text-align: center;">✅ Nada para auditar.</td></tr>';
-}
-} catch (err) {
-console.error("Erro ao carregar Plantões no Admin:", err.message);
-}
+    try {
+        const { data: plantoes } = await supabase.from('plantoes').select('*').eq('visto_supervisao', false).order('created_at', { ascending: false });
+        const adminPlantoes = document.getElementById('admin-plantoes-lista');
+        if (adminPlantoes) {
+            adminPlantoes.innerHTML = plantoes && plantoes.length 
+                ? plantoes.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td>Das ${p.hora_assumiu} às ${p.hora_largou}</td>
+                        <td><button class="btn-primary btn-sm" style="background: #3498db;" onclick="visualizarPlantao('${p.id}')">👁️ Abrir Ficha de Visto</button></td>
+                    </tr>
+                `).join('') 
+                : '<tr><td colspan="3" style="text-align: center;">✅ Nada para auditar.</td></tr>';
+        }
+    } catch (err) {
+        console.error("Erro ao carregar Plantões no Admin:", err.message);
+    }
 }
 
 async function visualizarPlantao(idPlantao) {
-try {
-const { data: p, error } = await supabase.from('plantoes').select('*').eq('id', idPlantao).single();
-if (error) throw error;
+    try {
+        const { data: p, error } = await supabase.from('plantoes').select('*').eq('id', idPlantao).single();
+        if (error) throw error;
 
-const conteudo = document.getElementById('detalhes-plantao-conteudo');
+        const conteudo = document.getElementById('detalhes-plantao-conteudo');
+        
+        // Incluí a visualização dos Técnicos da Equipe caso existam
+        conteudo.innerHTML = `
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <strong>Data de Registro:</strong> ${new Date(p.created_at).toLocaleDateString('pt-BR')} às ${new Date(p.created_at).toLocaleTimeString('pt-BR')}<br>
+                <strong>Turno do Técnico:</strong> ${p.hora_assumiu} às ${p.hora_largou}<br>
+                <strong>Técnicos na Equipe:</strong> ${p.tecnicos_plantao || 'Nenhum / Plantão Sozinho'}
+            </div>
+            
+            <p>📧 <strong>E-mails todos respondidos?</strong> <span style="color: ${p.emails_resp ? 'green' : 'red'}; font-weight: bold;">${p.emails_resp ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_emails ? `↳ Obs: ${p.motivo_emails}` : ''}</span></p>
 
-// Incluí a visualização dos Técnicos da Equipe caso existam
-conteudo.innerHTML = `
-           <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-               <strong>Data de Registro:</strong> ${new Date(p.created_at).toLocaleDateString('pt-BR')} às ${new Date(p.created_at).toLocaleTimeString('pt-BR')}<br>
-               <strong>Turno do Técnico:</strong> ${p.hora_assumiu} às ${p.hora_largou}<br>
-               <strong>Técnicos na Equipe:</strong> ${p.tecnicos_plantao || 'Nenhum / Plantão Sozinho'}
-           </div>
-           
-           <p>📧 <strong>E-mails todos respondidos?</strong> <span style="color: ${p.emails_resp ? 'green' : 'red'}; font-weight: bold;">${p.emails_resp ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_emails ? `↳ Obs: ${p.motivo_emails}` : ''}</span></p>
+            <p>🖨️ <strong>Há chamados pendentes?</strong> <span style="color: ${p.chamados_pend ? 'red' : 'green'}; font-weight: bold;">${p.chamados_pend ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_chamados ? `↳ Obs: ${p.motivo_chamados}` : ''}</span></p>
 
-           <p>🖨️ <strong>Há chamados pendentes?</strong> <span style="color: ${p.chamados_pend ? 'red' : 'green'}; font-weight: bold;">${p.chamados_pend ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_chamados ? `↳ Obs: ${p.motivo_chamados}` : ''}</span></p>
+            <p>📝 <strong>MS Forms zerado?</strong> <span style="color: ${p.forms_zerado ? 'green' : 'red'}; font-weight: bold;">${p.forms_zerado ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_forms ? `↳ Obs: ${p.motivo_forms}` : ''}</span></p>
 
-           <p>📝 <strong>MS Forms zerado?</strong> <span style="color: ${p.forms_zerado ? 'green' : 'red'}; font-weight: bold;">${p.forms_zerado ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_forms ? `↳ Obs: ${p.motivo_forms}` : ''}</span></p>
+            <p>📚 <strong>Forms de Treinamentos zerado?</strong> <span style="color: ${p.forms_treinamento ? 'green' : 'red'}; font-weight: bold;">${p.forms_treinamento ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_treinamento ? `↳ Obs: ${p.motivo_treinamento}` : ''}</span></p>
 
-           <p>📚 <strong>Forms de Treinamentos zerado?</strong> <span style="color: ${p.forms_treinamento ? 'green' : 'red'}; font-weight: bold;">${p.forms_treinamento ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_treinamento ? `↳ Obs: ${p.motivo_treinamento}` : ''}</span></p>
+            <p>💻 <strong>Todas as máquinas funcionando?</strong> <span style="color: ${p.maquinas_func ? 'green' : 'red'}; font-weight: bold;">${p.maquinas_func ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_maquinas ? `↳ Obs: ${p.motivo_maquinas}` : ''}</span></p>
 
-           <p>💻 <strong>Todas as máquinas funcionando?</strong> <span style="color: ${p.maquinas_func ? 'green' : 'red'}; font-weight: bold;">${p.maquinas_func ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_maquinas ? `↳ Obs: ${p.motivo_maquinas}` : ''}</span></p>
+            <p>🪑 <strong>Cadeiras nos lugares?</strong> <span style="color: ${p.cadeiras_lugar ? 'green' : 'red'}; font-weight: bold;">${p.cadeiras_lugar ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_cadeiras ? `↳ Obs: ${p.motivo_cadeiras}` : ''}</span></p>
 
-           <p>🪑 <strong>Cadeiras nos lugares?</strong> <span style="color: ${p.cadeiras_lugar ? 'green' : 'red'}; font-weight: bold;">${p.cadeiras_lugar ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_cadeiras ? `↳ Obs: ${p.motivo_cadeiras}` : ''}</span></p>
+            <p>📺 <strong>Painel de TV em operation?</strong> <span style="color: ${p.painel_tv ? 'green' : 'red'}; font-weight: bold;">${p.painel_tv ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_tv ? `↳ Obs: ${p.motivo_tv}` : ''}</span></p>
 
-           <p>📺 <strong>Painel de TV em operation?</strong> <span style="color: ${p.painel_tv ? 'green' : 'red'}; font-weight: bold;">${p.painel_tv ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_tv ? `↳ Obs: ${p.motivo_tv}` : ''}</span></p>
+            <p>⚠️ <strong>Houve ocorrências no plantão?</strong> <span style="color: ${p.ocorrencias ? 'red' : 'green'}; font-weight: bold;">${p.ocorrencias ? 'Sim' : 'Não'}</span> <br> 
+            <span style="color: #555;">${p.motivo_ocorrencias ? `↳ Obs: ${p.motivo_ocorrencias}` : ''}</span></p>
 
-           <p>⚠️ <strong>Houve ocorrências no plantão?</strong> <span style="color: ${p.ocorrencias ? 'red' : 'green'}; font-weight: bold;">${p.ocorrencias ? 'Sim' : 'Não'}</span> <br> 
-           <span style="color: #555;">${p.motivo_ocorrencias ? `↳ Obs: ${p.motivo_ocorrencias}` : ''}</span></p>
+            <div style="margin-top: 15px;">
+                <strong>✍️ Assinatura do Técnico:</strong><br>
+                <img src="${p.assinatura_url}" style="max-width: 250px; height: auto; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 5px;">
+            </div>
+        `;
 
-           <div style="margin-top: 15px;">
-               <strong>✍️ Assinatura do Técnico:</strong><br>
-               <img src="${p.assinatura_url}" style="max-width: 250px; height: auto; border: 1px solid #ccc; border-radius: 4px; background: #fff; margin-top: 5px;">
-           </div>
-       `;
+        document.getElementById('visto_plantao_id').value = idPlantao;
+        abrirModal('modal-ver-plantao');
 
-document.getElementById('visto_plantao_id').value = idPlantao;
-abrirModal('modal-ver-plantao');
-
-} catch (err) {
-alert("Erro ao buscar detalhes do plantão: " + err.message);
-}
+    } catch (err) {
+        alert("Erro ao buscar detalhes do plantão: " + err.message);
+    }
 }
 
 async function confirmarVistoPlantao() {
-const idPlantao = document.getElementById('visto_plantao_id').value;
-
-if (!confirm("Tem certeza que deseja aplicar o visto da supervisão? Este plantão será arquivado e sairá do painel pendente.")) return;
-
-try {
-const { error } = await supabase.from('plantoes').update({ visto_supervisao: true }).eq('id', idPlantao);
-if (error) throw error;
-
-alert("Visto registrado com sucesso!");
-fecharModal('modal-ver-plantao');
-
-carregarResumoDashboard(); 
-if(typeof carregarPlantoesAdmin === 'function') carregarPlantoesAdmin();
-
-} catch (err) {
-alert("Erro ao dar visto: " + err.message);
-}
+    const idPlantao = document.getElementById('visto_plantao_id').value;
+    
+    if (!confirm("Tem certeza que deseja aplicar o visto da supervisão? Este plantão será arquivado e sairá do painel pendente.")) return;
+    
+    try {
+        const { error } = await supabase.from('plantoes').update({ visto_supervisao: true }).eq('id', idPlantao);
+        if (error) throw error;
+        
+        alert("Visto registrado com sucesso!");
+        fecharModal('modal-ver-plantao');
+        
+        carregarResumoDashboard(); 
+        if(typeof carregarPlantoesAdmin === 'function') carregarPlantoesAdmin();
+        
+    } catch (err) {
+        alert("Erro ao dar visto: " + err.message);
+    }
 }
 
 // ==========================================
 // ABA: INVENTÁRIO
 // ==========================================
 async function abrirModalNovoEquipamento() {
-try {
-// Puxa as categorias que criamos no Supabase
-const { data, error } = await supabase.from('tipos_equipamento').select('nome').order('nome');
-if (!error) {
-const sel = document.getElementById('inv_tipo');
-sel.innerHTML = '<option value="">Selecione o Tipo...</option>' + 
-data.map(t => `<option value="${t.nome}">${t.nome}</option>`).join('');
-}
-} catch (e) { console.error(e); }
-
-document.getElementById('form-novo-equipamento').reset();
-abrirModal('modal-novo-equipamento');
+    try {
+        // Puxa as categorias que criamos no Supabase
+        const { data, error } = await supabase.from('tipos_equipamento').select('nome').order('nome');
+        if (!error) {
+            const sel = document.getElementById('inv_tipo');
+            sel.innerHTML = '<option value="">Selecione o Tipo...</option>' + 
+                            data.map(t => `<option value="${t.nome}">${t.nome}</option>`).join('');
+        }
+    } catch (e) { console.error(e); }
+    
+    document.getElementById('form-novo-equipamento').reset();
+    abrirModal('modal-novo-equipamento');
 }
 
 async function salvarNovoTipoEquipamento() {
-const nome = document.getElementById('cad_tipo_nome').value.toUpperCase().trim();
-if(!nome) return alert("Digite o nome do tipo de equipamento.");
+    const nome = document.getElementById('cad_tipo_nome').value.toUpperCase().trim();
+    if(!nome) return alert("Digite o nome do tipo de equipamento.");
 
-try {
-const { error } = await supabase.from('tipos_equipamento').insert([{ nome: nome }]);
-if (error) throw error;
-
-alert("Novo tipo adicionado com sucesso!");
-document.getElementById('cad_tipo_nome').value = '';
-fecharModal('modal-novo-tipo');
-abrirModalNovoEquipamento(); // Atualiza a lista na mesma hora
-} catch (err) {
-alert("Erro: Este tipo talvez já exista. " + err.message);
-}
+    try {
+        const { error } = await supabase.from('tipos_equipamento').insert([{ nome: nome }]);
+        if (error) throw error;
+        
+        alert("Novo tipo adicionado com sucesso!");
+        document.getElementById('cad_tipo_nome').value = '';
+        fecharModal('modal-novo-tipo');
+        abrirModalNovoEquipamento(); // Atualiza a lista na mesma hora
+    } catch (err) {
+        alert("Erro: Este tipo talvez já exista. " + err.message);
+    }
 }
 
 async function salvarEquipamento() {
-const tipo = document.getElementById('inv_tipo').value;
-const marca = document.getElementById('inv_marca').value;
-const modelo = document.getElementById('inv_modelo').value;
-const serie = document.getElementById('inv_serie').value;
-const status = document.getElementById('inv_status').value;
-const predio = document.getElementById('inv_predio').value;
-const andar = document.getElementById('inv_andar').value;
-const setor = document.getElementById('inv_setor').value;
+    const tipo = document.getElementById('inv_tipo').value;
+    const marca = document.getElementById('inv_marca').value;
+    const modelo = document.getElementById('inv_modelo').value;
+    const serie = document.getElementById('inv_serie').value;
+    const status = document.getElementById('inv_status').value;
+    const predio = document.getElementById('inv_predio').value;
+    const andar = document.getElementById('inv_andar').value;
+    const setor = document.getElementById('inv_setor').value;
 
-if(!tipo || !marca || !modelo || !serie || !status) {
-return alert("Preencha os campos obrigatórios (Tipo, Marca, Modelo, Série e Status).");
-}
+    if(!tipo || !marca || !modelo || !serie || !status) {
+        return alert("Preencha os campos obrigatórios (Tipo, Marca, Modelo, Série e Status).");
+    }
 
-try {
-const { error } = await supabase.from('inventario').insert([{
-tipo, marca, modelo, numero_serie: serie, status, predio, andar, setor
-}]);
+    try {
+        const { error } = await supabase.from('inventario').insert([{
+            tipo, marca, modelo, numero_serie: serie, status, predio, andar, setor
+        }]);
 
-if (error) throw error;
+        if (error) throw error;
 
-alert("Equipamento cadastrado com sucesso!");
-fecharModal('modal-novo-equipamento');
-carregarInventario();
-} catch(err) {
-alert("Erro ao salvar. Verifique se este Número de Série já está cadastrado. " + err.message);
-}
+        alert("Equipamento cadastrado com sucesso!");
+        fecharModal('modal-novo-equipamento');
+        carregarInventario();
+    } catch(err) {
+        alert("Erro ao salvar. Verifique se este Número de Série já está cadastrado. " + err.message);
+    }
 }
 
 // 🟢 NOVAS FUNÇÕES PARA OS FILTROS DO INVENTÁRIO
 async function carregarTiposFiltro() {
-try {
-const { data, error } = await supabase.from('tipos_equipamento').select('nome').order('nome');
-if (!error) {
-const sel = document.getElementById('filtro_inv_tipo');
-sel.innerHTML = '<option value="">Todos</option>' + 
-data.map(t => `<option value="${t.nome}">${t.nome}</option>`).join('');
-}
-} catch (e) { console.error("Erro ao carregar tipos para o filtro:", e); }
+    try {
+        const { data, error } = await supabase.from('tipos_equipamento').select('nome').order('nome');
+        if (!error) {
+            const sel = document.getElementById('filtro_inv_tipo');
+            sel.innerHTML = '<option value="">Todos</option>' + 
+                            data.map(t => `<option value="${t.nome}">${t.nome}</option>`).join('');
+        }
+    } catch (e) { console.error("Erro ao carregar tipos para o filtro:", e); }
 }
 
 function limparFiltrosInventario() {
-document.getElementById('filtro_inv_tipo').value = '';
-document.getElementById('filtro_inv_status').value = '';
-document.getElementById('filtro_inv_serie').value = '';
-carregarInventario(); // Recarrega a tabela mostrando todos
+    document.getElementById('filtro_inv_tipo').value = '';
+    document.getElementById('filtro_inv_status').value = '';
+    document.getElementById('filtro_inv_serie').value = '';
+    carregarInventario(); // Recarrega a tabela mostrando todos
 }
 
 function verificarEnterFiltro(event) {
-// Permite que o técnico aperte Enter no teclado para buscar, sem precisar clicar no botão
-if (event.key === 'Enter') {
-carregarInventario();
-}
+    // Permite que o técnico aperte Enter no teclado para buscar, sem precisar clicar no botão
+    if (event.key === 'Enter') {
+        carregarInventario();
+    }
 }
 
 
 async function carregarInventario() {
-const filtroTipo = document.getElementById('filtro_inv_tipo').value;
-const filtroStatus = document.getElementById('filtro_inv_status').value;
-const filtroSerie = document.getElementById('filtro_inv_serie').value.trim();
+    const filtroTipo = document.getElementById('filtro_inv_tipo').value;
+    const filtroStatus = document.getElementById('filtro_inv_status').value;
+    const filtroSerie = document.getElementById('filtro_inv_serie').value.trim();
 
-try {
-// Inicia a query pegando todos os itens
-let query = supabase.from('inventario').select('*').order('created_at', { ascending: false });
+    try {
+        // Inicia a query pegando todos os itens
+        let query = supabase.from('inventario').select('*').order('created_at', { ascending: false });
 
-// Se o usuário selecionou Tipo, filtra por Tipo
-if (filtroTipo) {
-query = query.eq('tipo', filtroTipo);
-}
+        // Se o usuário selecionou Tipo, filtra por Tipo
+        if (filtroTipo) {
+            query = query.eq('tipo', filtroTipo);
+        }
+        
+        // Se selecionou Status, filtra por Status
+        if (filtroStatus) {
+            query = query.eq('status', filtroStatus);
+        }
+        
+        // Se digitou Número de Série, usa "ilike" para achar mesmo que seja um pedaço do número
+        if (filtroSerie) {
+            query = query.ilike('numero_serie', `%${filtroSerie}%`);
+        }
 
-// Se selecionou Status, filtra por Status
-if (filtroStatus) {
-query = query.eq('status', filtroStatus);
-}
+        const { data, error } = await query;
+        if (error) throw error;
 
-// Se digitou Número de Série, usa "ilike" para achar mesmo que seja um pedaço do número
-if (filtroSerie) {
-query = query.ilike('numero_serie', `%${filtroSerie}%`);
-}
+        const tbody = document.getElementById('lista-inventario-aba');
+        if(tbody) {
+            // Operador ternário elegante para mostrar mensagem caso os filtros não achem nada
+            tbody.innerHTML = data.length > 0 ? data.map(e => {
+                let corStatus = '#3498db'; // Azul para estoque
+                if (e.status === 'Em uso') corStatus = '#2ecc71'; // Verde
+                if (e.status === 'Danificado') corStatus = '#e74c3c'; // Vermelho
 
-const { data, error } = await query;
-if (error) throw error;
-
-const tbody = document.getElementById('lista-inventario-aba');
-if(tbody) {
-// Operador ternário elegante para mostrar mensagem caso os filtros não achem nada
-tbody.innerHTML = data.length > 0 ? data.map(e => {
-let corStatus = '#3498db'; // Azul para estoque
-if (e.status === 'Em uso') corStatus = '#2ecc71'; // Verde
-if (e.status === 'Danificado') corStatus = '#e74c3c'; // Vermelho
-
-return `
-                   <tr>
-                       <td><strong>${e.tipo}</strong></td>
-                       <td>${e.marca}<br><small>${e.modelo}</small></td>
-                       <td>${e.numero_serie}</td>
-                       <td>${e.predio || '-'} / ${e.setor || '-'} <br><small>(${e.andar || '-'})</small></td>
-                       <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${e.status}</span></td>
-                       <td>
-                           <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="alterarStatusInventario('${e.id}')">🔄 Status</button>
-                           <button class="btn-danger btn-sm" onclick="deletarEquipamento('${e.id}')">🗑️ Excluir</button>
-                       </td>
-                   </tr>
-               `;
-}).join('') : '<tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Nenhum equipamento encontrado com estes filtros.</td></tr>';
-}
-} catch (err) { console.error("Erro ao carregar inventário filtrado:", err); }
+                return `
+                    <tr>
+                        <td><strong>${e.tipo}</strong></td>
+                        <td>${e.marca}<br><small>${e.modelo}</small></td>
+                        <td>${e.numero_serie}</td>
+                        <td>${e.predio || '-'} / ${e.setor || '-'} <br><small>(${e.andar || '-'})</small></td>
+                        <td><span style="background-color: ${corStatus}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${e.status}</span></td>
+                        <td>
+                            <button class="btn-primary btn-sm" style="background: #f39c12;" onclick="alterarStatusInventario('${e.id}')">🔄 Status</button>
+                            <button class="btn-danger btn-sm" onclick="deletarEquipamento('${e.id}')">🗑️ Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="6" style="text-align: center; color: #7f8c8d;">Nenhum equipamento encontrado com estes filtros.</td></tr>';
+        }
+    } catch (err) { console.error("Erro ao carregar inventário filtrado:", err); }
 }
 
 async function alterarStatusInventario(id) {
-const novoStatus = prompt("Digite o novo status exato (Em uso, Em estoque, Danificado):");
-if(!novoStatus) return;
+    const novoStatus = prompt("Digite o novo status exato (Em uso, Em estoque, Danificado):");
+    if(!novoStatus) return;
+    
+    // Validação para evitar que alguém digite errado
+    const statusValido = ['Em uso', 'Em estoque', 'Danificado'].includes(novoStatus);
+    if(!statusValido) return alert("Status inválido. Respeite as letras maiúsculas e minúsculas.");
 
-// Validação para evitar que alguém digite errado
-const statusValido = ['Em uso', 'Em estoque', 'Danificado'].includes(novoStatus);
-if(!statusValido) return alert("Status inválido. Respeite as letras maiúsculas e minúsculas.");
-
-try {
-const { error } = await supabase.from('inventario').update({ status: novoStatus }).eq('id', id);
-if (error) throw error;
-alert("Status do equipamento atualizado!");
-carregarInventario();
-} catch (err) { alert("Erro ao atualizar: " + err.message); }
+    try {
+        const { error } = await supabase.from('inventario').update({ status: novoStatus }).eq('id', id);
+        if (error) throw error;
+        alert("Status do equipamento atualizado!");
+        carregarInventario();
+    } catch (err) { alert("Erro ao atualizar: " + err.message); }
 }
 
 async function deletarEquipamento(id) {
-if (!confirm("Tem certeza que deseja excluir este equipamento definitivamente da base?")) return;
-try {
-const { error } = await supabase.from('inventario').delete().eq('id', id);
-if (error) throw error;
-alert("Equipamento removido!");
-carregarInventario();
-} catch (err) { alert("Erro ao remover: " + err.message); }
+    if (!confirm("Tem certeza que deseja excluir este equipamento definitivamente da base?")) return;
+    try {
+        const { error } = await supabase.from('inventario').delete().eq('id', id);
+        if (error) throw error;
+        alert("Equipamento removido!");
+        carregarInventario();
+    } catch (err) { alert("Erro ao remover: " + err.message); }
 }
 
 // ==========================================
 // ADMIN: EXPORTAR PDF E MÁSCARAS
 // ==========================================
 async function exportarPDF() {
-const elementoParaExportar = document.getElementById('app-wrapper');
-html2pdf().from(elementoParaExportar).save('Relatorio_Plantao.pdf');
+    const elementoParaExportar = document.getElementById('app-wrapper');
+    html2pdf().from(elementoParaExportar).save('Relatorio_Plantao.pdf');
 }
 
 function mascaraCPF(cpf) {
-let v = cpf.value.replace(/\D/g, ""); 
-if (v.length > 11) v = v.slice(0, 11); 
-
-v = v.replace(/(\d{3})(\d)/, "$1.$2");
-v = v.replace(/(\d{3})(\d)/, "$1.$2");
-v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-
-cpf.value = v;
+    let v = cpf.value.replace(/\D/g, ""); 
+    if (v.length > 11) v = v.slice(0, 11); 
+    
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    
+    cpf.value = v;
 }
 
 function mascaraTelefone(tel) {
-let v = tel.value.replace(/\D/g, ""); 
-if (v.length > 11) v = v.slice(0, 11); 
-
-v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-v = v.replace(/(\d)(\d{4})$/, "$1-$2");
-
-tel.value = v;
+    let v = tel.value.replace(/\D/g, ""); 
+    if (v.length > 11) v = v.slice(0, 11); 
+    
+    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+    
+    tel.value = v;
 }
