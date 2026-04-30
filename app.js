@@ -1,42 +1,63 @@
 // ==========================================
-// INICIALIZAÇÃO DA TELA (DASHBOARD)
+// INICIALIZAÇÃO DA TELA (DASHBOARD E MENUS)
 // ==========================================
-document.addEventListener("DOMContentLoaded", async () => {
-    // 1. Carrega o dashboard após um breve delay visual
-    setTimeout(() => {
-        if(typeof carregarResumoDashboard === 'function') {
-            carregarResumoDashboard();
-        }
-    }, 1500); 
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // O observador do Supabase vai decidir qual tela exibir usando APENAS suas classes originais
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        const loginContainer = document.getElementById('login-container');
+        const appWrapper = document.getElementById('app-wrapper');
 
-    // 2. 🟢 BLINDAGEM DOS MENUS: Busca direto do banco quem é o usuário
-    try {
-        const { data: authData } = await supabase.auth.getUser();
-        
-        if (authData && authData.user) {
-            const { data: perfil } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', authData.user.id)
-                .single();
+        if (session) {
+            // 🟢 SE LOGOU: Tira a invisibilidade do Sistema e oculta o Login
+            if (loginContainer) loginContainer.classList.add('hidden');
+            if (appWrapper) appWrapper.classList.remove('hidden');
 
-            if (perfil) {
-                const btnConfig = document.getElementById('btn-config');
-                const btnAdmin = document.getElementById('btn-admin');
+            try {
+                // Puxa os dados para saber se é Admin e pegar o Nome
+                const { data: perfil } = await supabase
+                    .from('profiles')
+                    .select('role, nome')
+                    .eq('id', session.user.id)
+                    .single();
 
-                // Mostra/Esconde com base na verdade absoluta do banco
-                if (perfil.role === 'operacional') {
-                    if (btnConfig) btnConfig.classList.remove('hidden');
-                    if (btnAdmin) btnAdmin.classList.add('hidden');
-                } else if (perfil.role === 'admin') {
-                    if (btnConfig) btnConfig.classList.add('hidden');
-                    if (btnAdmin) btnAdmin.classList.remove('hidden');
+                if (perfil) {
+                    window.usuarioAtual = perfil;
+
+                    // Atualiza o nome no Topo (Header)
+                    const userNameHeader = document.getElementById('user-name');
+                    if (userNameHeader && perfil.nome) {
+                        userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
+                    }
+
+                    // Regra dos botões de Config e Admin
+                    const btnConfig = document.getElementById('btn-config');
+                    const btnAdmin = document.getElementById('btn-admin');
+
+                    if (perfil.role === 'operacional') {
+                        if (btnConfig) btnConfig.classList.remove('hidden');
+                        if (btnAdmin) btnAdmin.classList.add('hidden');
+                    } else if (perfil.role === 'admin') {
+                        if (btnConfig) btnConfig.classList.add('hidden');
+                        if (btnAdmin) btnAdmin.classList.remove('hidden');
+                    }
                 }
+            } catch (err) {
+                console.error("Erro ao configurar perfil:", err);
             }
+
+            // Carrega o Dashboard na mesma hora (resolve o problema de ter que dar F5)
+            setTimeout(() => {
+                if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
+                if(typeof carregarMeusDados === 'function') carregarMeusDados();
+            }, 500);
+
+        } else {
+            // 🔴 SE NÃO ESTIVER LOGADO (ou saiu): Esconde o Sistema e mostra o Login
+            if (appWrapper) appWrapper.classList.add('hidden');
+            if (loginContainer) loginContainer.classList.remove('hidden');
         }
-    } catch (err) {
-        console.error("Erro ao verificar nível de acesso do menu:", err);
-    }
+    });
 });
 
 // ==========================================
