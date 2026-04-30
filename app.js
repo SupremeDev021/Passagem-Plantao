@@ -1,31 +1,10 @@
 // ==========================================
-// CONFIGURAÇÕES DE SEGURANÇA E TIMER
-// ==========================================
-let timerInatividade;
-
-function resetarTimerInatividade() {
-    clearTimeout(timerInatividade);
-    // 20 minutos = 20 * 60 * 1000 milissegundos
-    timerInatividade = setTimeout(() => {
-        alert("Sua sessão expirou por inatividade (20 minutos sem uso).");
-        if (typeof fazerLogout === 'function') fazerLogout();
-        else window.location.reload();
-    }, 1200000); 
-}
-
-window.addEventListener('load', resetarTimerInatividade);
-document.addEventListener('mousemove', resetarTimerInatividade);
-document.addEventListener('keydown', resetarTimerInatividade);
-document.addEventListener('click', resetarTimerInatividade);
-
-// ==========================================
 // INICIALIZAÇÃO DA TELA (DASHBOARD E MENUS)
 // ==========================================
 document.addEventListener("DOMContentLoaded", async () => {
     const loginContainer = document.getElementById('login-container');
     const appWrapper = document.getElementById('app-wrapper');
 
-    // 🔴 FUNÇÃO: Volta para a tela de Login
     const irParaLogin = () => {
         if (loginContainer) {
             loginContainer.classList.remove('hidden');
@@ -37,7 +16,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 
-    // 🟢 FUNÇÃO: Mostra o Sistema e o Dashboard
     const irParaApp = async (session) => {
         if (loginContainer) {
             loginContainer.classList.add('hidden');
