@@ -1,64 +1,102 @@
 // ==========================================
-// INICIALIZAÇÃO DA TELA (DASHBOARD E MENUS)
+// 1. GESTÃO DE SESSÃO E SEGURANÇA (TIMER 20MIN)
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    
-    // O observador do Supabase vai decidir qual tela exibir usando APENAS suas classes originais
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        const loginContainer = document.getElementById('login-container');
-        const appWrapper = document.getElementById('app-wrapper');
+let timerInatividade;
 
-        if (session) {
-            // 🟢 SE LOGOU: Tira a invisibilidade do Sistema e oculta o Login
-            if (loginContainer) loginContainer.classList.add('hidden');
-            if (appWrapper) appWrapper.classList.remove('hidden');
+function resetarTimerInatividade() {
+    clearTimeout(timerInatividade);
+    // 20 minutos
+    timerInatividade = setTimeout(() => {
+        alert("Sessão expirada por inatividade.");
+        fazerLogout();
+    }, 1200000); 
+}
 
-            try {
-                // Puxa os dados para saber se é Admin e pegar o Nome
-                const { data: perfil } = await supabase
-                    .from('profiles')
-                    .select('role, nome')
-                    .eq('id', session.user.id)
-                    .single();
+// Ouve interações reais para manter logado
+['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt => 
+    document.addEventListener(evt, resetarTimerInatividade, true)
+);
 
-                if (perfil) {
-                    window.usuarioAtual = perfil;
+// ==========================================
+// 2. CONTROLE DE INTERFACE (ANTI-MISTURA)
+// ==========================================
+function atualizarInterface(session) {
+    const loginContainer = document.getElementById('login-container');
+    const appWrapper = document.getElementById('app-wrapper');
 
-                    // Atualiza o nome no Topo (Header)
-                    const userNameHeader = document.getElementById('user-name');
-                    if (userNameHeader && perfil.nome) {
-                        userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
-                    }
+    if (session) {
+        // Modo Sistema: Garante que o login SUMA e o app APAREÇA
+        if (loginContainer) {
+            loginContainer.classList.add('hidden');
+            loginContainer.style.display = 'none';
+        }
+        if (appWrapper) {
+            appWrapper.classList.remove('hidden');
+            appWrapper.style.display = 'flex';
+        }
+        
+        configurarDadosUsuario(session.user);
+    } else {
+        // Modo Login: Garante que o app SUMA e o login APAREÇA
+        if (appWrapper) {
+            appWrapper.classList.add('hidden');
+            appWrapper.style.display = 'none';
+        }
+        if (loginContainer) {
+            loginContainer.classList.remove('hidden');
+            loginContainer.style.display = 'block';
+        }
+    }
+}
 
-                    // Regra dos botões de Config e Admin
-                    const btnConfig = document.getElementById('btn-config');
-                    const btnAdmin = document.getElementById('btn-admin');
+async function configurarDadosUsuario(user) {
+    try {
+        const { data: perfil } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (perfil) {
+            window.usuarioAtual = perfil;
+            
+            // Header e Menus
+            const userNameHeader = document.getElementById('user-name');
+            if (userNameHeader) userNameHeader.innerText = `Olá, ${perfil.nome.split(' ')[0]}`;
 
-                    if (perfil.role === 'operacional') {
-                        if (btnConfig) btnConfig.classList.remove('hidden');
-                        if (btnAdmin) btnAdmin.classList.add('hidden');
-                    } else if (perfil.role === 'admin') {
-                        if (btnConfig) btnConfig.classList.add('hidden');
-                        if (btnAdmin) btnAdmin.classList.remove('hidden');
-                    }
-                }
-            } catch (err) {
-                console.error("Erro ao configurar perfil:", err);
+            const btnConfig = document.getElementById('btn-config');
+            const btnAdmin = document.getElementById('btn-admin');
+
+            if (perfil.role === 'operacional') {
+                if (btnConfig) btnConfig.classList.remove('hidden');
+                if (btnAdmin) btnAdmin.classList.add('hidden');
+            } else if (perfil.role === 'admin') {
+                if (btnConfig) btnConfig.classList.add('hidden');
+                if (btnAdmin) btnAdmin.classList.remove('hidden');
             }
 
-            // Carrega o Dashboard na mesma hora (resolve o problema de ter que dar F5)
-            setTimeout(() => {
-                if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
-                if(typeof carregarMeusDados === 'function') carregarMeusDados();
-            }, 500);
-
-        } else {
-            // 🔴 SE NÃO ESTIVER LOGADO (ou saiu): Esconde o Sistema e mostra o Login
-            if (appWrapper) appWrapper.classList.add('hidden');
-            if (loginContainer) loginContainer.classList.remove('hidden');
+            // Carregamento automático de dados
+            if(typeof carregarResumoDashboard === 'function') carregarResumoDashboard();
         }
+    } catch (err) {
+        console.error("Erro ao carregar perfil:", err);
+    }
+}
+
+// ==========================================
+// 3. INICIALIZAÇÃO E EVENTOS
+// ==========================================
+document.addEventListener("DOMContentLoaded", async () => {
+    // Checagem inicial de sessão (F5)
+    const { data: { session } } = await supabase.auth.getSession();
+    atualizarInterface(session);
+
+    // Escuta mudanças de estado (Login/Logout)
+    supabase.auth.onAuthStateChange((event, sessionAtual) => {
+        atualizarInterface(sessionAtual);
     });
 });
+
+// Botão Sair (Global para o HTML enxergar)
+window.fazerLogout = async function() {
+    await supabase.auth.signOut();
+    window.location.reload(); 
+};
 
 // ==========================================
 // TROCA DE ABAS E MODAIS
