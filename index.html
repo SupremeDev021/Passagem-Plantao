@@ -35,7 +35,8 @@
                 <button class="tab-btn" onclick="abrirAba('aba-chaves')">🔑 Chaves</button>
                 <button class="tab-btn" onclick="abrirAba('aba-ocorrencias')">⚠️ Ocorrências</button>
                 <button class="tab-btn" onclick="abrirAba('aba-toner')">🖨️ Toner/Chamados</button>
-                <button class="tab-btn" onclick="abrirAba('aba-treinamentos')">📚 Treinamentos</button>
+                <button class="tab-btn" onclick="abrirAba('aba-treinamentos')">📚 Treinamentos Agendados</button>
+                <button class="tab-btn" onclick="abrirAba('aba-solicita-treinamento')">🎓 Solicitações Treinamento</button>
                 <button class="tab-btn" onclick="abrirAba('aba-inventario')">📦 Inventário</button>
                 <button class="tab-btn" onclick="abrirAba('aba-cadastros')">📝 Cadastros Solicitados</button>
                 <button id="btn-config" class="tab-btn hidden" onclick="abrirAba('aba-config')">⚙️ Configurações</button>
@@ -450,6 +451,50 @@
                                 </tr>
                             </thead>
                             <tbody id="lista-treinamentos-aba"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NOVA ABA: SOLICITAÇÕES DE TREINAMENTO EXTERNAS -->
+            <section id="aba-solicita-treinamento" class="tab-content hidden">
+                <h3>Solicitações de Treinamento (Via Site Externo)</h3>
+                
+                <div class="admin-card">
+                    <h4>🔍 Filtrar Solicitações</h4>
+                    <div class="form-row" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                        <div class="form-group" style="flex: 1; min-width: 150px;">
+                            <label>Status:</label>
+                            <select id="filtro_sol_tr_status" style="margin-bottom: 0;">
+                                <option value="Pendente">⏳ Pendentes</option>
+                                <option value="Agendado">📅 Agendados</option>
+                                <option value="Cancelado">❌ Baixa / Cancelado</option>
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="carregarSolicitacoesTreinamento()">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card mt-20">
+                    <h4>📋 Lista de Solicitações</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data Solicitação</th>
+                                    <th>Solicitante / Contato</th>
+                                    <th>Cargo / Setor</th>
+                                    <th>Tema / Data Desejada</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-solicita-treinamento-aba">
+                                <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -1018,6 +1063,18 @@
             <input type="hidden" id="obs_cad_id">
             <textarea id="obs_cad_texto" placeholder="Digite a observação..." required></textarea>
             <button class="btn-success mt-20" onclick="salvarObsCadastro()">Salvar Observação</button>
+        </div>
+    </div>
+
+    <!-- MODAL: DAR BAIXA TREINAMENTO -->
+    <div id="modal-obs-sol-treinamento" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal('modal-obs-sol-treinamento')">&times;</span>
+            <h3>Dar Baixa na Solicitação</h3>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 15px;">Informe o motivo pelo qual este treinamento não será realizado (Ex: Solicitado errado, colaborador de férias, etc).</p>
+            <input type="hidden" id="obs_sol_tr_id">
+            <textarea id="obs_sol_tr_texto" placeholder="Digite o motivo da baixa..." required></textarea>
+            <button class="btn-danger mt-20" onclick="salvarObsSolicitacaoTreinamento()">Confirmar Baixa</button>
         </div>
     </div>
 
